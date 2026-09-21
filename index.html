@@ -238,6 +238,7 @@ const STOPS=[
 ];
 const N=STOPS.length, SUNRISE=407, SUNSET=1142, DARK_AM=380, DARK_PM=1170, GAP=3, ARM_MS=3000;
 const NEAR=120, OFFROUTE=200, OFF_STREAK=2, AUTOSTART_M=200;
+const ON_ROUTE=1000;   // beyond this the snapped position is meaningless: draw nothing
 const NEW_SALT=[2,5,6,7];
 const GEL={1:[true,false],2:[false,false],3:[false,false],4:[false,true],5:[true,true]};
 // per-stop km / elevation / leg stats straight from the track
@@ -337,6 +338,8 @@ function climbBetween(m1,m2){ // metres of ascent along track between two distan
 let watchId=null,busy=false;
 const FIX_STALE=180, FIX_OLD=600;            // seconds: too old to log from / to trust
 function fixAge(){return fix?(Date.now()-fix.at)/1000:1e9}
+// a fix only means something once you are actually near the line
+function onRoute(){return !!fix&&fix.off<=ON_ROUTE&&fixAge()<=FIX_OLD}
 
 function applyFix(p){
   const sn=snap(p.coords.latitude,p.coords.longitude);
@@ -442,7 +445,7 @@ function gpsText(P){
   s+=`${STOPS[nx].n} in <b>${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'}</b>${up>25?` and <b>+${up} m</b>`:''}`;
   s+=` · ±${Math.round(fix.acc)} m`;
   if(fixAge()>FIX_OLD)s+=` · <span class="bad">${Math.round(fixAge()/60)} min old</span>`;
-  if(fix.off>2000)return `<b>${(fix.off/1000).toFixed(1)} km from the route.</b> Nothing is logged until you are on it. Nearest point is km ${km.toFixed(1)}.`;
+  if(fix.off>ON_ROUTE)return `<b>You are ${fix.off>=1000?(fix.off/1000).toFixed(1)+' km':Math.round(fix.off)+' m'} from the route.</b> No position is shown on the map until you are on it. Nearest point of the line is km ${km.toFixed(1)}.`;
   if(fix.off>OFFROUTE&&offStreak>=OFF_STREAK)s+=` · <span class="bad">${Math.round(fix.off)} m off route — stop and find the line</span>`;
   return s;
 }
@@ -480,7 +483,7 @@ function project(){
   if(a>0){let mv=0,br=0;for(let i=1;i<=a;i++){mv+=STOPS[i].mv;br+=STOPS[i-1].b}
     f=Math.min(2.2,Math.max(0.6,(ci[a]-dep-br)/mv));src='check-ins'}
   // a live fix is more current than the last check-in: pace from distance actually covered
-  if(fix&&ci[0]!=null&&fix.m>400){
+  if(onRoute()&&ci[0]!=null&&fix.m>400){
     const md=modelAt(fix.m);let el=nowRel()-dep;if(el<-600)el+=1440;
     if(md.mv>5&&el>5){f=Math.min(2.2,Math.max(0.6,(el-md.br)/md.mv));src='GPS'}
   }
@@ -491,7 +494,7 @@ function project(){
     else t[i]=t[i-1]+STOPS[i-1].b+STOPS[i].mv*f;
   }
   // with a live fix, re-time the stop you are walking towards from where you actually are
-  if(fix&&ci[0]!=null){
+  if(onRoute()&&ci[0]!=null){
     let g=N-1;for(let i=1;i<N;i++)if(TRK.cd[SI[i]]>fix.m+30){g=i;break}
     if(g>a&&state.ci[g]==null){
       const A=TRK.cd[SI[g-1]],B=TRK.cd[SI[g]];
@@ -552,7 +555,7 @@ function legProfile(i){
 // put the GPS dot on whichever leg you are currently inside
 function legMarker(){
   for(let i=0;i<N;i++){const el=document.getElementById('lm'+i);if(el)el.style.display='none'}
-  if(!fix||fixAge()>FIX_OLD)return;
+  if(!onRoute())return;
   const W=300,H=74,PL=30,PR=6,PT=8,PB=14;
   for(let i=1;i<N;i++){
     const a=SI[i-1],b=SI[i],m0=TRK.cd[a],m1=TRK.cd[b];
@@ -616,7 +619,7 @@ function update(){
       g.innerHTML=`<div class="gate ${t>lim?'warn':''}">Pace check: here by ${fmt(lim)}, or you're 30+ min behind. Decide early.</div>`}
     else g.innerHTML='';
     const b=$('b'+i),x=$('x'+i),cc=canCheck(i);
-    const near=fix&&Math.abs(fix.m-TRK.cd[SI[i]])<NEAR;
+    const near=onRoute()&&Math.abs(fix.m-TRK.cd[SI[i]])<NEAR;
     if(done){b.hidden=true;const dlt=Math.round(state.ci[i]-P.base[i]);
       x.innerHTML=i===0?`<span class="stamp">Started ${fmt(state.ci[0])}</span>`
         :`<span class="stamp">Checked in ${fmt(state.ci[i])}</span> <span class="${dlt>10?'late':dlt<-5?'early':''}">${Math.abs(dlt)<3?'on plan':(dlt>0?'+':'')+dlt+' min'}</span>`}
@@ -667,7 +670,7 @@ function update(){
     const s=STOPS[nx],it=intakeTags(s).map(h=>h.replace(/<[^>]+>/g,'')).join('; '),t=P.t[nx],d=t-now;
     $('bh').textContent=`Next: ${s.n}, ${fmt(t)}`;
     let line=`${d>=0?'In '+dur(d):dur(-d)+' behind projection'}, km ${s.km.toFixed(1)}`;
-    if(fix){const gn=gpsNext(),togo=Math.max(0,TRK.cd[SI[gn]]-fix.m);
+    if(onRoute()){const gn=gpsNext(),togo=Math.max(0,TRK.cd[SI[gn]]-fix.m);
       line+=gn===nx?` · ${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'} away by GPS`
         :` · GPS puts you past it, ${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'} short of ${STOPS[gn].n}`}
     $('bd').textContent=line+(it?' · Take: '+it:'');
@@ -679,7 +682,7 @@ function update(){
   }
   if(!big.hidden){const i=P.started?nx:0,cc=canCheck(i);
     big.disabled=!cc.ok;big.classList.toggle('armed',armed===i);big.dataset.i=i;
-    const near=fix&&Math.abs(fix.m-TRK.cd[SI[i]])<NEAR;
+    const near=onRoute()&&Math.abs(fix.m-TRK.cd[SI[i]])<NEAR;
     big.textContent=armed===i?'Tap again to confirm'
       :cc.ok?(i===0?'Start hike':`${near?'You\'re here — ':''}Check in: ${STOPS[i].n}`)
       :cc.why==='Just checked in'?`Check in: ${STOPS[i].n}`:cc.why}
@@ -696,10 +699,10 @@ function profile(P,now){
   const pos=nowPos(P,now);
   if(pos){const A=STOPS[pos.i-1],B=STOPS[pos.i],mm=(A.km+(B.km-A.km)*pos.r)*1000,el=A.m+(B.m-A.m)*pos.r;
     h+=`<circle class="me" cx="${X(mm).toFixed(1)}" cy="${Y(el).toFixed(1)}" r="5"/>`}
-  if(fix)h+=`<circle class="gme" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="5"/>`;
+  if(onRoute())h+=`<circle class="gme" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="5"/>`;
   h+=`<text class="lbl" x="${(X(STOPS[4].km*1000)-22).toFixed(0)}" y="${(Y(2387)-6).toFixed(0)}">Aasgard 2,387 m</text>`;
   h+=`<text class="lbl" x="4" y="132">0 km</text><text class="lbl" x="288" y="132">29.8 km</text>`;
-  if(fix)h+=`<text class="lbl" x="${Math.min(X(fix.m)+7,250).toFixed(0)}" y="${Math.min(Y(fix.el)+16,130).toFixed(0)}">GPS</text>`;
+  if(onRoute())h+=`<text class="lbl" x="${Math.min(X(fix.m)+7,250).toFixed(0)}" y="${Math.min(Y(fix.el)+16,130).toFixed(0)}">GPS</text>`;
   $('prof').innerHTML=h;
 
   const L=lastIdx();let o='';
@@ -707,8 +710,8 @@ function profile(P,now){
     o+=`<g class="mk ${cls}" data-go="${i}"><circle cx="${p[0]}" cy="${p[1]}" r="19"/><text x="${p[0]}" y="${p[1]}">${i+1}</text></g>`});
   if(pos){const A=STOPS[pos.i-1],B=STOPS[pos.i],mm=(A.km+(B.km-A.km)*pos.r)*1000,q=pixAtM(mm);
     o+=`<circle class="nowdot" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="14"/>`;mapFocus=q}
-  if(fix){const q=pixAtM(fix.m);o+=`<circle class="gpsdot" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="15"/>`;mapFocus=q}
-  if(!pos&&!fix){const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
+  if(onRoute()){const q=pixAtM(fix.m);o+=`<circle class="gpsdot" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="15"/>`;mapFocus=q}
+  if(!pos&&!onRoute()){const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
   $('mapov').innerHTML=o;
 }
 
