@@ -135,7 +135,8 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .ci .near{color:var(--ok);font-weight:600}
 .late{color:var(--gate)} .early{color:var(--ok)}
 section.help{margin-top:22px;border-top:1px solid var(--rule);padding-top:14px;font-size:14px}
-section.help h2{font:600 18px var(--cond);margin:10px 0 4px}
+section.help p{margin:0 0 8px}
+section.help .fine{color:var(--muted);font-size:13px;margin-top:12px}
 section.help p{margin:6px 0}
 :focus-visible{outline:2px solid var(--salt);outline-offset:2px}
 </style>
@@ -188,23 +189,11 @@ section.help p{margin:6px 0}
 <ol id="list"></ol>
 
 <section class="help">
-  <h2>GPS</h2>
-  <p><b>Chrome and Safari only allow GPS on https pages.</b> A file opened from your Downloads is file:// or content://, so location is refused with no prompt — that is a browser rule, not a setting you can change. Use the companion GPX in a map app for live position; everything else on this page works offline.</p>
-  <p>Where GPS is permitted, your August track is built into this file and works with no signal: satellites are read directly by the phone. It shows your km mark, your elevation, how far and how much climb to the next stop, and it warns you if you drift more than 150 m off the line. That warning matters most on Aasgard and in the Core, where the route is cairns rather than trail.</p>
-  <p><b>Fix position</b> takes one reading and switches the GPS off again, which costs about as much battery as a few seconds of screen time. Continuous tracking is the expensive part, so it is off by default. Tap it when you want to know where you are, and at each milestone so the check-in and the projection use your real position. The page also takes one fix by itself when you open it or wake the phone, if the last one is over a minute old.</p>
-  <p>A fix older than 10 minutes is marked stale and will not log a milestone, so you are never checked in somewhere you have already left.</p>
-  <p><b>Keep GPS on</b> switches to continuous tracking. Worth it on Aasgard and across the Core, where the live off-route warning earns its power; turn it off again on the long descent.</p>
-  <h2>Checking in</h2>
-  <p>Tap Start hike at the trailhead, then check in as you reach each milestone. The time comes from your phone. Each tap needs a second tap within 3 seconds to confirm, so pocket taps don't count.</p>
-  <p>One check-in per milestone, in order. You can skip a missed one, but you can't check in twice, go back, or check in within 3 minutes of the last one. Undo reverses the most recent check-in only.</p>
-  <h2>How it recalculates</h2>
-  <p>After each check-in, the page compares your real moving time with the plan and applies that ratio to the rest of the route. Breaks stay at their planned length.</p>
-  <p>Turnaround times are the latest arrival that still gets you to Snow Lakes TH by 19:30 at your current pace, so they move earlier if you slow down.</p>
-  <h2>Distances</h2>
-  <p>Every km mark, elevation, and leg gain comes from your GPX. The line measures 29.8 km; your watch logged 32.2 km in August, which is normal GPS overshoot on switchbacks and talus. Expect your watch to read high again.</p>
-  <p>Leg times are modelled from each leg's distance, climb, and descent, with a fatigue curve, scaled so the total is 25% slower than your August solo pace.</p>
-  <h2>Offline and saving</h2>
-  <p>Open this file from your phone's browser, not a chat preview. Check-ins are kept in the page address and survive a reload; opening the file fresh starts over.</p>
+  <p><b>Fix position</b> takes one GPS reading, then switches it off. Cheap on battery. Tap it at each milestone.</p>
+  <p><b>Check in</b> at each milestone — two taps, or it happens by itself when GPS says you're there. Everything after re-times from your real pace.</p>
+  <p><b>Turnarounds</b> are the latest you can leave and still finish by dark. They move earlier if you slow down.</p>
+  <p><b>Keep GPS on</b> only for Aasgard and the Core, where the off-route warning is worth the battery.</p>
+  <p class="fine">29.8 km and +1,957 m from your August GPX; your watch read 32.2 km, which is normal overshoot. Leg times are modelled from each leg's climb and descent, 25% slower than your August pace.</p>
 </section>
 </main>
 
