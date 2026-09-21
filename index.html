@@ -278,7 +278,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 13:45';
+const BUILD='2026-09-21 14:50';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -355,7 +355,7 @@ function climbBetween(m1,m2){ // metres of ascent along track between two distan
     if(e-ref>3){up+=e-ref;ref=e}else if(e<ref)ref=e}
   return Math.round(up);
 }
-let watchId=null,busy=false;
+let watchId=null,busy=false,busyAt=0,busyTimer=null;
 const FIX_STALE=180, FIX_OLD=600;            // seconds: too old to log from / to trust
 function fixAge(){return fix?(Date.now()-fix.at)/1000:1e9}
 // a fix only means something once you are actually near the line
@@ -372,17 +372,20 @@ function gpsFail(e){
   $('gps').className='off';
   $('gpsline').innerHTML=(e.code===1&&LOCAL)
     ? '<b>Chrome blocks GPS for files opened from storage.</b> It only allows location on https pages, and this one opens as file:// or content://, so there is no permission to grant. Everything else here works offline. For live position, use the milestone GPX in a map app.'
-    : '<span class="bad">No fix: '+(e.code===1?'location permission is off for this page.':e.code===3?'timed out. Stand under open sky and try again.':'position unavailable.')+'</span>';
+    : '<span class="bad">No fix: '+(e.code===1?'location permission is off for this page.':e.code===3?'no satellites in 90 s. Move clear of cliffs and trees, stand still, try again.':'position unavailable.')+'</span>';
   update();
 }
 // one-shot fix: radio on, fix, radio off. The cheap way to use GPS.
 function fixOnce(quiet){
   if(busy||!navigator.geolocation)return;
-  busy=true;update();
+  busy=true;busyAt=Date.now();update();
+  clearInterval(busyTimer);busyTimer=setInterval(update,1000);   // count up while acquiring
+  const done=()=>{busy=false;clearInterval(busyTimer);busyTimer=null};
   navigator.geolocation.getCurrentPosition(
-    p=>{busy=false;applyFix(p)},
-    e=>{if(quiet){busy=false;update();return}gpsFail(e)},
-    {enableHighAccuracy:true,maximumAge:0,timeout:30000});
+    p=>{done();applyFix(p)},
+    e=>{done();if(quiet){update();return}gpsFail(e)},
+    // no cell or wifi means no assisted GPS: a first fix can take a minute or more
+    {enableHighAccuracy:true,maximumAge:0,timeout:90000});
 }
 // continuous tracking, for the sections where an off-route warning is worth the battery
 function watchStop(){
@@ -394,7 +397,7 @@ function watchStart(){
   watchId=navigator.geolocation.watchPosition(applyFix,e=>{
       if(e.code===1){watchStop();gpsFail(e);return}     // permission gone: stop
       $('gpsline').innerHTML='<span class="bad">GPS dropout — waiting for satellites…</span>';   // transient: keep watching
-    },{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+    },{enableHighAccuracy:true,maximumAge:5000,timeout:90000});
   update();
 }
 function watchToggle(on){on?watchStart():watchStop()}
@@ -672,7 +675,9 @@ function update(){
 
   const fb=$('fixbtn'),fa=$('fixage');
   fb.disabled=busy||LOCAL;
-  fb.textContent=busy?'Getting fix…':fix?'Update position':'Fix position';
+  const secs=busy?Math.round((Date.now()-busyAt)/1000):0;
+  fb.textContent=busy?`Getting fix… ${secs}s`:fix?'Update position':'Fix position';
+  if(busy&&secs>12)$('gpsline').innerHTML='<b>Looking for satellites.</b> With no signal there is no assisted GPS, so a first fix can take a minute. Stand still under open sky.';
   if(LOCAL)fa.textContent='';
   else if(!fix)fa.textContent=busy?'':'no fix yet';
   else{const a=Math.round(fixAge());
