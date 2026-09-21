@@ -2,12 +2,12 @@
 <gpx version="1.1" creator="Enchantments day-hike plan, Sept 22 2026" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
     <name>Enchantments Traverse - Jo, Juanjo, Javier - Sept 22 2026</name>
-    <desc>Stuart Lake TH to Snow Lakes TH, 29.8 km, +1957 m, -2599 m. 11 planned milestones with times, salt and gel schedule, and the two turnaround cutoffs.</desc>
+    <desc>Stuart Lake TH to Snow Lakes TH, 29.8 km, +1957 m, -2599 m. 11 planned milestones with times, electrolyte and gel schedule, and the two turnaround cutoffs.</desc>
   </metadata>
   <wpt lat="47.52777" lon="-120.82083">
     <ele>1045.1</ele>
     <name>1 Stuart Lake TH — START 05:45</name>
-    <desc>km 0.00 | 1045 m | plan 05:45 | Salt #1 thirty minutes before walking. Start cold: base layer and wind shell.</desc>
+    <desc>km 0.00 | 1045 m | plan 05:45 | Electrolyte #1 thirty minutes before walking. Start cold: base layer and wind shell.</desc>
     <sym>Flag, Blue</sym>
     <type>Milestone</type>
   </wpt>
@@ -20,8 +20,8 @@
   </wpt>
   <wpt lat="47.48727" lon="-120.83138">
     <ele>1758.7</ele>
-    <name>3 Base of Aasgard — Salt 2 + Gel 1</name>
-    <desc>km 7.89 | 1759 m | plan 08:30 | 1.83 km of boulders around the shore. Salt #2, Gel 1. Stay climbers left of the larch grove.</desc>
+    <name>3 Base of Aasgard — Electrolyte 2 + Gel 1</name>
+    <desc>km 7.89 | 1759 m | plan 08:30 | 1.83 km of boulders around the shore. Electrolyte #2, Gel 1. Stay climbers left of the larch grove.</desc>
     <sym>Flag, Blue</sym>
     <type>Milestone</type>
   </wpt>
@@ -41,36 +41,36 @@
   </wpt>
   <wpt lat="47.4825" lon="-120.79489">
     <ele>2164.4</ele>
-    <name>6 Mid-Core lunch — Salt 3</name>
-    <desc>km 12.36 | 2164 m | plan 10:50 | Lunch 30 min. Salt #3. Pee on rock 60 m off-trail, keep goats away.</desc>
+    <name>6 Mid-Core lunch — Electrolyte 3</name>
+    <desc>km 12.36 | 2164 m | plan 10:50 | Lunch 30 min. Electrolyte #3. Pee on rock 60 m off-trail, keep goats away.</desc>
     <sym>Flag, Blue</sym>
     <type>Milestone</type>
   </wpt>
   <wpt lat="47.48252" lon="-120.77845">
     <ele>2040.8</ele>
     <name>7 Lake Viviane — TURN BACK IF AFTER 13:20</name>
-    <desc>km 14.56 | 2041 m | plan 11:40 | Salt #4, Gel 3. Shorten poles. Headwall: 379 m down in 1.7 km on polished slab. Follow cairns exactly.</desc>
+    <desc>km 14.56 | 2041 m | plan 11:40 | Electrolyte #4, Gel 3. Shorten poles. Headwall: 379 m down in 1.7 km on polished slab. Follow cairns exactly.</desc>
     <sym>Flag, Blue</sym>
     <type>Milestone</type>
   </wpt>
   <wpt lat="47.47888" lon="-120.76675">
     <ele>1669.7</ele>
-    <name>8 Upper Snow Lake — Salt 5</name>
-    <desc>km 16.25 | 1670 m | plan 12:30 | Bottom of the headwall. Salt #5. Sun cap, sunscreen, dry socks, savory food.</desc>
+    <name>8 Upper Snow Lake — Electrolyte 5</name>
+    <desc>km 16.25 | 1670 m | plan 12:30 | Bottom of the headwall. Electrolyte #5. Sun cap, sunscreen, dry socks, savory food.</desc>
     <sym>Flag, Blue</sym>
     <type>Milestone</type>
   </wpt>
   <wpt lat="47.50001" lon="-120.72976">
     <ele>1475.7</ele>
-    <name>9 Nada Lake SE — LAST WATER, Salt 6 + Gel 4</name>
-    <desc>km 21.50 | 1476 m | plan 14:25 | LAST WATER ON THE ROUTE. Fill 1.5-2 L each. Salt #6, Gel 4 (caffeine).</desc>
+    <name>9 Nada Lake SE — LAST WATER, Electrolyte 6 + Gel 4</name>
+    <desc>km 21.50 | 1476 m | plan 14:25 | LAST WATER ON THE ROUTE. Fill 1.5-2 L each. Electrolyte #6, Gel 4 (caffeine).</desc>
     <sym>Flag, Blue</sym>
     <type>Milestone</type>
   </wpt>
   <wpt lat="47.52615" lon="-120.71633">
     <ele>850.0</ele>
-    <name>10 Burn scar — Salt 7 + Gel 5</name>
-    <desc>km 26.00 | 850 m | plan 16:20 | Salt #7, Gel 5 (caffeine). Hot and exposed, 700 m of descent in this leg.</desc>
+    <name>10 Burn scar — Electrolyte 7 + Gel 5</name>
+    <desc>km 26.00 | 850 m | plan 16:20 | Electrolyte #7, Gel 5 (caffeine). Hot and exposed, 700 m of descent in this leg.</desc>
     <sym>Flag, Blue</sym>
     <type>Milestone</type>
   </wpt>

@@ -1,5 +1,5 @@
 // Enchantments planner - offline cache
-const BUILD='2026-09-21 13:25';
+const BUILD='2026-09-21 13:45';
 const CACHE='ench-'+BUILD;
 const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{
