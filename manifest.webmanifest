@@ -1,0 +1,14 @@
+{
+  "name": "Enchantments traverse — Sept 22, 2026",
+  "short_name": "Enchantments",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E9ECE8",
+  "theme_color": "#1C2A2E",
+  "icons": [
+    {"src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}
