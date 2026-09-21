@@ -67,6 +67,9 @@ button{cursor:pointer}
 #fixage .stale{color:var(--warn);font-weight:600}
 #autobar{background:var(--ok);color:#fff;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 #autobar button{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:6px;padding:4px 10px;font-size:13px}
+#newver{background:var(--salt);color:#fff;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+#newver button{border-color:rgba(255,255,255,.7);color:#fff}
+#build{color:var(--muted);font-size:12px;margin-top:14px}
 #gpsline b{color:var(--ink);font-variant-numeric:tabular-nums}
 #gpsline .bad{color:var(--gate);font-weight:700}
 
@@ -170,6 +173,7 @@ section.help p{margin:6px 0}
   <span id="gpsline">One tap takes a single fix and switches the GPS off again, so it costs almost no battery. Leave it off between milestones.</span>
 </div>
 <div id="autobar" hidden></div>
+<div id="newver" hidden><span>A newer version is ready.</span><button class="ghost" id="reloadbtn" type="button">Reload</button></div>
 
 <div class="panel">
   <div class="finish"><b class="num" id="fin"></b><span id="finlbl"></span></div>
@@ -194,6 +198,7 @@ section.help p{margin:6px 0}
   <p><b>Turnarounds</b> are the latest you can leave and still finish by dark. They move earlier if you slow down.</p>
   <p><b>Keep GPS on</b> only for Aasgard and the Core, where the off-route warning is worth the battery.</p>
   <p class="fine">29.8 km and +1,957 m from your August GPX; your watch read 32.2 km, which is normal overshoot. Leg times are modelled from each leg's climb and descent, 25% slower than your August pace.</p>
+  <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
 </section>
 </main>
 
@@ -272,6 +277,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
+const BUILD='2026-09-21 13:25';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -718,6 +724,18 @@ function profile(P,now){
 /* ---------- wiring ---------- */
 $('dep').addEventListener('input',e=>{if(e.target.value){state.dep=e.target.value;update()}});
 $('bigbtn').addEventListener('click',e=>tap(+e.currentTarget.dataset.i));
+$('buildver').textContent='Version '+BUILD;
+$('reloadbtn').addEventListener('click',()=>location.reload(true));
+// with a connection, say plainly whether this copy matches what is published
+function checkLive(){
+  if(LOCAL){$('netver').textContent='downloaded file — check the link for newer';return}
+  fetch('./index.html?live=1&v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{
+    const m=t.match(/const BUILD='([^']+)'/);
+    if(!m)return;
+    $('netver').textContent = m[1]===BUILD ? 'up to date' : 'newer version published: '+m[1];
+    if(m[1]!==BUILD)$('newver').hidden=false;
+  }).catch(()=>{$('netver').textContent='offline — cannot check for a newer one'});
+}
 $('undo').addEventListener('click',undo);
 let wipeArmed=false,wipeTimer=null;
 $('wipe').addEventListener('click',()=>{const w=$('wipe');
@@ -753,9 +771,19 @@ function initOffline(){
   if(!('serviceWorker'in navigator)){
     offState('no','<b>This browser cannot store the page offline.</b> Save a copy instead, or keep this tab open.');return;
   }
+  const hadController=!!navigator.serviceWorker.controller;   // false on a first install
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadController)$('newver').hidden=false});
   navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(reg=>{
+    reg.update().catch(()=>{});
+    reg.addEventListener('updatefound',()=>{
+      const w=reg.installing;if(!w)return;
+      w.addEventListener('statechange',()=>{
+        if(w.state==='installed'&&navigator.serviceWorker.controller)$('newver').hidden=false;
+      });
+    });
+    setInterval(()=>reg.update().catch(()=>{}),300000);
     const done=()=>{
-      caches.has('ench-2026-09-22-v1').then(ok=>{
+      caches.keys().then(ks=>ks.some(k=>k.startsWith('ench-'))).then(ok=>{
         offState(ok?'ready':'no', ok
           ? '<b>Saved for offline.</b> It opens with no signal now, and GPS keeps working. Add it to your home screen from the browser menu so you can reopen it without the link.'
           : '<b>Not stored yet.</b> Stay on a connection a few more seconds, then pull down to reload.');
@@ -770,7 +798,7 @@ function initOffline(){
 }
 try{load()}catch(e){}
 $('dep').value=state.dep;$('autochk').checked=state.auto;
-build();update();gpsAuto();initOffline();
+build();update();gpsAuto();initOffline();checkLive();
 setInterval(()=>{if(armed===null){autoLogic();update()}},15000);
 </script>
 </body>
