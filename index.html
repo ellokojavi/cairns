@@ -124,6 +124,15 @@ svg.legsvg{margin:6px 0 2px;border-radius:6px;border:1px solid var(--rule);backg
 .lgme.est{fill:var(--gate)}
 .lgmel{font:700 9px var(--body);fill:#1669C7;paint-order:stroke;stroke:var(--panel);stroke-width:2.2}
 .lgmel.est{fill:var(--gate)} .lgmel.end{text-anchor:end}
+details.ph{margin:6px 0 2px;border:1px solid var(--rule);border-radius:6px;background:var(--panel)}
+details.ph summary{padding:7px 10px;font:13px var(--body);color:var(--muted);cursor:pointer;list-style:none}
+details.ph summary::-webkit-details-marker{display:none}
+details.ph summary::before{content:'▸ ';color:var(--muted)}
+details.ph[open] summary::before{content:'▾ '}
+details.ph[open] summary{border-bottom:1px solid var(--rule)}
+.phi{display:block;width:100%;height:auto;border-radius:0 0 5px 5px}
+details.ph[open] .phi{border-radius:0}
+.phc{margin:0;padding:7px 10px;font:12px var(--body);color:var(--muted)}
 svg.mini{margin:8px 0 2px;border-radius:6px;border:1px solid var(--rule);background:#fff}
 .mini .ring{fill:none;stroke:#B0432A;stroke-width:5}
 .badge{display:inline-block;min-width:22px;padding:0 6px;margin-right:6px;border-radius:11px;background:var(--ink);color:var(--bg);font:700 13px/22px var(--body);text-align:center;vertical-align:2px}
@@ -335,7 +344,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 20:40';
+const BUILD='2026-09-21 21:05';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -704,6 +713,17 @@ function legMarker(P,now){
 function mini(i){const p=PTS[STOP_AT[i]],w=440,h=240;
   const x=Math.round(Math.max(0,Math.min(1163-w,p[0]-w/2))),y=Math.round(Math.max(0,Math.min(1084-h,p[1]-h/2)));
   return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map close-up of ${STOPS[i].n}"><use href="#mapimg"/><circle class="ring" cx="${p[0]}" cy="${p[1]}" r="22"/></svg>`}
+/* ---------- milestone photos: our own, from the Aug 21 run of this route ----------
+   PHOTOS[i] = [filename, caption]. A stop with no entry simply has no widget.
+   Collapsed by default so the cards stay short; the files sit in photos/ and are
+   precached by the service worker, so they open with no signal. */
+const PHOTOS={};
+function photoBox(i){
+  const p=PHOTOS[i];if(!p)return'';
+  return `<details class="ph"><summary>Photo — what it looks like</summary>`
+    +`<img class="phi" loading="lazy" src="photos/${p[0]}" alt="${STOPS[i].n}">`
+    +(p[1]?`<p class="phc">${p[1]}</p>`:'')+`</details>`;
+}
 function build(){
   const ol=$('list');
   STOPS.forEach((s,i)=>{
@@ -713,7 +733,7 @@ function build(){
     <div class="meta num" id="m${i}"></div>
     ${i>0?`<p class="leg num">Leg ${s.legkm.toFixed(2)} km, +${s.up} m, −${s.dn} m, ${dur(s.mv)} moving${s.grade>=8?` · ${s.grade}% average climb`:''}</p>`:''}
     <div class="row" id="r${i}"></div>
-    <p class="note">${s.note}</p>${mini(i)}${legProfile(i)}<div id="g${i}"></div>
+    <p class="note">${s.note}</p>${mini(i)}${legProfile(i)}${photoBox(i)}<div id="g${i}"></div>
     <div class="ci"><button type="button" data-i="${i}" id="b${i}"></button><span id="x${i}"></span></div></div>`;
     ol.appendChild(li);
   });
