@@ -117,14 +117,16 @@ svg.legsvg{margin:6px 0 2px;border-radius:6px;border:1px solid var(--rule);backg
 .lgax.end{text-anchor:end}
 .lgfrom{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}
 .lgto{fill:var(--gate);stroke:var(--panel);stroke-width:1.6}
-.lgme{fill:#1669C7;stroke:#fff;stroke-width:1.6}
+.lgme{fill:#1669C7;stroke:#fff;stroke-width:2}
+.lgme.est{fill:var(--gate)}
 svg.mini{margin:8px 0 2px;border-radius:6px;border:1px solid var(--rule);background:#fff}
 .mini .ring{fill:none;stroke:#B0432A;stroke-width:5}
 .badge{display:inline-block;min-width:22px;padding:0 6px;margin-right:6px;border-radius:11px;background:var(--ink);color:var(--bg);font:700 13px/22px var(--body);text-align:center;vertical-align:2px}
 
 .area{fill:var(--rule)} .line{fill:none;stroke:var(--ink);stroke-width:1.4}
 .dot{fill:var(--panel);stroke:var(--ink);stroke-width:1.4} .dot.done{fill:var(--ok);stroke:var(--ok)}
-.me{fill:var(--gate)} .gme{fill:#1669C7;stroke:#fff;stroke-width:1.5}
+.me{fill:var(--gate)} .gme{fill:#1669C7}
+.halo{fill:var(--panel)}
 .lbl{font:10px var(--body);fill:var(--muted)}
 
 ol{list-style:none;margin:0;padding:0}
@@ -324,7 +326,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 18:05';
+const BUILD='2026-09-21 19:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -632,23 +634,33 @@ function legProfile(i){
   s+=`<circle class="lgme" id="lm${i}" r="4.5" style="display:none"/></svg>`;
   return s;
 }
-// put the GPS dot on whichever leg you are currently inside
-function legMarker(){
-  for(let i=0;i<N;i++){const el=document.getElementById('lm'+i);if(el)el.style.display='none'}
-  if(!onRoute())return;
+// mark the position on the whole-route profile and on the leg you are inside
+function legMarker(P,now){
+  for(let i=0;i<N;i++){const e=document.getElementById('lm'+i);if(e)e.style.display='none'}
+  let m=null,isGps=false;
+  if(onRoute()){m=fix.m;isGps=true}
+  else{const pos=nowPos(P,now);
+    if(pos){const A=STOPS[pos.i-1],B=STOPS[pos.i];m=(A.km+(B.km-A.km)*pos.r)*1000}}
+  if(m==null)return;
   const W=300,H=74,PL=30,PR=6,PT=8,PB=14;
-  for(let i=1;i<N;i++){
-    const a=SI[i-1],b=SI[i],m0=TRK.cd[a],m1=TRK.cd[b];
-    if(fix.m<m0-20||fix.m>m1+20)continue;
+  const place=(i,a,b)=>{
+    const e=document.getElementById('lm'+i);if(!e)return;
     let lo=Infinity,hi=-Infinity;
-    for(let k=a;k<=b;k++){const e=TRK.el[k];if(e<lo)lo=e;if(e>hi)hi=e}
+    for(let k=a;k<=b;k++){const v=TRK.el[k];if(v<lo)lo=v;if(v>hi)hi=v}
     const pad=Math.max(12,(hi-lo)*0.12);lo-=pad;hi+=pad;
-    const span=Math.max(1,m1-m0);
-    const el=document.getElementById('lm'+i);if(!el)break;
-    el.setAttribute('cx',(PL+(fix.m-m0)/span*(W-PL-PR)).toFixed(1));
-    el.setAttribute('cy',(PT+(hi-fix.el)/(hi-lo)*(H-PT-PB)).toFixed(1));
-    el.style.display='';break;
-  }
+    const m0=TRK.cd[a],m1=TRK.cd[b],span=Math.max(1,m1-m0);
+    let el=TRK.el[a];                                  // elevation at m, from the track
+    for(let k=a;k<b;k++){if(TRK.cd[k+1]>=m){const f=(m-TRK.cd[k])/Math.max(1,TRK.cd[k+1]-TRK.cd[k]);
+      el=TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*f;break}}
+    const t=Math.max(0,Math.min(1,(m-m0)/span));
+    e.setAttribute('cx',(PL+t*(W-PL-PR)).toFixed(1));
+    e.setAttribute('cy',(PT+(hi-el)/(hi-lo)*(H-PT-PB)).toFixed(1));
+    e.setAttribute('class','lgme'+(isGps?'':' est'));
+    e.style.display='';
+  };
+  place(0,0,TRK.n-1);                                  // the whole-route profile on card 1
+  for(let i=1;i<N;i++){const a=SI[i-1],b=SI[i];
+    if(m>=TRK.cd[a]-20&&m<=TRK.cd[b]+20){place(i,a,b);break}}
 }
 
 function mini(i){const p=PTS[STOP_AT[i]],w=440,h=240;
@@ -783,7 +795,7 @@ function update(){
       :cc.ok?(i===0?'Start hike':`${near?'You\'re here — ':''}Check in: ${STOPS[i].n}`)
       :cc.why==='Just checked in'?`Check in: ${STOPS[i].n}`:cc.why}
 
-  profile(P,now);legMarker();save();
+  profile(P,now);legMarker(P,now);save();
 }
 
 let mapFocus=[247,407];
@@ -793,9 +805,11 @@ function profile(P,now){
   let h=`<path class="area" d="${d}L${X(TOT).toFixed(1)},118L12,118Z"/><path class="line" d="${d}"/>`;
   STOPS.forEach((s,i)=>{h+=`<circle class="dot${state.ci[i]!=null?' done':''}" cx="${X(s.km*1000).toFixed(1)}" cy="${Y(s.m).toFixed(1)}" r="3.4"/>`});
   const pos=nowPos(P,now);
-  if(pos){const A=STOPS[pos.i-1],B=STOPS[pos.i],mm=(A.km+(B.km-A.km)*pos.r)*1000,el=A.m+(B.m-A.m)*pos.r;
-    h+=`<circle class="me" cx="${X(mm).toFixed(1)}" cy="${Y(el).toFixed(1)}" r="5"/>`}
-  if(onRoute())h+=`<circle class="gme" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="5"/>`;
+  if(pos&&!onRoute()){const A=STOPS[pos.i-1],B=STOPS[pos.i],mm=(A.km+(B.km-A.km)*pos.r)*1000,el=A.m+(B.m-A.m)*pos.r;
+    h+=`<circle class="halo" cx="${X(mm).toFixed(1)}" cy="${Y(el).toFixed(1)}" r="7"/>`
+      +`<circle class="me" cx="${X(mm).toFixed(1)}" cy="${Y(el).toFixed(1)}" r="5"/>`}
+  if(onRoute())h+=`<circle class="halo" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="7"/>`
+    +`<circle class="gme" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="5"/>`;
   h+=`<text class="lbl" x="${(X(STOPS[4].km*1000)-22).toFixed(0)}" y="${(Y(2387)-6).toFixed(0)}">Aasgard 2,387 m</text>`;
   h+=`<text class="lbl" x="4" y="132">0 km</text><text class="lbl" x="288" y="132">29.8 km</text>`;
   if(onRoute())h+=`<text class="lbl" x="${Math.min(X(fix.m)+7,250).toFixed(0)}" y="${Math.min(Y(fix.el)+16,130).toFixed(0)}">GPS</text>`;
