@@ -326,7 +326,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 19:30';
+const BUILD='2026-09-21 19:45';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -905,7 +905,7 @@ function initOffline(){
     const done=()=>{
       caches.keys().then(ks=>ks.some(k=>k.startsWith('ench-'))).then(ok=>{
         offState(ok?'ready':'no', ok
-          ? '<b>Saved for offline.</b> It opens with no signal now, and GPS keeps working. Add it to your home screen from the browser menu so you can reopen it without the link.'
+          ? '<b>Works in Airplane mode.</b> The whole page is on your phone now. GPS still works with no signal, and only checks your position when you ask it to, so it barely touches the battery. Add it to your home screen from the browser menu to reopen it without the link.'
           : '<b>Not stored yet.</b> Stay on a connection a few more seconds, then pull down to reload.');
       });
     };
