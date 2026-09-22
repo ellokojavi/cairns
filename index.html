@@ -133,6 +133,7 @@ details.ph[open] summary{border-bottom:1px solid var(--rule)}
 .phi{display:block;width:100%;height:auto;border-radius:0 0 5px 5px}
 details.ph[open] .phi{border-radius:0}
 .phc{margin:0;padding:7px 10px;font:12px var(--body);color:var(--muted)}
+.cred{font-size:11px;opacity:.8}.cred a{color:inherit}
 svg.mini{margin:8px 0 2px;border-radius:6px;border:1px solid var(--rule);background:#fff}
 .mini .ring{fill:none;stroke:#B0432A;stroke-width:5}
 .badge{display:inline-block;min-width:22px;padding:0 6px;margin-right:6px;border-radius:11px;background:var(--ink);color:var(--bg);font:700 13px/22px var(--body);text-align:center;vertical-align:2px}
@@ -344,7 +345,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 21:05';
+const BUILD='2026-09-21 22:20';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -717,7 +718,16 @@ function mini(i){const p=PTS[STOP_AT[i]],w=440,h=240;
    PHOTOS[i] = [filename, caption]. A stop with no entry simply has no widget.
    Collapsed by default so the cards stay short; the files sit in photos/ and are
    precached by the service worker, so they open with no signal. */
-const PHOTOS={};
+const PHOTOS={
+  1:["01.webp","Colchuck Lake, with Dragontail and the pass behind it<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Colchuck_Lake_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
+  2:["02.webp","Aasgard Pass from the Colchuck side — this is the wall<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Aasgard_Pass_from_the_Colchuck_side_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
+  3:["03.webp","Two-thirds of the way up Aasgard: boulders, no trail<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Aasgard_Pass_from_two-thirds_of_the_way_up_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
+  4:["04.webp","Colchuck from high on Aasgard — what you just climbed<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Colchuck_Lake_from_the_way_up_Aasgard_Pass_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
+  5:["05.webp","Prusik Peak and the Temple, from near Perfection Lake<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Prusik_Peak_and_the_Temple_from_near_Perfection_Lake_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
+  6:["06.webp","Lake Viviane, the last of the Core before the drop<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Lake_Viviane,_Enchantments_(11_October_2024)_3.jpg' target='_blank' rel='noopener'>source</a></span>"],
+  7:["07.webp","The Snow Lakes valley — the long descent ahead<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Views_of_the_Snow_Lakes_valley_from_the_Enchantments_side_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
+  8:["08.webp","Nada Lake and the valley out<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Nada_Lake_after_dark.jpg' target='_blank' rel='noopener'>source</a></span>"]
+};
 function photoBox(i){
   const p=PHOTOS[i];if(!p)return'';
   return `<details class="ph"><summary>Photo — what it looks like</summary>`

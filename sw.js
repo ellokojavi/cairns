@@ -1,7 +1,8 @@
 // Enchantments planner - offline cache
-const BUILD='2026-09-21 21:05';
+const BUILD='2026-09-21 22:20';
 const CACHE='ench-'+BUILD;
-const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png']
+  .concat(['01','02','03','04','05','06','07','08'].map(n=>'./photos/'+n+'.webp'));
 self.addEventListener('install',e=>{
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(CORE.map(u=>c.add(new Request(u,{cache:'reload'}))))));
