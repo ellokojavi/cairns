@@ -113,6 +113,9 @@ svg.legsvg{margin:6px 0 2px;border-radius:6px;border:1px solid var(--rule);backg
 .lgarea{fill:var(--rule);opacity:.55}
 .lgline{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round}
 .lggrid{stroke:var(--rule);stroke-width:1;stroke-dasharray:3 3}
+.pgrid{stroke:var(--muted);stroke-width:.6;opacity:.42;stroke-dasharray:2 3}
+.pax{font:9px var(--body);fill:var(--muted);opacity:.85;text-anchor:end}
+.pax.hilo{fill:var(--ink);opacity:1}
 .lgax{font:9px var(--body);fill:var(--muted)}
 .lgax.end{text-anchor:end}
 .lgfrom{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}
@@ -127,7 +130,7 @@ svg.mini{margin:8px 0 2px;border-radius:6px;border:1px solid var(--rule);backgro
 .dot{fill:var(--panel);stroke:var(--ink);stroke-width:1.4} .dot.done{fill:var(--ok);stroke:var(--ok)}
 .me{fill:var(--gate)} .gme{fill:#1669C7}
 .halo{fill:var(--panel)}
-.lbl{font:10px var(--body);fill:var(--muted)}
+.lbl{font:10px var(--body);fill:var(--muted)} .lbl.end{text-anchor:end}
 
 ol{list-style:none;margin:0;padding:0}
 li.stop{display:grid;grid-template-columns:64px 1fr;gap:0 12px;position:relative;padding:14px 0;border-top:1px solid var(--rule)}
@@ -326,7 +329,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 19:45';
+const BUILD='2026-09-21 20:05';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -601,6 +604,11 @@ function intakeTags(s){
   if(s.gel){const g=GEL[s.gel];o.push(`<span class="tag gel">Gel ${s.gel}${g[1]?', caffeine':''}, ${g[0]?'everyone':'experienced only'}</span>`)}
   return o;
 }
+// a round altitude step that gives at most `want` gridlines over `range` metres
+function gridStep(range,want){
+  for(const s of [10,20,25,50,100,200,250,500,1000])if(range/s<=want)return s;
+  return 1000;
+}
 // elevation profile of the leg into a stop, straight from the track
 function legProfile(i){
   const W=300,H=74,PL=30,PR=6,PT=8,PB=14;
@@ -617,11 +625,21 @@ function legProfile(i){
   d+='L'+X(m1).toFixed(1)+','+Y(TRK.el[b]).toFixed(1);
   const base=H-PB;
   let s=`<svg class="legsvg" id="lp${i}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevation of the leg into ${STOPS[i].n}">`;
-  s+=`<path class="lgarea" d="${d}L${X(m1).toFixed(1)},${base}L${X(m0).toFixed(1)},${base}Z"/><path class="lgline" d="${d}"/>`;
+  s+=`<path class="lgarea" d="${d}L${X(m1).toFixed(1)},${base}L${X(m0).toFixed(1)},${base}Z"/>`;
+  // faint altitude graduation, on round metre values
+  const st=gridStep(hi-lo,i===0?5:4),gy=[];
+  for(let e=Math.ceil(lo/st)*st;e<=hi;e+=st){
+    const y=Y(e);gy.push(y);
+    s+=`<line class="pgrid" x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}"/>`;
+    s+=`<text class="pax" x="${PL-4}" y="${(y+3.2).toFixed(1)}">${e}</text>`;
+  }
+  s+=`<path class="lgline" d="${d}"/>`;
   // gridline at the arrival elevation
   s+=`<line class="lggrid" x1="${PL}" y1="${Y(TRK.el[b]).toFixed(1)}" x2="${W-PR}" y2="${Y(TRK.el[b]).toFixed(1)}"/>`;
-  s+=`<text class="lgax" x="2" y="${(Y(hi-pad)+4).toFixed(1)}">${Math.round(hi-pad)}</text>`;
-  s+=`<text class="lgax" x="2" y="${(Y(lo+pad)+4).toFixed(1)}">${Math.round(lo+pad)}</text>`;
+  // exact high and low points, unless a graduation label already sits there
+  const free=y=>gy.every(g=>Math.abs(g-y)>9.5);
+  [hi-pad,lo+pad].forEach(e=>{const y=Y(e);
+    if(free(y))s+=`<text class="pax hilo" x="${PL-4}" y="${(y+3.2).toFixed(1)}">${Math.round(e)}</text>`});
   if(i>0){
     s+=`<circle class="lgfrom" cx="${X(m0).toFixed(1)}" cy="${Y(TRK.el[a]).toFixed(1)}" r="3.6"/>`;
     s+=`<circle class="lgto" cx="${X(m1).toFixed(1)}" cy="${Y(TRK.el[b]).toFixed(1)}" r="4.6"/>`;
@@ -800,9 +818,16 @@ function update(){
 
 let mapFocus=[247,407];
 function profile(P,now){
-  const X=m=>12+m/TOT*316, Y=e=>118-(e-380)/2030*102;
+  const PLL=30;
+  const X=m=>PLL+m/TOT*(328-PLL), Y=e=>118-(e-380)/2030*102;
   let d='';PROF.forEach((e,j)=>{const x=X(TOT*j/(PROF.length-1));d+=(j?'L':'M')+x.toFixed(1)+','+Y(e).toFixed(1)});
-  let h=`<path class="area" d="${d}L${X(TOT).toFixed(1)},118L12,118Z"/><path class="line" d="${d}"/>`;
+  let h=`<path class="area" d="${d}L${X(TOT).toFixed(1)},118L${PLL},118Z"/>`;
+  // faint altitude graduation every 500 m
+  for(let e=500;e<=2400;e+=500){const y=Y(e).toFixed(1);
+    h+=`<line class="pgrid" x1="${PLL}" y1="${y}" x2="328" y2="${y}"/>`
+      +`<text class="pax" x="${PLL-4}" y="${(+y+3.2).toFixed(1)}">${e}</text>`}
+  h+=`<text class="pax" x="${PLL-4}" y="14">m</text>`;
+  h+=`<path class="line" d="${d}"/>`;
   STOPS.forEach((s,i)=>{h+=`<circle class="dot${state.ci[i]!=null?' done':''}" cx="${X(s.km*1000).toFixed(1)}" cy="${Y(s.m).toFixed(1)}" r="3.4"/>`});
   const pos=nowPos(P,now);
   if(pos&&!onRoute()){const A=STOPS[pos.i-1],B=STOPS[pos.i],mm=(A.km+(B.km-A.km)*pos.r)*1000,el=A.m+(B.m-A.m)*pos.r;
@@ -811,7 +836,7 @@ function profile(P,now){
   if(onRoute())h+=`<circle class="halo" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="7"/>`
     +`<circle class="gme" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="5"/>`;
   h+=`<text class="lbl" x="${(X(STOPS[4].km*1000)-22).toFixed(0)}" y="${(Y(2387)-6).toFixed(0)}">Aasgard 2,387 m</text>`;
-  h+=`<text class="lbl" x="4" y="132">0 km</text><text class="lbl" x="288" y="132">29.8 km</text>`;
+  h+=`<text class="lbl" x="${PLL}" y="132">0 km</text><text class="lbl end" x="328" y="132">29.8 km</text>`;
   if(onRoute())h+=`<text class="lbl" x="${Math.min(X(fix.m)+7,250).toFixed(0)}" y="${Math.min(Y(fix.el)+16,130).toFixed(0)}">GPS</text>`;
   $('prof').innerHTML=h;
 
