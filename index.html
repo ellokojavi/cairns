@@ -41,7 +41,11 @@ button{cursor:pointer}
 .panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px;margin-bottom:12px}
 
 #bar{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+#bar .hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 #bar .h{font:600 21px/1.2 var(--cond)}
+.barfix{flex:none;background:none;border:1px solid rgba(255,255,255,.55);color:inherit;
+  border-radius:7px;padding:5px 11px;font:600 13px var(--body);white-space:nowrap}
+.barfix:disabled{opacity:.45}
 #bar .d{font-size:13px;margin:2px 0 8px;opacity:.9}
 .big{display:block;width:100%;border:0;border-radius:8px;padding:11px;font:700 17px var(--body);background:var(--bg);color:var(--ink)}
 .big.armed{background:var(--gate);color:#fff}
@@ -99,6 +103,10 @@ svg{display:block;width:100%;height:auto;margin:2px 0 10px}
 .prog{fill:none;stroke:#1669C7;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
 .prog.est{stroke:#B0432A;stroke-dasharray:14 12;opacity:.85}
 .pulse{fill:none;stroke:#1669C7;stroke-width:5;opacity:.7;animation:mpulse 2.2s ease-out infinite}
+.oob rect{fill:#12191B;opacity:.93;stroke:#fff;stroke-width:4}
+.oobdot{fill:#1669C7;stroke:#fff;stroke-width:4}
+.oob1{font:700 42px system-ui,sans-serif;fill:#fff}
+.oob2{font:34px system-ui,sans-serif;fill:#B8C2BE}
 @keyframes mpulse{0%{r:16;opacity:.75}75%{r:40;opacity:0}100%{r:40;opacity:0}}
 @media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:.4}}
 svg.legsvg{margin:6px 0 2px;border-radius:6px;border:1px solid var(--rule);background:var(--panel)}
@@ -162,7 +170,7 @@ section.help p{margin:6px 0}
 </header>
 
 <div id="bar" aria-live="polite">
-  <div class="h" id="bh"></div>
+  <div class="hrow"><div class="h" id="bh"></div><button class="barfix" id="barfix" type="button">Fix</button></div>
   <div class="d" id="bd"></div>
   <div id="planrow"><label for="dep">Planned departure</label><input type="time" id="dep" value="05:45"></div>
   <button class="big" id="bigbtn" type="button"></button>
@@ -285,6 +293,21 @@ function traceAt(m){ // metres along route -> point on the traced line, and the 
 }
 function pixAtM(m){const p=traceAt(m);return[p.x,p.y]}
 // the stretch of route already behind you, for drawing over the map
+// a fix that cannot be placed on the map still gets said out loud, in the corner
+function mapBadge(){
+  if(!fix)return'';
+  const far=fix.off>ON_ROUTE, stale=fixAge()>FIX_OLD;
+  if(!far&&!stale)return'';
+  const d=fix.off>=10000?(fix.off/1000).toFixed(0)+' km'
+         :fix.off>=1000?(fix.off/1000).toFixed(1)+' km':Math.round(fix.off)+' m';
+  const t1=far?'Out of map':'Position not shown';
+  const t2=far?`${d} from the route`:`fix ${Math.round(fixAge()/60)} min old`;
+  const x=40,y=184,w=620,h=116;
+  return `<g class="oob"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="24"/>`
+    +`<circle class="oobdot" cx="${x+50}" cy="${y+h/2}" r="19"/>`
+    +`<text class="oob1" x="${x+90}" y="${y+50}">${t1}</text>`
+    +`<text class="oob2" x="${x+90}" y="${y+94}">${t2}</text></g>`;
+}
 function tracedPath(m){
   const p=traceAt(m);let d=`M${PTS[0][0]},${PTS[0][1]}`;
   for(let k=1;k<=p.k;k++)d+=`L${PTS[k][0]},${PTS[k][1]}`;
@@ -301,7 +324,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 17:10';
+const BUILD='2026-09-21 18:05';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -712,6 +735,9 @@ function update(){
   else{const a=Math.round(fixAge());
     fa.innerHTML=a<90?`fixed ${a}s ago`
       :`<span class="${a>FIX_OLD?'stale':''}">fixed ${Math.round(a/60)} min ago${a>FIX_OLD?' — take a new one':''}</span>`}
+  const bx=$('barfix');
+  bx.hidden=LOCAL;bx.disabled=busy;
+  bx.textContent=busy?`${secs}s`:!fix?'Fix':fixAge()>FIX_OLD?'Fix · old':`Fix · ${fixAge()<90?Math.round(fixAge())+'s':Math.round(fixAge()/60)+'m'}`;
   const gl=gpsText(P);if(gl&&!busy)$('gpsline').innerHTML=gl;
   $('maphint').textContent=onRoute()?'Blue line and dot: where GPS puts you.'
     :P.started?'Dashed line and dot: where the schedule says you are. Take a fix for the real one.'
@@ -789,6 +815,7 @@ function profile(P,now){
       +`<circle class="gpshalo" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="19"/>`
       +`<circle class="${isGps?'gpsdot':'nowdot'}" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="13"/>`;
   }else{const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
+  o+=mapBadge();
   $('mapov').innerHTML=o;
 }
 
@@ -821,6 +848,7 @@ $('wipe').addEventListener('click',()=>{const w=$('wipe');
   state.ci=new Array(N).fill(null);try{localStorage.removeItem(LSKEY)}catch(e){}
   lastHash='';update()});
 $('fixbtn').addEventListener('click',()=>fixOnce(false));
+$('barfix').addEventListener('click',()=>fixOnce(false));
 $('watchchk').addEventListener('change',e=>watchToggle(e.target.checked));
 $('autochk').addEventListener('change',e=>{state.auto=e.target.checked;if(state.auto)autoLogic();update()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){gpsAuto();autoLogic();update()}});
