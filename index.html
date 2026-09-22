@@ -122,6 +122,8 @@ svg.legsvg{margin:6px 0 2px;border-radius:6px;border:1px solid var(--rule);backg
 .lgto{fill:var(--gate);stroke:var(--panel);stroke-width:1.6}
 .lgme{fill:#1669C7;stroke:#fff;stroke-width:2}
 .lgme.est{fill:var(--gate)}
+.lgmel{font:700 9px var(--body);fill:#1669C7;paint-order:stroke;stroke:var(--panel);stroke-width:2.2}
+.lgmel.est{fill:var(--gate)} .lgmel.end{text-anchor:end}
 svg.mini{margin:8px 0 2px;border-radius:6px;border:1px solid var(--rule);background:#fff}
 .mini .ring{fill:none;stroke:#B0432A;stroke-width:5}
 .badge{display:inline-block;min-width:22px;padding:0 6px;margin-right:6px;border-radius:11px;background:var(--ink);color:var(--bg);font:700 13px/22px var(--body);text-align:center;vertical-align:2px}
@@ -131,6 +133,10 @@ svg.mini{margin:8px 0 2px;border-radius:6px;border:1px solid var(--rule);backgro
 .me{fill:var(--gate)} .gme{fill:#1669C7}
 .halo{fill:var(--panel)}
 .lbl{font:10px var(--body);fill:var(--muted)} .lbl.end{text-anchor:end}
+.hlbl{font:700 10px var(--body);fill:#1669C7;paint-order:stroke;stroke:var(--bg);stroke-width:2.4}
+.hlbl.est{fill:var(--gate)} .hlbl.end{text-anchor:end}
+.nbox{fill:var(--panel);stroke:var(--rule);stroke-width:.8;opacity:.96}
+.nlbl{font:10px var(--body);fill:var(--muted)}
 
 ol{list-style:none;margin:0;padding:0}
 li.stop{display:grid;grid-template-columns:64px 1fr;gap:0 12px;position:relative;padding:14px 0;border-top:1px solid var(--rule)}
@@ -329,7 +335,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 20:05';
+const BUILD='2026-09-21 20:40';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -649,17 +655,17 @@ function legProfile(i){
     STOPS.forEach((st,j)=>{s+=`<circle class="lgfrom" cx="${X(TRK.cd[SI[j]]).toFixed(1)}" cy="${Y(st.m).toFixed(1)}" r="2.6"/>`});
     s+=`<text class="lgax" x="${PL}" y="${H-3}">whole route</text><text class="lgax end" x="${W-PR}" y="${H-3}">29.76 km</text>`;
   }
-  s+=`<circle class="lgme" id="lm${i}" r="4.5" style="display:none"/></svg>`;
+  s+=`<circle class="lgme" id="lm${i}" r="4.5" style="display:none"/>`;
+  s+=`<text class="lgmel" id="lml${i}" style="display:none"></text></svg>`;
   return s;
 }
 // mark the position on the whole-route profile and on the leg you are inside
 function legMarker(P,now){
-  for(let i=0;i<N;i++){const e=document.getElementById('lm'+i);if(e)e.style.display='none'}
-  let m=null,isGps=false;
-  if(onRoute()){m=fix.m;isGps=true}
-  else{const pos=nowPos(P,now);
-    if(pos){const A=STOPS[pos.i-1],B=STOPS[pos.i];m=(A.km+(B.km-A.km)*pos.r)*1000}}
-  if(m==null)return;
+  for(let i=0;i<N;i++){const e=document.getElementById('lm'+i),t=document.getElementById('lml'+i);
+    if(e)e.style.display='none';if(t)t.style.display='none'}
+  const here=herePos(P,now);
+  if(!here)return;
+  const m=here.m,isGps=here.gps;
   const W=300,H=74,PL=30,PR=6,PT=8,PB=14;
   const place=(i,a,b)=>{
     const e=document.getElementById('lm'+i);if(!e)return;
@@ -671,10 +677,24 @@ function legMarker(P,now){
     for(let k=a;k<b;k++){if(TRK.cd[k+1]>=m){const f=(m-TRK.cd[k])/Math.max(1,TRK.cd[k+1]-TRK.cd[k]);
       el=TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*f;break}}
     const t=Math.max(0,Math.min(1,(m-m0)/span));
-    e.setAttribute('cx',(PL+t*(W-PL-PR)).toFixed(1));
-    e.setAttribute('cy',(PT+(hi-el)/(hi-lo)*(H-PT-PB)).toFixed(1));
+    const cx=PL+t*(W-PL-PR), cy=PT+(hi-el)/(hi-lo)*(H-PT-PB);
+    e.setAttribute('cx',cx.toFixed(1));
+    e.setAttribute('cy',cy.toFixed(1));
     e.setAttribute('class','lgme'+(isGps?'':' est'));
     e.style.display='';
+    // the altitude, beside the dot
+    const t2=document.getElementById('lml'+i);if(!t2)return;
+    const sl=elAtM(m+150)-elAtM(m-150);
+    let right=sl<0; if(cx>W-PR-54)right=false; if(cx<PL+54)right=true;
+    const lab=Math.round(el).toLocaleString('en-US')+' m '+(isGps?'GPS':'est');
+    const lw=lab.length*4.9, mpp=span/(W-PL-PR);
+    const rise=Math.max(0,elAtM(m+(right?lw:-lw)*mpp)-el)/(hi-lo)*(H-PT-PB);
+    const ly=cy>19?Math.max(9,cy-9-Math.min(rise,26)):cy+13;
+    t2.textContent=lab;
+    t2.setAttribute('x',(right?cx+8:cx-8).toFixed(1));
+    t2.setAttribute('y',ly.toFixed(1));
+    t2.setAttribute('class','lgmel'+(isGps?'':' est')+(right?'':' end'));
+    t2.style.display='';
   };
   place(0,0,TRK.n-1);                                  // the whole-route profile on card 1
   for(let i=1;i<N;i++){const a=SI[i-1],b=SI[i];
@@ -705,6 +725,32 @@ function nowPos(P,now){
   for(let i=Math.max(1,P.a+1);i<N;i++){const leave=P.t[i-1]+STOPS[i-1].b;
     if(now<leave)return{i,r:0};if(now<P.t[i])return{i,r:(now-leave)/(P.t[i]-leave)}}
   return{i:N-1,r:1};
+}
+// elevation on the track at a given distance along it
+function elAtM(m){
+  if(m<=TRK.cd[0])return TRK.el[0];
+  for(let k=0;k<TRK.n-1;k++)if(TRK.cd[k+1]>=m){
+    const f=(m-TRK.cd[k])/Math.max(1,TRK.cd[k+1]-TRK.cd[k]);
+    return TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*f;
+  }
+  return TRK.el[TRK.n-1];
+}
+function distTxt(d){return d>=10000?(d/1000).toFixed(0)+' km':d>=1000?(d/1000).toFixed(1)+' km':Math.round(d)+' m'}
+// where we are right now: a trusted GPS fix if there is one, otherwise the schedule
+function herePos(P,now){
+  if(onRoute())return{m:fix.m,el:fix.el,gps:true};
+  const pos=nowPos(P,now);
+  if(!pos)return null;
+  const A=STOPS[pos.i-1],B=STOPS[pos.i],m=(A.km+(B.km-A.km)*pos.r)*1000;
+  return{m,el:elAtM(m),gps:false};
+}
+// when there is nothing to draw, say why in plain words
+function whyNoPos(P,now){
+  if(state.ci[N-1]!=null)return 'Hike complete';
+  if(!P.started)return 'Not on the trail yet';
+  if(now<P.dep)return 'Not on the trail yet';
+  if(fix&&fixAge()<=FIX_OLD&&fix.off>ON_ROUTE)return 'Off route — '+distTxt(fix.off)+' from the trail';
+  return 'No position yet';
 }
 function update(){
   const P=project(),now=nowRel(),L=lastIdx();
@@ -829,22 +875,42 @@ function profile(P,now){
   h+=`<text class="pax" x="${PLL-4}" y="14">m</text>`;
   h+=`<path class="line" d="${d}"/>`;
   STOPS.forEach((s,i)=>{h+=`<circle class="dot${state.ci[i]!=null?' done':''}" cx="${X(s.km*1000).toFixed(1)}" cy="${Y(s.m).toFixed(1)}" r="3.4"/>`});
-  const pos=nowPos(P,now);
-  if(pos&&!onRoute()){const A=STOPS[pos.i-1],B=STOPS[pos.i],mm=(A.km+(B.km-A.km)*pos.r)*1000,el=A.m+(B.m-A.m)*pos.r;
-    h+=`<circle class="halo" cx="${X(mm).toFixed(1)}" cy="${Y(el).toFixed(1)}" r="7"/>`
-      +`<circle class="me" cx="${X(mm).toFixed(1)}" cy="${Y(el).toFixed(1)}" r="5"/>`}
-  if(onRoute())h+=`<circle class="halo" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="7"/>`
-    +`<circle class="gme" cx="${X(fix.m).toFixed(1)}" cy="${Y(fix.el).toFixed(1)}" r="5"/>`;
+  const here=herePos(P,now);
+  if(here){
+    const cx=X(here.m),cy=Y(here.el);
+    h+=`<circle class="halo" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="7"/>`
+      +`<circle class="${here.gps?'gme':'me'}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5"/>`;
+  }
   h+=`<text class="lbl" x="${(X(STOPS[4].km*1000)-22).toFixed(0)}" y="${(Y(2387)-6).toFixed(0)}">Aasgard 2,387 m</text>`;
   h+=`<text class="lbl" x="${PLL}" y="132">0 km</text><text class="lbl end" x="328" y="132">29.8 km</text>`;
-  if(onRoute())h+=`<text class="lbl" x="${Math.min(X(fix.m)+7,250).toFixed(0)}" y="${Math.min(Y(fix.el)+16,130).toFixed(0)}">GPS</text>`;
+  if(here){
+    // current altitude, beside the dot; flip sides near the right edge
+    const cx=X(here.m),cy=Y(here.el),txt=Math.round(here.el).toLocaleString('en-US')+' m '+(here.gps?'GPS':'est');
+    // sit in the open sky above the dot, on the downhill side where nothing is drawn
+    const sl=elAtM(here.m+150)-elAtM(here.m-150);
+    let right=sl<0; if(cx>244)right=false; if(cx<PLL+72)right=true;
+    // lift it clear of the line when the label sits over rising ground
+    const lw=txt.length*5.4, rise=Math.max(0,elAtM(here.m+(right?lw:-lw)*TOT/(328-PLL))-here.el)*102/2030;
+    const ly=cy>26?Math.max(11,cy-11-Math.min(rise,30)):cy+15;
+    h+=`<text class="hlbl${here.gps?'':' est'}${right?'':' end'}" x="${(right?cx+9:cx-9).toFixed(0)}" y="${ly.toFixed(0)}">${txt}</text>`;
+  }
+  // a note when there is no dot, or when GPS disagrees with the estimate on screen
+  let note='';
+  if(!here)note=whyNoPos(P,now);
+  else if(!here.gps&&fix&&fixAge()<=FIX_OLD&&fix.off>ON_ROUTE)
+    note='GPS: off route, '+distTxt(fix.off)+' from the trail';
+  if(note){
+    const w=note.length*5.3+14;
+    // keep clear of the dot if it happens to sit in the same corner
+    const ny=(here&&X(here.m)<PLL+3+w&&Y(here.el)>84&&Y(here.el)<116)?16:92;
+    h+=`<rect class="nbox" x="${PLL+3}" y="${ny}" width="${w.toFixed(0)}" height="18" rx="9"/>`
+      +`<text class="nlbl" x="${PLL+10}" y="${ny+12.5}">${note}</text>`;
+  }
   $('prof').innerHTML=h;
 
   const L=lastIdx();let o='';
   // how far along we are: GPS when it is trustworthy, otherwise the schedule
-  let hereM=null,isGps=false;
-  if(onRoute()){hereM=fix.m;isGps=true}
-  else if(pos){const A=STOPS[pos.i-1],B=STOPS[pos.i];hereM=(A.km+(B.km-A.km)*pos.r)*1000}
+  const hereM=here?here.m:null, isGps=!!here&&here.gps;
   if(hereM!=null){const d=tracedPath(hereM);
     o+=`<path class="progcase" d="${d}"/><path class="prog${isGps?'':' est'}" d="${d}"/>`}
   STOPS.forEach((s,i)=>{const p=PTS[STOP_AT[i]],cls=state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
