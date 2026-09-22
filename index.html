@@ -345,7 +345,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-09-21 22:20';
+const BUILD='2026-09-21 23:05';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -716,8 +716,8 @@ function mini(i){const p=PTS[STOP_AT[i]],w=440,h=240;
   return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map close-up of ${STOPS[i].n}"><use href="#mapimg"/><circle class="ring" cx="${p[0]}" cy="${p[1]}" r="22"/></svg>`}
 /* ---------- milestone photos: our own, from the Aug 21 run of this route ----------
    PHOTOS[i] = [filename, caption]. A stop with no entry simply has no widget.
-   Collapsed by default so the cards stay short; the files sit in photos/ and are
-   precached by the service worker, so they open with no signal. */
+   Open by default, above the map; tap the header to collapse one. The files sit in
+   photos/ and are precached by the service worker, so they show with no signal. */
 const PHOTOS={
   1:["01.webp","Colchuck Lake, with Dragontail and the pass behind it<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Colchuck_Lake_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
   2:["02.webp","Aasgard Pass from the Colchuck side — this is the wall<br><span class='cred'>Photo: Buidhe &middot; <a href='https://creativecommons.org/licenses/by-sa/4.0' target='_blank' rel='noopener'>CC BY-SA 4.0</a> &middot; <a href='https://commons.wikimedia.org/wiki/File:Aasgard_Pass_from_the_Colchuck_side_(11_October_2024).jpg' target='_blank' rel='noopener'>source</a></span>"],
@@ -730,7 +730,7 @@ const PHOTOS={
 };
 function photoBox(i){
   const p=PHOTOS[i];if(!p)return'';
-  return `<details class="ph"><summary>Photo — what it looks like</summary>`
+  return `<details class="ph" open><summary>Photo — what it looks like</summary>`
     +`<img class="phi" loading="lazy" src="photos/${p[0]}" alt="${STOPS[i].n}">`
     +(p[1]?`<p class="phc">${p[1]}</p>`:'')+`</details>`;
 }
@@ -743,7 +743,7 @@ function build(){
     <div class="meta num" id="m${i}"></div>
     ${i>0?`<p class="leg num">Leg ${s.legkm.toFixed(2)} km, +${s.up} m, −${s.dn} m, ${dur(s.mv)} moving${s.grade>=8?` · ${s.grade}% average climb`:''}</p>`:''}
     <div class="row" id="r${i}"></div>
-    <p class="note">${s.note}</p>${mini(i)}${legProfile(i)}${photoBox(i)}<div id="g${i}"></div>
+    <p class="note">${s.note}</p>${photoBox(i)}${mini(i)}${legProfile(i)}<div id="g${i}"></div>
     <div class="ci"><button type="button" data-i="${i}" id="b${i}"></button><span id="x${i}"></span></div></div>`;
     ol.appendChild(li);
   });

@@ -1,5 +1,5 @@
 // Enchantments planner - offline cache
-const BUILD='2026-09-21 22:20';
+const BUILD='2026-09-21 23:05';
 const CACHE='ench-'+BUILD;
 const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png']
   .concat(['01','02','03','04','05','06','07','08'].map(n=>'./photos/'+n+'.webp'));
