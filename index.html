@@ -32,7 +32,8 @@ h1{font:600 30px/1.05 var(--cond);margin:4px 0 2px}
 h2{font:600 21px/1.15 var(--cond);margin:22px 0 4px}
 .peak{color:var(--muted);font-size:14px;margin:0 0 10px}
 .ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
-a.card{display:block;color:inherit;text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:12px}
+a.card{display:block;color:inherit;text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:4px}
+.try{margin:0 0 14px;font-size:13px;color:var(--muted);text-align:right}.try a{color:var(--ink);font-weight:600}
 a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cv{position:relative;aspect-ratio:16/8;background:#1C2A2E}
 .cv img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
@@ -77,7 +78,8 @@ function card(h){
       <div class="t"><b>${h.title}</b><span>${h.variant} · ${h.type}</span></div></div>
     <div class="st"><div><b>${h.km} km</b><span>distance</span></div><div><b>+${n(h.up)} m</b><span>climb</span></div>
       <div><b>${n(h.hi)} m</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
-    <p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>`;
+    <p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
+    <p class="try"><a href="planner.html?r=${h.id}&amp;sim=1">Rehearse it in test mode</a> · simulated GPS and clock</p>`;
 }
 // routes on the same peak sit together, with a side-by-side comparison
 const groups=[];HIKES.forEach(h=>{let g=groups.find(g=>g.peak===h.peak);if(!g)groups.push(g={peak:h.peak,list:[]});g.list.push(h)});
