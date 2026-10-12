@@ -1,6 +1,6 @@
-# Hike planner
+# Cairns
 
-Installable, offline hike planner. Pick a route, set the date, start time and forecast,
+Installable, offline hike planner: piles of stones that mark the way. Pick a route, set the date, start time and forecast,
 and it times every stop, the turnaround cutoffs and the finish against sunset (or a
 parking gate). On the trail it checks you in from GPS and re-times the rest from your
 real pace. Works with no signal; GPS keeps working because position comes from
@@ -15,7 +15,7 @@ Routes:
 ## Publish
 
 Repository **Settings → Pages** → Source: **Deploy from a branch**, Branch: **main**,
-Folder: **/ (root)**. The site appears at `https://<your-username>.github.io/<repo>/`.
+Folder: **/ (root)**. The site appears at `https://ellokojavi.github.io/cairns/`.
 `.nojekyll` stops GitHub Pages from processing the files.
 
 ## Install on a phone

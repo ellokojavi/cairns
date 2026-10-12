@@ -1,6 +1,6 @@
 {
-  "name": "Hike planner",
-  "short_name": "Hikes",
+  "name": "Cairns — hike planner",
+  "short_name": "Cairns",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

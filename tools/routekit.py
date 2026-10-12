@@ -91,7 +91,7 @@ def gpx(name, desc, pts, si, stops):
                  f'    <name>{i + 1} {s["n"]}</name>\n    <desc>{s["note"]}</desc>\n'
                  f'    <sym>Flag, Blue</sym>\n    <type>Milestone</type>\n  </wpt>')
     t = '\n'.join(f'      <trkpt lat="{p[0]:.6f}" lon="{p[1]:.6f}"><ele>{p[2]:.1f}</ele></trkpt>' for p in pts)
-    return (f'<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Hike planner" '
+    return (f'<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Cairns hike planner" '
             f'xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata>\n    <name>{name}</name>\n'
             f'    <desc>{desc}</desc>\n  </metadata>\n' + '\n'.join(w) +
             f'\n  <trk>\n    <name>{name}</name>\n    <trkseg>\n{t}\n    </trkseg>\n  </trk>\n</gpx>\n')

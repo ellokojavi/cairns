@@ -9,7 +9,7 @@ author, licence and source page for each, for the gallery and the credits.
 """
 import json, os, re, sys, time, urllib.parse, urllib.request, html
 
-UA = 'HikePlannerPhotoSearch/1.0 (https://github.com/ellokojavi/enchantments)'
+UA = 'HikePlannerPhotoSearch/1.0 (https://github.com/ellokojavi/cairns)'
 OK = re.compile(r'^(cc0|pdm|public domain|cc[- ]by(-sa)?[- ]\d|cc[- ]by(-sa)?$|by(-sa)?$)', re.I)
 
 def get(url):
