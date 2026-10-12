@@ -113,6 +113,7 @@ COMMON_TEXT = {
 ROUTES = {
  'new': dict(
   id='mailbox-new', title='Mailbox Peak', variant='New Trail', size='long',
+  photos=lambda nm: {0: [P['road'], RENDER(nm)], 3: [P['boulders'], P['academy']], 4: [P['mailbox'], P['rainier'], P['sunset']], 7: [P['salal']]},
   blurb='The graded trail: long, steady switchbacks through forest, then one steep, rocky kilometre to the mailbox.',
   stops=lambda pts, cd, S: [
    (0, dict(n='Trailhead', b=0, take=[['salt', 'Electrolyte: 1 serving + 500 ml, 30 min before']],
@@ -133,6 +134,7 @@ ROUTES = {
   ]),
  'old': dict(
   id='mailbox-old', title='Mailbox Peak', variant='Old Trail', size='short',
+  photos=lambda nm: {0: [P['road'], RENDER(nm)], 3: [P['boulders'], P['academy']], 4: [P['mailbox'], P['rainier'], P['sunset']], 8: [P['salal']]},
   blurb='The original route straight up the ridge: half the distance, the same climb. Roots, mud and 40% grades.',
   stops=lambda pts, cd, S: [
    (0, dict(n='Trailhead', b=0, take=[['salt', 'Electrolyte: 1 serving + 500 ml, 30 min before']],
@@ -154,6 +156,30 @@ ROUTES = {
    (len(pts) - 1, dict(n='Trailhead', b=0, note='Finish. Back at the car.')),
   ]),
 }
+
+
+# Creative Commons photos (Wikimedia Commons), chosen from tools/photo-candidates by quality
+# and by where on the route they were taken. Credit line as the licences require.
+LIC = {'CC0': 'https://creativecommons.org/publicdomain/zero/1.0', 'CC BY 2.0': 'https://creativecommons.org/licenses/by/2.0',
+       'CC BY-SA 2.0': 'https://creativecommons.org/licenses/by-sa/2.0', 'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0'}
+def ph(f, caption, author, lic, commons):
+    return [f'routes/mailbox/photos/{f}.webp', f"{caption}<br><span class='cred'>Photo: {author} &middot; "
+            f"<a href='{LIC[lic]}' target='_blank' rel='noopener'>{lic}</a> &middot; "
+            f"<a href='https://commons.wikimedia.org/wiki/File:{commons}' target='_blank' rel='noopener'>source</a></span>"]
+P = dict(
+    road=ph('from-the-road', 'Mailbox Peak from the Middle Fork road, on the drive in: the whole climb in one view', 'Ron Clausen', 'CC BY-SA 4.0',
+            'Mailbox_Peak_seen_from_Middle_Fork_Snoqualmie_River_Road._Washington_state.jpg'),
+    boulders=ph('boulder-field-snow', 'The boulder field above the trees, after an early snow. Late October can look like this', 'MarshyBoardwalk', 'CC0',
+                'Snow_covered_rocks_on_Mailbox_Peak.jpg'),
+    academy=ph('fire-academy-below', 'From the open upper slopes: the Fire Training Academy straight below, to the south', 'Peter Stevens', 'CC BY 2.0',
+               'Washington_State_Fire_Training_Center.jpg'),
+    mailbox=ph('summit-mailbox', 'The mailbox and its plaque on the summit rocks', 'Wilderness trespasser', 'CC BY-SA 4.0', 'Mailbox_Peak_summit_views_01.jpg'),
+    rainier=ph('rainier-from-summit', 'Mount Rainier on the southern horizon, from the summit', 'Wilderness trespasser', 'CC BY-SA 4.0', 'Mailbox_Peak_summit_views_11.jpg'),
+    sunset=ph('mailbox-sunset', 'The mailbox at sunset. Leave well before this: the parking gate closes first', 'Michael Cline', 'CC BY-SA 2.0', 'Mailbox_Peak_mailbox.jpg'),
+    salal=ph('from-salal-point', 'Looking back at what you climbed: Mailbox Peak from Salal Point, south of the trailhead', 'Peter Stevens', 'CC BY 2.0',
+             'Mailbox_Peak,_from_Salal_Point.jpg'),
+)
+RENDER = lambda nm: [f'routes/mailbox/cover-{nm}.webp', 'The route on the mountain, seen from the northwest (terrain from USGS lidar, no trees drawn)']
 
 catalog = []
 for nm, R in ROUTES.items():
@@ -181,7 +207,8 @@ for nm, R in ROUTES.items():
         tz='America/Los_Angeles',
         map=dict(src='routes/mailbox/map.webp', w=frame['W'], h=frame['H'], pts=map_pts(pts, si), route=True,
                  credit='Map and cover: terrain from USGS 3DEP 1 m lidar (King County 2021), public domain. Trails © OpenStreetMap contributors, via Overture Maps (ODbL).'),
-        gpx=f'routes/mailbox/{R["id"]}.gpx', cover=f'routes/mailbox/cover-{nm}.webp',
+        gpx=f'routes/mailbox/{R["id"]}.gpx', cover=f'routes/mailbox/cover-{nm}-photo.webp',
+        photos=R['photos'](nm),
         text=COMMON_TEXT,
     )
     with open(f'{OUT}/{nm}.js', 'w') as f:

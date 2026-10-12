@@ -189,6 +189,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .hero h1{color:#fff;margin:0}
 .hero .var{font:600 16px/1.2 var(--cond);opacity:.92;margin:2px 0 0}
 .hero .back{position:absolute;top:10px;left:10px;background:rgba(12,18,20,.62);color:#fff;text-decoration:none;border-radius:16px;padding:4px 11px;font-size:13px;font-weight:600}
+.covercred{display:block;margin:-6px 0 8px;font-size:11px;color:var(--muted);text-align:right;text-decoration:none}
 .hero .ghost{position:absolute;top:10px;right:10px;background:rgba(12,18,20,.62);color:#fff;border:0}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px}
 .stats div{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:6px 8px}
@@ -207,6 +208,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 <main>
 <div class="hero"><img id="cover" alt=""><a class="back" href="./">‹ All routes</a><button class="ghost" id="theme" type="button">Dark</button>
   <div class="ht"><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
+<a class="covercred" id="covercred" target="_blank" rel="noopener" hidden></a>
 <div class="stats num" id="stats"></div>
 <p class="who" id="when"></p>
 <p class="sub"><span id="summary"></span> <span id="sun"></span></p>
@@ -421,7 +423,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-12 19:00';
+const BUILD='2026-10-12 21:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -835,10 +837,11 @@ function routeLine(){
    precaches them (routes/catalog.js), so they show with no signal. */
 const PHOTOS=R.photos||{};
 function photoBox(i){
-  const p=PHOTOS[i];if(!p)return'';
-  return `<details class="ph" open><summary>Photo — what it looks like</summary>`
-    +`<img class="phi" loading="lazy" src="${p[0]}" alt="${STOPS[i].n}">`
-    +(p[1]?`<p class="phc">${p[1]}</p>`:'')+`</details>`;
+  let p=PHOTOS[i];if(!p)return'';
+  if(!Array.isArray(p[0]))p=[p];                  // one [path, caption], or a list of them
+  return `<details class="ph" open><summary>${p.length>1?p.length+' photos':'Photo'} — what it looks like</summary>`
+    +p.map(q=>`<img class="phi" loading="lazy" src="${q[0]}" alt="${STOPS[i].n}">`
+      +(q[1]?`<p class="phc">${q[1]}</p>`:'')).join('')+`</details>`;
 }
 function build(){
   const ol=$('list');
@@ -1165,8 +1168,10 @@ function setupPage(){
   document.title=tt;
   $('title').textContent=R.title;
   $('variant').textContent=[R.variant,R.size&&R.size[0].toUpperCase()+R.size.slice(1),ROUTE_META?.type].filter(Boolean).join(' · ');
-  if(R.cover)$('cover').src=R.cover;else $('cover').parentNode.classList.add('nocover');
+  const cov=ROUTE_META?.cover||R.cover;
+  if(cov)$('cover').src=cov;else $('cover').parentNode.classList.add('nocover');
   $('cover').alt=tt;
+  if(ROUTE_META?.coverCredit){const c=$('covercred');c.textContent=ROUTE_META.coverCredit[0];c.href=ROUTE_META.coverCredit[1];c.hidden=false}
   const st=[[(TOT/1000).toFixed(1)+' km','distance'],['+'+UP_TOT.toLocaleString('en-US')+' m','climb'],
     [STOPS[HI_STOP].m.toLocaleString('en-US')+' m','high point'],[dur(PLAN_MV),'moving']];
   $('stats').innerHTML=st.map(([b,s])=>`<div><b>${b}</b><span>${s}</span></div>`).join('');

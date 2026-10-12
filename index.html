@@ -45,7 +45,8 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .st{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 12px 2px}
 .st b{display:block;font:600 18px/1.1 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap}
 .st span{font-size:11.5px;color:var(--muted)}
-.bl{margin:6px 12px 12px;font-size:14px}
+.bl{margin:6px 12px 4px;font-size:14px}
+.cc{margin:0 12px 10px;font-size:11px;color:var(--muted)}
 .cmp{width:100%;border-collapse:collapse;font-size:13.5px;margin:4px 0 6px;font-variant-numeric:tabular-nums}
 .cmp th,.cmp td{padding:5px 6px;border-bottom:1px solid var(--rule);text-align:right}
 .cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--muted);font-weight:400}
@@ -76,7 +77,7 @@ function card(h){
       <div class="t"><b>${h.title}</b><span>${h.variant} · ${h.type}</span></div></div>
     <div class="st"><div><b>${h.km} km</b><span>distance</span></div><div><b>+${n(h.up)} m</b><span>climb</span></div>
       <div><b>${n(h.hi)} m</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
-    <p class="bl">${h.blurb}</p></a>`;
+    <p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>`;
 }
 // routes on the same peak sit together, with a side-by-side comparison
 const groups=[];HIKES.forEach(h=>{let g=groups.find(g=>g.peak===h.peak);if(!g)groups.push(g={peak:h.peak,list:[]});g.list.push(h)});
