@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#1C2A2E">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./favicon.png">
 <title>Cairns</title>
 <script>
 // links from the Enchantments-only version carried the plan in the hash: send them to that route
@@ -28,6 +29,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--body);p
 main{max-width:560px;margin:0 auto;padding:16px 16px 48px}
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
 h1{font:600 30px/1.05 var(--cond);margin:4px 0 2px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:56px;height:56px;object-fit:contain;border-radius:12px;background:#F6F7F4;padding:4px}
 .sub{color:var(--muted);margin:0 0 16px;font-size:14px}
 h2{font:600 21px/1.15 var(--cond);margin:22px 0 4px}
 .peak{color:var(--muted);font-size:14px;margin:0 0 10px}
@@ -59,7 +62,7 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <body>
 <main>
 <header>
-  <div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div>
+  <div class="brand"><img class="logo" src="logo.png" alt="" width="56" height="56"><div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div></div>
   <button class="ghost" id="theme" type="button">Dark</button>
 </header>
 <p class="sub">Pick a route. Set the date, start time and forecast, and it times every stop, the turnaround and the finish. Works with no signal once opened.</p>
