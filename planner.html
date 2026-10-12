@@ -551,7 +551,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 05:00';
+const BUILD='2026-10-13 06:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1370,6 +1370,9 @@ function setupPage(){
   if(R.text?.totals){$('totals').innerHTML=R.text.totals;$('totals').hidden=false}
   if(R.text?.gpsHint)$('gpshint').innerHTML=R.text.gpsHint;
   if(R.gpx)$('gpxlink').href=R.gpx;else $('gpxlink').hidden=true;
+  // the track as a file, next to the directions: for a watch or a map app with offline maps
+  if(R.gpx){const d=$('drive'),g=document.createElement('a');g.href=R.gpx;g.download=R.gpx.split('/').pop();
+    g.textContent='⤓ Download GPX';d.appendChild(g);d.hidden=false}
   if(R.map.credit)$('mapcred').textContent=R.map.credit;
   if(TURN!=null&&R.map.route)$('legend').hidden=false;
   $('simhref').href='planner.html?r='+encodeURIComponent(R.id)+'&sim=1';if(window.__SIM)$('simlink').hidden=true;
