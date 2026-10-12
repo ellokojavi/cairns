@@ -214,7 +214,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .hero .ht{position:absolute;inset:auto 0 0 0;padding:28px 14px 10px;color:#fff;background:linear-gradient(transparent,rgba(10,16,18,.82))}
 .hero h1{color:#fff;margin:0}
 .hero .var{font:600 16px/1.2 var(--cond);opacity:.92;margin:2px 0 0}
-.hero .back img{width:22px;height:22px;object-fit:contain}
+.hero .back img{width:24.75px;height:24.75px;margin:-1.375px;object-fit:contain}
 .hero .back{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .hero .back{position:absolute;top:10px;left:10px;background:rgba(12,18,20,.62);color:#fff;text-decoration:none;border-radius:16px;padding:4px 11px;font-size:13px;font-weight:600}
 .drive{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
@@ -564,7 +564,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 13:30';
+const BUILD='2026-10-13 14:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
