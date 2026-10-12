@@ -103,9 +103,22 @@ $('theme').addEventListener('click',()=>{const d=isDark();r.dataset.theme=d?'lig
 const off=(k,t)=>{$('off').className=k;$('off').innerHTML=t};
 if(!window.isSecureContext||!('serviceWorker' in navigator))off('no','<b>This copy cannot store itself offline.</b> Open the published link in Chrome or Safari.');
 else navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(()=>{
-  const check=()=>Promise.all(['./planner.html'].concat(HIKES.flatMap(h=>h.assets)).map(u=>caches.match(u.startsWith('./')?u:'./'+u,{ignoreSearch:true}).then(Boolean)))
-    .then(a=>{const ok=a.every(Boolean);off(ok?'ready':'no',ok?'<b>Every route works in Airplane mode.</b> Add this page to your home screen to open it without the link.'
-      :'<b>Saving routes for offline…</b> Stay on a connection a few seconds.');if(!ok)setTimeout(check,2000)});
+  // every file each route needs offline. The service worker stores them on install, but a download
+  // that fails there is not retried; so the page checks, and fetches whatever is still missing itself.
+  const NEED=[...new Set(['./planner.html','./sim.js'].concat(HIKES.flatMap(h=>h.assets.concat([h.cover,h.file]))).map(u=>u.startsWith('./')?u:'./'+u))];
+  let tries=0;
+  const check=async()=>{
+    const have=await Promise.all(NEED.map(u=>caches.match(u,{ignoreSearch:true}).then(Boolean)));
+    const miss=NEED.filter((u,i)=>!have[i]);
+    if(!miss.length){off('ready','<b>Every route works in Airplane mode.</b> Add this page to your home screen to open it without the link.');return}
+    off('no',`<b>Saving routes for offline… ${NEED.length-miss.length} of ${NEED.length}</b> Stay on a connection.`);
+    const name=(await caches.keys()).filter(k=>k.startsWith('hike-')).sort().pop()||'hike-page';
+    const c=await caches.open(name),failed=[];
+    for(const u of miss){try{const r=await fetch(u,{cache:'reload'});if(!r.ok)throw r.status;await c.put(u,r)}catch(e){failed.push(u)}}
+    if(!failed.length){check();return}
+    if(++tries<4){setTimeout(check,3000);return}
+    off('no',`<b>${failed.length} file${failed.length>1?'s':''} could not be saved</b> (${failed.map(u=>u.split('/').pop()).slice(0,3).join(', ')}${failed.length>3?'…':''}). Check the connection and reload the page.`);
+  };
   navigator.serviceWorker.ready.then(check);
 }).catch(()=>off('no','<b>Not stored offline here.</b> Open the link in Chrome or Safari directly.'));
 </script>
