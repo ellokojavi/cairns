@@ -55,6 +55,17 @@ window.ROUTE={
  gpx:'routes/enchantments/enchantments-sep22-milestones.gpx',
  cover:'routes/enchantments/photos/05.webp',
  profLabel:{stop:4,text:'Aasgard 2,387 m'},
+ reviews:{points:[
+  'Long day: groups report 12 to 17 hours for the traverse, breaks included. Start in the dark.',
+  'Aasgard Pass is the crux: a steep scramble on boulders and loose rock, with no real trail. Go up it early, in the shade.',
+  'Snow on Aasgard changes everything. In late spring parties have turned back or needed ice axe and crampons; by late summer it is usually clear.',
+  'In the Core, follow the cairns carefully; it is easy to wander on the granite slabs.',
+  'The descent past Snow and Nada Lakes is long and hard on the knees, and the lower burn scar is hot and exposed. Fill up at Nada.',
+  'Mosquitoes early in the season; mountain goats in the Core, keep your distance.'],
+  sources:[['WTA trip reports','https://www.wta.org/go-hiking/trip-reports/trip_report-2026-08-14.152738844276'],
+   ['WTA, May 2025','https://www.wta.org/go-hiking/trip-reports/trip_report-2025-05-25.191545303380'],
+   ['AllTrails reviews','https://www.alltrails.com/trail/us/washington/the-enchantments-trail'],
+   ['The Grah Life guide','https://www.thegrahlife.com/blog/how-to-thru-hike-the-enchantments']]},
  text:{
   turn:"Turn back to Colchuck if not here by {lim}. {rel}",
   turnDone:["Arrived after the {lim} cutoff. Go back down to Colchuck unless everyone is strong and the weather is clear.","Arrived {ahead} before the cutoff."],
