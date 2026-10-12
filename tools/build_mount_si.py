@@ -95,7 +95,7 @@ route = dict(
     place='Mount Si NRCA, North Bend, WA',
     summary=f'Mount Si trailhead to the Haystack basin and back. {km:.1f} km, +{up:,} m, −{dn:,} m.',
     lat=round(pts[0][0], 5), lon=round(pts[0][1], 5), tz='America/Los_Angeles',
-    dep='07:00', climate=dict(ref=200, low=8, high=18), deadline=dict(kind='dark'),
+    date='2026-10-15', dep='07:00', climate=dict(ref=200, low=8, high=18), deadline=dict(kind='dark'),
     trk=encode(pts, cd), si=si, stops=stops,
     map=dict(src='routes/mount-si/map.webp', w=frame['W'], h=frame['H'], pts=map_pts(pts, si, frame), route=True,
              credit='Map and 3D view: terrain from USGS 3DEP 1 m lidar (King County 2021), public domain. Trails © OpenStreetMap contributors, via Overture Maps (ODbL).'),

@@ -121,6 +121,7 @@ svg{display:block;width:100%;height:auto;margin:2px 0 10px}
 .gpshalo{fill:#fff}
 .progcase{fill:none;stroke:#fff;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
 .prog{fill:none;stroke:#1669C7;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.prog.done{opacity:.35}
 .prog.est{stroke:#B0432A;stroke-dasharray:14 12;opacity:.85}
 .pulse{fill:none;stroke:#1669C7;stroke-width:5;opacity:.7;animation:mpulse 2.2s ease-out infinite}
 .oob rect{fill:#12191B;opacity:.93;stroke:#fff;stroke-width:4}
@@ -193,6 +194,17 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 
 /* multi-route additions */
 .rte{fill:none;stroke:#D2371F;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.downband{fill:#7A2BB0;opacity:.07}
+.turnline{stroke:#7A2BB0;stroke-width:1;stroke-dasharray:3 2;opacity:.8}
+.phlbl{font:600 8.5px var(--body);fill:var(--muted)}
+.phlbl.down{fill:#7A2BB0}
+.rte.down{stroke:#7A2BB0;stroke-dasharray:3 2.2;stroke-linecap:butt;opacity:.9}
+.phase{list-style:none;margin:18px 0 0;padding:6px 0 4px;border-top:3px solid var(--ink);font:700 15px var(--cond);letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between;gap:10px}
+.phase span{font:400 13px var(--body);letter-spacing:0;text-transform:none;color:var(--muted)}
+.phase.down{border-top-color:#7A2BB0;color:#7A2BB0}
+.legend{display:inline-flex;gap:10px;align-items:center;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid #D2371F;vertical-align:middle}
+.legend i.down{border-top:3px dashed #7A2BB0}
 .hero{position:relative;margin:0 0 10px;border-radius:12px;overflow:hidden;background:#1C2A2E;aspect-ratio:16/8}
 .hero img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
 .hero .ht{position:absolute;inset:auto 0 0 0;padding:28px 14px 10px;color:#fff;background:linear-gradient(transparent,rgba(10,16,18,.82))}
@@ -290,7 +302,7 @@ details.fold>div{padding:0 14px 12px}
 
 <svg id="defs" aria-hidden="true"><defs><image id="mapimg"/></defs></svg>
 <div class="mapwrap" id="mapwrap"><svg id="map" role="img" aria-label="Route map with numbered stops"><use href="#mapimg"/><g id="mapov"></g></svg></div>
-<div class="maptools"><span id="maphint">Tap a number to jump to that stop.</span><button class="ghost" id="zoom" type="button">Enlarge map</button></div>
+<div class="maptools"><span><span id="maphint">Tap a number to jump to that stop.</span> <span class="legend" id="legend" hidden><span><i></i> way up</span><span><i class="down"></i> way down</span></span></span><button class="ghost" id="zoom" type="button">Enlarge map</button></div>
 
 <svg id="prof" viewBox="0 0 340 136" role="img" aria-label="Elevation profile from the GPX track"></svg>
 
@@ -375,7 +387,7 @@ function labelLayout(){
   const placed=[];
   LABELS=MARKS.map((g,gi)=>{
     const p=PTS[STOP_AT[g[0]]],name=markName(g);
-    const t2=g.length>1?g.map(()=>'00:00').join(' / '):`km ${STOPS[g[0]].km.toFixed(1)} · 00:00`;
+    const t2=g.length>1?g.map(()=>'↑ 00:00').join('  '):`km ${STOPS[g[0]].km.toFixed(1)} · 00:00`;
     const w=Math.max(name.length*F1*.62,t2.length*F2*.58)*K,h=H*K,mw=MARK_W(g)*K,gap=8*K,r=19*K;
     // candidate spots: right, left, above, below, then the corners
     const C=[[mw+gap,-h/2,'start'],[-mw-gap,-h/2,'end'],[0,-r-gap-h,'middle'],[0,r+gap,'middle'],
@@ -399,7 +411,7 @@ function mapLabels(P,L){
   const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
   return labelLayout().map(l=>{
     const cls=l.g.some(i=>st(i)==='next')?'next':l.g.every(i=>st(i)==='done')?'done':'';
-    const t=l.g.map(i=>fmt(P.t[i])).join(' / '),t2=l.g.length>1?t:`km ${STOPS[l.g[0]].km.toFixed(1)} · ${t}`;
+    const t=l.g.map(i=>(TURN!=null&&l.g.length>1?(i<=TURN?'↑ ':'↓ '):'')+fmt(P.t[i])).join('  '),t2=l.g.length>1?t:`km ${STOPS[l.g[0]].km.toFixed(1)} · ${t}`;
     return `<g class="mlab ${cls}" transform="translate(${l.x.toFixed(1)},${l.y.toFixed(1)}) scale(${K.toFixed(3)})" text-anchor="${l.an}">`
       +`<text y="20">${l.name}</text><text class="t2" y="42">${t2}</text></g>`;
   }).join('');
@@ -465,6 +477,19 @@ function legPoint(i,r){const a=STOP_AT[i-1],b=STOP_AT[i];const segs=[];let tot=0
   for(let k=0;k<segs.length;k++){if(t<=segs[k]){const f=segs[k]?t/segs[k]:0,p=PTS[a+k],q=PTS[a+k+1];
     return[p[0]+(q[0]-p[0])*f,p[1]+(q[1]-p[1])*f]}t-=segs[k]}
   return PTS[b].slice(0,2)}
+/* ---------- out and back: the way up and the way down drawn side by side ----------
+   On an out-and-back route both halves follow the same trail. Each is drawn a few pixels to
+   its own right of the direction of travel, so the two lines separate, and the way down is
+   dashed. Marks and labels stay on the trail itself. */
+const TURN=(ROUTE_META?.type==='Out and back'||R.turn!=null)?(R.turn??HI_STOP):null;
+const TURN_M=TURN!=null?TRK.cd[SI[TURN]]:Infinity;
+const OPTS=(()=>{if(TURN==null)return PTS;const o=11*K,kt=STOP_AT[TURN];
+  return PTS.map((p,k)=>{const a=PTS[Math.max(0,k===kt?k-1:k-1)],b=PTS[Math.min(PTS.length-1,k===kt?k:k+1)];
+    let dx=b[0]-a[0],dy=b[1]-a[1];if(k===kt){dx=p[0]-PTS[k-1][0];dy=p[1]-PTS[k-1][1]}
+    const L=Math.hypot(dx,dy)||1;return[p[0]-dy/L*o,p[1]+dx/L*o]})})();
+// the planned line, way up solid and way down dashed
+function phaseLine(cls,a,b,w){let d='';for(let k=a;k<=b;k++)d+=(k===a?'M':'L')+OPTS[k][0].toFixed(1)+','+OPTS[k][1].toFixed(1);
+  return `<path class="${cls}" style="stroke-width:${w.toFixed(1)}${cls.includes('down')?`;stroke-dasharray:${(w*2.2).toFixed(1)} ${(w*1.4).toFixed(1)}`:''}" d="${d}"/>`}
 function traceAt(m){ // metres along route -> point on the traced line, and the last point behind it
   let g=N-1;for(let i=1;i<N;i++){if(m<=TRK.cd[SI[i]]){g=i;break}}
   const a=STOP_AT[g-1],b=STOP_AT[g],A=TRK.cd[SI[g-1]],B=TRK.cd[SI[g]];
@@ -473,13 +498,14 @@ function traceAt(m){ // metres along route -> point on the traced line, and the 
   for(let k=a;k<b;k++){const d=Math.hypot(PTS[k+1][0]-PTS[k][0],PTS[k+1][1]-PTS[k][1]);segs.push(d);tot+=d}
   let t=r*tot;
   for(let k=0;k<segs.length;k++){
-    if(t<=segs[k]){const f=segs[k]?t/segs[k]:0,P=PTS[a+k],Q=PTS[a+k+1];
-      return{x:P[0]+(Q[0]-P[0])*f,y:P[1]+(Q[1]-P[1])*f,k:a+k}}
+    if(t<=segs[k]){const f=segs[k]?t/segs[k]:0,P=PTS[a+k],Q=PTS[a+k+1],U=OPTS[a+k],V=OPTS[a+k+1];
+      return{x:P[0]+(Q[0]-P[0])*f,y:P[1]+(Q[1]-P[1])*f,k:a+k,ox:U[0]+(V[0]-U[0])*f,oy:U[1]+(V[1]-U[1])*f}}
     t-=segs[k];
   }
-  return{x:PTS[b][0],y:PTS[b][1],k:b};
+  return{x:PTS[b][0],y:PTS[b][1],k:b,ox:OPTS[b][0],oy:OPTS[b][1]};
 }
-function pixAtM(m){const p=traceAt(m);return[p.x,p.y]}
+// where to draw you: on the way up or the way down line (the trail itself when there is one line)
+function pixAtM(m){const p=traceAt(m);return[p.ox,p.oy]}
 // the stretch of route already behind you, for drawing over the map
 // a fix that cannot be placed on the map still gets said out loud, in the corner
 function mapBadge(){
@@ -497,9 +523,22 @@ function mapBadge(){
     +`<text class="oob2" x="${x+90}" y="${y+94}">${t2}</text></g>`;
 }
 function tracedPath(m){
-  const p=traceAt(m);let d=`M${PTS[0][0]},${PTS[0][1]}`;
-  for(let k=1;k<=p.k;k++)d+=`L${PTS[k][0]},${PTS[k][1]}`;
-  return d+`L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+  const p=traceAt(m);let d=`M${OPTS[0][0].toFixed(1)},${OPTS[0][1].toFixed(1)}`;
+  for(let k=1;k<=p.k;k++)d+=`L${OPTS[k][0].toFixed(1)},${OPTS[k][1].toFixed(1)}`;
+  return d+`L${p.ox.toFixed(1)},${p.oy.toFixed(1)}`;
+}
+// the covered route as SVG: on an out-and-back, once you are on the way down the way up fades,
+// so the line you are on now is the strong one; thinner strokes keep the two sides apart
+function progressSvg(m,isGps,z=1){
+  const k=K*z,est=isGps?'':' est';
+  if(TURN==null||m<=TURN_M){const d=tracedPath(m),w=TURN==null?1:0.7;
+    return `<path class="progcase" style="stroke-width:${16*k*w}" d="${d}"/><path class="prog${est}" style="stroke-width:${9*k*w}" d="${d}"/>`}
+  const kt=STOP_AT[TURN],p=traceAt(m);let up='',dn=`M${OPTS[kt][0].toFixed(1)},${OPTS[kt][1].toFixed(1)}`;
+  for(let i=0;i<=kt;i++)up+=(i?'L':'M')+OPTS[i][0].toFixed(1)+','+OPTS[i][1].toFixed(1);
+  for(let i=kt+1;i<=p.k;i++)dn+=`L${OPTS[i][0].toFixed(1)},${OPTS[i][1].toFixed(1)}`;
+  dn+=`L${p.ox.toFixed(1)},${p.oy.toFixed(1)}`;
+  return `<path class="prog done${est}" style="stroke-width:${6*k}" d="${up}"/>`
+    +`<path class="progcase" style="stroke-width:${11*k}" d="${dn}"/><path class="prog${est}" style="stroke-width:${6.5*k}" d="${dn}"/>`;
 }
 
 // modelled moving + break minutes from the trailhead to a distance along the route
@@ -512,7 +551,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 02:00';
+const BUILD='2026-10-13 04:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -551,6 +590,7 @@ const today=()=>{const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1
 function save(){
   const q=[`d=${state.dep.replace(':','')}`,`t=${today()}`,`D=${state.date.replace(/-/g,'')}`,`L=${state.lo}`,`H=${state.hi}`];
   if(state.gate)q.push(`G=${state.gate.replace(':','')}`);
+  if(state.datePicked)q.push('U=1');
   if(!state.auto)q.push('x=1');
   state.ci.forEach((v,i)=>{if(v!=null)q.push(`c${i}=${Math.round(v)}`)});
   const str=q.join('&');
@@ -571,6 +611,7 @@ function load(){
     if(k==='d'&&/^\d{4}$/.test(v))state.dep=v.slice(0,2)+':'+v.slice(2);
     else if(k==='x')state.auto=false;
     else if(k==='D'&&/^\d{8}$/.test(v))state.date=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6);
+    else if(k==='U')state.datePicked=true;
     else if(k==='L'&&isFinite(+v)&&v!=='')state.lo=+v;
     else if(k==='H'&&isFinite(+v)&&v!=='')state.hi=+v;
     else if(k==='G'&&/^\d{4}$/.test(v))state.gate=v.slice(0,2)+':'+v.slice(2);
@@ -931,7 +972,10 @@ function mini(i){const p=PTS[STOP_AT[i]],A=440/240,pad=40*K;
 // the planned line, for maps that do not have it printed on them
 function routeLine(z=1){
   if(!R.map.route)return'';
-  return `<path class="rte" style="stroke-width:${(6*K*z).toFixed(1)}" d="M${PTS.map(p=>p[0]+','+p[1]).join('L')}"/>`;
+  const w=6*K*z;
+  if(TURN==null)return `<path class="rte" style="stroke-width:${w.toFixed(1)}" d="M${PTS.map(p=>p[0]+','+p[1]).join('L')}"/>`;
+  const kt=STOP_AT[TURN];
+  return phaseLine('rte',0,kt,w)+phaseLine('rte down',kt,PTS.length-1,w);
 }
 /* ---------- milestone photos ----------
    R.photos[i] = [path, caption]. A stop with no entry simply has no widget.
@@ -948,6 +992,11 @@ function photoBox(i){
 function build(){
   const ol=$('list');
   STOPS.forEach((s,i)=>{
+    if(TURN!=null&&(i===0||i===TURN+1)){const h=document.createElement('li');h.className='phase'+(i?' down':'');
+      const km=i?(TOT-TURN_M)/1000:TURN_M/1000,up=i?null:STOPS.slice(1,TURN+1).reduce((a,x)=>a+x.up,0),dn=i?STOPS.slice(TURN+1).reduce((a,x)=>a+x.dn,0):null;
+      h.innerHTML=i?`Way down<span>${km.toFixed(1)} km, −${dn.toLocaleString('en-US')} m, from ${STOPS[TURN].n.split(',')[0]}</span>`
+                   :`Way up<span>${km.toFixed(1)} km, +${up.toLocaleString('en-US')} m, to ${STOPS[TURN].n.split(',')[0]}</span>`;
+      ol.appendChild(h)}
     const li=document.createElement('li');li.className='stop';li.id='s'+i;
     li.innerHTML=`<div class="clock num" id="c${i}"><span></span><small></small></div>
     <div><p class="name"><span class="badge">${i+1}</span>${s.n}</p>
@@ -1125,6 +1174,12 @@ function profile(P,now){
     h+=`<line class="pgrid" x1="${PLL}" y1="${y}" x2="328" y2="${y}"/>`
       +`<text class="pax" x="${PLL-4}" y="${(+y+3.2).toFixed(1)}">${e}</text>`}
   h+=`<text class="pax" x="${PLL-4}" y="14">m</text>`;
+  // the turnaround splits the profile: the way down sits on a tinted band
+  if(TURN!=null){const xt=X(TURN_M);
+    h+=`<rect class="downband" x="${xt.toFixed(1)}" y="10" width="${(328-xt).toFixed(1)}" height="108"/>`
+      +`<line class="turnline" x1="${xt.toFixed(1)}" y1="10" x2="${xt.toFixed(1)}" y2="118"/>`
+      +`<text class="phlbl" x="${(xt-4).toFixed(1)}" y="124" text-anchor="end">↑ way up</text>`
+      +`<text class="phlbl down" x="${(xt+4).toFixed(1)}" y="124">way down ↓</text>`}
   h+=`<path class="line" d="${d}"/>`;
   STOPS.forEach((s,i)=>{h+=`<circle class="dot${state.ci[i]!=null?' done':''}" cx="${X(s.km*1000).toFixed(1)}" cy="${Y(s.m).toFixed(1)}" r="3.4"/>`});
   const here=herePos(P,now);
@@ -1164,8 +1219,7 @@ function profile(P,now){
   const L=lastIdx();let o=routeLine();
   // how far along we are: GPS when it is trustworthy, otherwise the schedule
   const hereM=here?here.m:null, isGps=!!here&&here.gps;
-  if(hereM!=null){const d=tracedPath(hereM);
-    o+=`<path class="progcase" style="stroke-width:${16*K}" d="${d}"/><path class="prog${isGps?'':' est'}" style="stroke-width:${9*K}" d="${d}"/>`}
+  if(hereM!=null)o+=progressSvg(hereM,isGps);
   if(R.map.labels!==false)o+=mapLabels(P,L);
   MARKS.forEach(g=>{const p=PTS[STOP_AT[g[0]]],r=19;
     const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
@@ -1178,10 +1232,10 @@ function profile(P,now){
       +`<circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
   }else{const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
   // the same line and dot on every stop's close-up, so the card in hand shows where you are
-  const tp=hereM!=null?tracedPath(hereM):'',hq=hereM!=null?pixAtM(hereM):null;
+  const hq=hereM!=null?pixAtM(hereM):null;
   for(let i=0;i<N;i++){const g=document.getElementById('mo'+i);if(!g||!MINI_VB[i])continue;
     const z=MINI_VB[i][4],kz=K*z;let o2='';
-    if(hereM!=null)o2=`<path class="progcase" style="stroke-width:${16*kz}" d="${tp}"/><path class="prog${isGps?'':' est'}" style="stroke-width:${9*kz}" d="${tp}"/>`
+    if(hereM!=null)o2=progressSvg(hereM,isGps,z)
       +`<g transform="translate(${hq[0].toFixed(1)},${hq[1].toFixed(1)}) scale(${kz.toFixed(3)})"><circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
     // you are outside this close-up: an arrow on its edge points your way, with the distance along the trail
     if(hereM!=null){const[x,y,w,h]=MINI_VB[i],q=hq,pad=26*kz;
@@ -1204,7 +1258,7 @@ function profile(P,now){
 
 /* ---------- wiring ---------- */
 $('dep').addEventListener('input',e=>{if(e.target.value){state.dep=e.target.value;update()}});
-$('pdate').addEventListener('change',e=>{if(/^\d{4}-\d\d-\d\d$/.test(e.target.value)){state.date=e.target.value;sunFor();
+$('pdate').addEventListener('change',e=>{if(/^\d{4}-\d\d-\d\d$/.test(e.target.value)){state.date=e.target.value;state.datePicked=true;sunFor();
   if(!state.gate&&R.deadline?.kind==='gate')$('pgate').value=fmt(DEADLINE);update()}});
 $('plo').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){state.lo=v;sunFor();update()}});
 $('phi').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){state.hi=v;sunFor();update()}});
@@ -1317,6 +1371,7 @@ function setupPage(){
   if(R.text?.gpsHint)$('gpshint').innerHTML=R.text.gpsHint;
   if(R.gpx)$('gpxlink').href=R.gpx;else $('gpxlink').hidden=true;
   if(R.map.credit)$('mapcred').textContent=R.map.credit;
+  if(TURN!=null&&R.map.route)$('legend').hidden=false;
   $('simhref').href='planner.html?r='+encodeURIComponent(R.id)+'&sim=1';if(window.__SIM)$('simlink').hidden=true;
 }
 
@@ -1425,7 +1480,9 @@ function renderReviews(){
 setupPage();
 renderReviews();
 try{load()}catch(e){}
-if(!state.date)state.date=R.date&&R.date>=isoToday()?R.date:isoToday();
+// the route's planned date wins until you pick a date yourself; a past one falls back to today
+if(R.date&&R.date>=isoToday()&&!state.datePicked)state.date=R.date;
+if(!state.date||state.date<isoToday()&&state.ci[0]==null)state.date=R.date&&R.date>=isoToday()?R.date:isoToday();
 sunFor();
 $('dep').value=state.dep;$('autochk').checked=state.auto;
 $('pdate').value=state.date;$('plo').value=state.lo;$('phi').value=state.hi;
