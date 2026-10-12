@@ -1,5 +1,8 @@
 # Notes for Claude: building new routes
 
+**Always:** after every significant change (a new route, a new feature, a renamed or moved
+file), update `README.md` in the same pull request. Text only, no images, unless the user asks.
+
 Read this before researching a new route. It records which data sources actually work
 from the cloud container, so the next route starts with them instead of re-probing.
 Add to it whenever a new source proves useful (or stops working). How a route is built,
