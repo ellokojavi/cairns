@@ -253,6 +253,8 @@ details.fold>div{padding:0 14px 12px}
 #revbody ul{margin:0;padding-left:18px;font-size:14px}
 #revbody li{margin:0 0 7px}
 @media (max-width:420px){.kit{grid-template-columns:1fr}}
+.credit{margin-top:24px;padding-top:12px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;text-align:center}
+.credit a{color:inherit}
 </style>
 </head>
 <body>
@@ -323,6 +325,7 @@ details.fold>div{padding:0 14px 12px}
   <p class="fine" id="mapcred"></p>
   <p class="fine" id="simlink"><b>Rehearse the hike:</b> <a id="simhref">test mode</a> simulates the GPS and the clock, walking the route at the planned pace. Its check-ins are kept apart from real ones.</p>
   <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
+  <footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
 </section>
 </main>
 
@@ -557,7 +560,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 10:00';
+const BUILD='2026-10-13 10:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
