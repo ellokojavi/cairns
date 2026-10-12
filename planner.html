@@ -65,7 +65,8 @@ button{cursor:pointer}
 .big:disabled{opacity:.45;cursor:default}
 #planrow{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px}
 #planrow input{padding:6px 8px;border:0;border-radius:6px;font-size:16px;background:var(--bg);color:var(--ink)}
-#undo{background:none;border:0;padding:0;margin-top:6px;color:inherit;opacity:.8;text-decoration:underline;font-size:14px}
+#undo,.linkbtn{background:none;border:0;padding:0;margin-top:6px;color:inherit;opacity:.8;text-decoration:underline;font-size:14px;display:block}
+.linkbtn:disabled{opacity:.4}
 
 /* GPS */
 #gps{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:12px;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);font-size:14px}
@@ -111,6 +112,7 @@ svg{display:block;width:100%;height:auto;margin:2px 0 10px}
 .mk.done rect{fill:#3C7A4E;stroke:#fff} .mk.done text{fill:#fff}
 .mk.next rect{stroke:#B0432A;stroke-width:7}
 .mlab{pointer-events:none}
+.mtag{font:700 22px system-ui,-apple-system,sans-serif;fill:#14201B;paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round}
 .mlab rect{fill:#fff;opacity:.82}
 .mlab text{font:700 22px system-ui,-apple-system,sans-serif;fill:#14201B;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
 .mlab .t2{font:600 18px system-ui,-apple-system,sans-serif;fill:#3B4A44}
@@ -186,6 +188,8 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .ci{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;flex-wrap:wrap}
 .ci button{border:1px solid var(--ink);background:none;border-radius:6px;padding:6px 12px;font-weight:600;font-size:14px}
 .ci button.armed{background:var(--gate);border-color:var(--gate);color:#fff}
+.ci button.quiet{border:0;padding:4px 0;font-weight:400;font-size:13px;color:var(--muted);text-decoration:underline}
+.ci .gpsci{color:var(--muted);font-size:13px}
 
 /* multi-route additions */
 .rte{fill:none;stroke:#D2371F;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
@@ -225,6 +229,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
   <div id="planrow"><label for="dep">Planned departure</label><input type="time" id="dep" value="07:00"></div>
   <button class="big" id="bigbtn" type="button"></button>
   <button class="big" id="resumebtn" type="button" hidden></button>
+  <button id="manualci" class="linkbtn" type="button" hidden></button>
   <button id="undo" type="button" hidden>Undo last check-in</button>
 </div>
 
@@ -266,7 +271,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 
 <section class="help">
   <p><b>Fix position</b> takes one GPS reading, then switches it off. Cheap on battery. Tap it at each milestone.</p>
-  <p><b>Check in</b> at each milestone — two taps, or it happens by itself when GPS says you're there. Everything after re-times from your real pace.</p>
+  <p><b>Check-ins happen by themselves</b> when GPS puts you at a milestone, or past it. Opening the phone takes a fresh fix, so a glance at each stop is enough. Everything after re-times from your real pace. If GPS is off or not allowed, the check-in buttons come back; you can always mark a stop by hand with two taps.</p>
   <p><b>Turnarounds</b> are the latest you can leave and still finish in time. They move earlier if you slow down.</p>
   <p id="gpshint"><b>Keep GPS on</b> only where an off-route warning is worth the battery.</p>
   <p class="fine">Distances and elevations come from the route GPX. A watch will read a few km high, which is normal. Leg times are modelled from each leg's climb and descent. <a id="gpxlink" download>Milestone GPX</a> for a map app with offline maps.</p>
@@ -480,7 +485,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-12 23:00';
+const BUILD='2026-10-13 00:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -612,8 +617,11 @@ function recentre(){
   const sc=w.scrollWidth/MW;
   w.scrollTo({left:mapFocus[0]*sc-w.clientWidth/2,top:mapFocus[1]*sc-w.clientHeight/2,behavior:'smooth'});
 }
+let gpsDenied=false;
+// GPS does the check-ins when it can: auto check-in on, location allowed, a page that may use it
+function gpsLed(){return state.auto&&!LOCAL&&!!navigator.geolocation&&!gpsDenied}
 function gpsFail(e){
-  busy=false;
+  busy=false;if(e.code===1)gpsDenied=true;
   $('gps').className='off';
   $('gpsline').innerHTML=(e.code===1&&LOCAL)
     ? '<b>Chrome blocks GPS for files opened from storage.</b> It only allows location on https pages, and this one opens as file:// or content://, so there is no permission to grant. Everything else here works offline. For live position, use the milestone GPX in a map app.'
@@ -880,9 +888,11 @@ function legMarker(P,now){
     if(m>=TRK.cd[a]-20&&m<=TRK.cd[b]+20){place(i,a,b);break}}
 }
 
+const MINI_VB=[];   // each close-up's window on the map: [x, y, w, h]
 function mini(i){const p=PTS[STOP_AT[i]],w=Math.round(440*K),h=Math.round(240*K);
   const x=Math.round(Math.max(0,Math.min(MW-w,p[0]-w/2))),y=Math.round(Math.max(0,Math.min(MH-h,p[1]-h/2)));
-  return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map close-up of ${STOPS[i].n}"><use href="#mapimg"/>${routeLine()}<circle class="ring" cx="${p[0]}" cy="${p[1]}" r="${(22*K).toFixed(1)}" style="stroke-width:${(5*K).toFixed(1)}"/></svg>`}
+  MINI_VB[i]=[x,y,w,h];
+  return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map close-up of ${STOPS[i].n}"><use href="#mapimg"/>${routeLine()}<circle class="ring" cx="${p[0]}" cy="${p[1]}" r="${(22*K).toFixed(1)}" style="stroke-width:${(5*K).toFixed(1)}"/><g id="mo${i}"></g></svg>`}
 // the planned line, for maps that do not have it printed on them
 function routeLine(){
   if(!R.map.route)return'';
@@ -978,10 +988,10 @@ function update(){
     if(done){b.hidden=true;const dlt=Math.round(state.ci[i]-P.base[i]);
       x.innerHTML=i===0?`<span class="stamp">Started ${fmt(state.ci[0])}</span>`
         :`<span class="stamp">Checked in ${fmt(state.ci[i])}</span> <span class="${dlt>10?'late':dlt<-5?'early':''}">${Math.abs(dlt)<3?'on plan':(dlt>0?'+':'')+dlt+' min'}</span>`}
-    else{b.hidden=false;b.disabled=!cc.ok;b.classList.toggle('armed',armed===i);
-      b.textContent=armed===i?'Tap again to confirm':cc.ok?(i===0?'Start hike':'Check in')
-        :cc.why==='Just checked in'?'Check in':cc.why;
-      x.innerHTML=near&&cc.ok?'<span class="near">GPS says you\'re here</span>':''}
+    else{const q=gpsLed()&&i>0;b.hidden=false;b.disabled=!cc.ok;b.classList.toggle('armed',armed===i);b.classList.toggle('quiet',q&&armed!==i);
+      b.textContent=armed===i?'Tap again to confirm':cc.ok?(i===0?'Start hike':q?'Mark as reached':'Check in')
+        :cc.why==='Just checked in'?(q?'Mark as reached':'Check in'):cc.why;
+      x.innerHTML=near&&cc.ok?'<span class="near">GPS says you\'re here</span>':q&&cc.ok&&P.started&&i===L+1?'<span class="gpsci">GPS will check you in here</span>':''}
     $('s'+i).classList.toggle('isnext',P.started&&i===L+1);
   });
 
@@ -1052,6 +1062,11 @@ function update(){
     $('bd').textContent=`Total ${dur(state.ci[N-1]-P.dep)} for ${(TOT/1000).toFixed(1)} km and ${UP_TOT.toLocaleString('en-US')} m of climb. Well done.`;
     big.hidden=true;
   }
+  // on the trail with GPS doing the work, the bar shows the next stop and keeps check-in as a small link
+  const quiet=P.started&&nx<N&&gpsLed()&&armed!==nx;
+  if(P.started&&nx<N&&gpsLed()){big.hidden=quiet;const mb=$('manualci'),cc=canCheck(nx);mb.hidden=!quiet;
+    mb.disabled=!cc.ok;mb.textContent=`Reached ${STOPS[nx].n}? Check in by hand`}
+  else $('manualci').hidden=true;
   if(!big.hidden){const i=P.started?nx:0,cc=canCheck(i);
     big.disabled=!cc.ok;big.classList.toggle('armed',armed===i);big.dataset.i=i;
     const near=onRoute()&&Math.abs(fix.m-TRK.cd[SI[i]])<NEAR;
@@ -1126,6 +1141,23 @@ function profile(P,now){
     o+=`<g transform="translate(${q[0].toFixed(1)},${q[1].toFixed(1)}) scale(${K.toFixed(3)})"><circle class="pulse" r="16"/>`
       +`<circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
   }else{const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
+  // the same line and dot on every stop's close-up, so the card in hand shows where you are
+  let mo='';
+  if(hereM!=null){const d=tracedPath(hereM),q=pixAtM(hereM);
+    mo=`<path class="progcase" style="stroke-width:${16*K}" d="${d}"/><path class="prog${isGps?'':' est'}" style="stroke-width:${9*K}" d="${d}"/>`
+      +`<g transform="translate(${q[0].toFixed(1)},${q[1].toFixed(1)}) scale(${K.toFixed(3)})"><circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`}
+  for(let i=0;i<N;i++){const g=document.getElementById('mo'+i);if(!g)continue;
+    let o2=mo;
+    // you are outside this close-up: an arrow on its edge points your way, with the distance along the trail
+    if(hereM!=null&&MINI_VB[i]){const[x,y,w,h]=MINI_VB[i],q=pixAtM(hereM),pad=26*K;
+      if(q[0]<x||q[0]>x+w||q[1]<y||q[1]>y+h){
+        const c=[x+w/2,y+h/2],dx=q[0]-c[0],dy=q[1]-c[1],t=Math.min((w/2-pad)/Math.abs(dx||1e-9),(h/2-pad)/Math.abs(dy||1e-9));
+        const ax=c[0]+dx*t,ay=c[1]+dy*t,ang=Math.atan2(dy,dx)*180/Math.PI,dm=TRK.cd[SI[i]]-hereM;
+        const lab=`You: ${distTxt(Math.abs(dm))} ${dm>0?'to go':'past'}`,right=ax<c[0];
+        o2+=`<g transform="translate(${ax.toFixed(1)},${ay.toFixed(1)}) scale(${K.toFixed(3)})">`
+          +`<g transform="rotate(${ang.toFixed(1)})"><path class="${isGps?'gpsdot':'nowdot'}" d="M16,0 L-10,-12 L-5,0 L-10,12 Z" style="stroke:#fff;stroke-width:3"/></g>`
+          +`<text class="mtag" x="${right?22:-22}" y="${ay>c[1]?-16:30}" text-anchor="${right?'start':'end'}">${lab}</text></g>`}}
+    g.innerHTML=o2}
   o+=mapBadge();
   $('mapov').innerHTML=o;
   // a soft card behind each milestone name, sized to the text, so it reads over the map's own lettering
@@ -1143,6 +1175,7 @@ $('plo').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isF
 $('phi').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){state.hi=v;sunFor();update()}});
 $('pgate').addEventListener('change',e=>{state.gate=e.target.value||null;sunFor();if(!state.gate)$('pgate').value=fmt(DEADLINE);update()});
 $('bigbtn').addEventListener('click',e=>tap(+e.currentTarget.dataset.i));
+$('manualci').addEventListener('click',()=>{const nx=lastIdx()+1;if(nx<N){tap(nx)}});
 $('resumebtn').addEventListener('click',()=>{
   if(resumeAt==null)return;
   if(!resumeArmed){resumeArmed=true;clearTimeout(resumeTimer);resumeTimer=setTimeout(()=>{resumeArmed=false;update()},ARM_MS);update();return}
