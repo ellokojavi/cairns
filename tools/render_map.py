@@ -4,9 +4,12 @@ from pyproj import Transformer
 from scipy import ndimage
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from matplotlib import patheffects as pe
+import os,sys
+CFG=json.load(open(sys.argv[1])) if len(sys.argv)>1 else {}
 fw=Transformer.from_crs(4326,26910,always_xy=True)
 # map frame in UTM 10N metres
-X0,Y0=fw.transform(-121.6790,47.4568); X1,Y1=fw.transform(-121.6325,47.4718)
+B=CFG.get('bounds',[-121.6790,47.4568,-121.6325,47.4718])
+X0,Y0=fw.transform(B[0],B[1]); X1,Y1=fw.transform(B[2],B[3])
 X0,Y0,X1,Y1=[round(v,-1) for v in (X0,Y0,X1,Y1)]
 MPP=2.0; W=int((X1-X0)/MPP); H=int((Y1-Y0)/MPP)
 print('frame',X0,Y0,X1,Y1,W,H)
@@ -65,15 +68,16 @@ for r in pq.read_table('land.parquet').to_pylist():
       ha="center" if 90<x<W-90 else ("right" if x>=W-90 else "left")
       ax.plot(x,y,marker='^',color='#3d2b1f',ms=16,mec='white',mew=2)
       n=r['names']['primary']
-      if n=='Mailbox Peak': continue          # the planner labels the summit itself
+      if n in CFG.get('skip_peaks',['Mailbox Peak']): continue          # the planner labels the summit itself
       e=z[int(min(H-1,y)),int(min(W-1,x))]
       ax.text(x+(8 if ha=="left" else -8 if ha=="right" else 0),y-22,f"{n}\n{e:,.0f} m",ha=ha,multialignment=ha,va='bottom',fontsize=22,weight='bold',color='#2b1d12',path_effects=halo)
 # trail labels and trailhead
-x,y=px(-121.6731,47.4668); ax.text(x-30,y+2,'P',fontsize=24,weight='bold',color='white',ha='center',va='center',bbox=dict(boxstyle='round,pad=0.2',fc='#1f5fa8',ec='white'))
+x,y=px(*CFG.get('parking',[-121.6731,47.4668])); ax.text(x-30,y+2,'P',fontsize=24,weight='bold',color='white',ha='center',va='center',bbox=dict(boxstyle='round,pad=0.2',fc='#1f5fa8',ec='white'))
 pass #ax.text(x-30,y+40,'Trailhead\n267 m',fontsize=20,weight='bold',ha='center',va='top',color='#1f2a30',path_effects=halo)
-for txt,lon,lat,rot in [('New Trail',-121.6585,47.4665,28),('Old Trail',-121.6615,47.4628,-4)]:
+for txt,lon,lat,rot in CFG.get('trail_labels',[('New Trail',-121.6585,47.4665,28),('Old Trail',-121.6615,47.4628,-4)]):
   x,y=px(lon,lat); ax.text(x,y,txt,fontsize=20,style='italic',weight='bold',color='#5b3a1e',rotation=rot,ha='center',path_effects=halo)
-x,y=px(-121.6650,47.4735); ax.text(x,y,'Middle Fork Snoqualmie River',fontsize=19,style='italic',color='#2d6ea3',rotation=17,ha='center',path_effects=halo)
+for txt,lon,lat,rot in CFG.get('water_labels',[('Middle Fork Snoqualmie River',-121.6650,47.4735,17)]):
+  x,y=px(lon,lat); ax.text(x,y,txt,fontsize=19,style='italic',color='#2d6ea3',rotation=rot,ha='center',path_effects=halo)
 # scale bar
 sx,sy=W-40-500/MPP,H-30
 ax.plot([sx,sx+500/MPP],[sy,sy],color='#222',lw=5); ax.text(sx+250/MPP,sy-12,'500 m',ha='center',fontsize=19,weight='bold',path_effects=halo)
