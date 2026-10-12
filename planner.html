@@ -6,7 +6,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#1C2A2E">
 <link rel="apple-touch-icon" href="./icon-192.png">
-<title>Hike planner</title>
+<title>Cairns</title>
 <script src="routes/catalog.js"></script>
 <script>
 // which route: ?r=<id>, else the last one opened. Its data file sets window.ROUTE.
@@ -551,7 +551,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 04:00';
+const BUILD='2026-10-13 05:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};

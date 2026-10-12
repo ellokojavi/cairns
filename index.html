@@ -6,7 +6,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#1C2A2E">
 <link rel="apple-touch-icon" href="./icon-192.png">
-<title>Hike planner</title>
+<title>Cairns</title>
 <script>
 // links from the Enchantments-only version carried the plan in the hash: send them to that route
 if(/(^|[#&])(d|c0)=/.test(location.hash))location.replace('planner.html?r=enchantments'+location.hash);
@@ -59,7 +59,7 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <body>
 <main>
 <header>
-  <div><h1>Hike planner</h1></div>
+  <div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div>
   <button class="ghost" id="theme" type="button">Dark</button>
 </header>
 <p class="sub">Pick a route. Set the date, start time and forecast, and it times every stop, the turnaround and the finish. Works with no signal once opened.</p>
