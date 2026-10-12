@@ -17,6 +17,7 @@
   if(!h){location.replace('./');return}
   try{localStorage.setItem('hike-last',h.id)}catch(e){}
   document.write('<script src="'+h.file+'"><\/script>');
+  if(new URLSearchParams(location.search).has('sim'))document.write('<script src="sim.js"><\/script>');
 })();
 </script>
 <style>
@@ -270,6 +271,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
   <p id="gpshint"><b>Keep GPS on</b> only where an off-route warning is worth the battery.</p>
   <p class="fine">Distances and elevations come from the route GPX. A watch will read a few km high, which is normal. Leg times are modelled from each leg's climb and descent. <a id="gpxlink" download>Milestone GPX</a> for a map app with offline maps.</p>
   <p class="fine" id="mapcred"></p>
+  <p class="fine" id="simlink"><b>Rehearse the hike:</b> <a id="simhref">test mode</a> simulates the GPS and the clock, walking the route at the planned pace. Its check-ins are kept apart from real ones.</p>
   <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
 </section>
 </main>
@@ -478,7 +480,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-12 22:15';
+const BUILD='2026-10-12 23:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -511,8 +513,8 @@ function lastIdx(){for(let i=N-1;i>=0;i--)if(state.ci[i]!=null)return i;return -
 
 /* ---------- save ---------- */
 let lastHash='';
-let CAN_SAVE=(()=>{try{return window.self===window.top&&/^(https?|file):$/.test(location.protocol)}catch(e){return false}})();
-const LSKEY='hike-'+R.id;
+let CAN_SAVE=(()=>{try{return !window.__SIM&&window.self===window.top&&/^(https?|file):$/.test(location.protocol)}catch(e){return false}})();
+const LSKEY=(window.__SIM?'hike-sim-':'hike-')+R.id;   // test mode keeps its own check-ins
 const today=()=>{const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()};
 function save(){
   const q=[`d=${state.dep.replace(':','')}`,`t=${today()}`,`D=${state.date.replace(/-/g,'')}`,`L=${state.lo}`,`H=${state.hi}`];
@@ -1243,6 +1245,7 @@ function setupPage(){
   if(R.text?.gpsHint)$('gpshint').innerHTML=R.text.gpsHint;
   if(R.gpx)$('gpxlink').href=R.gpx;else $('gpxlink').hidden=true;
   if(R.map.credit)$('mapcred').textContent=R.map.credit;
+  $('simhref').href='planner.html?r='+encodeURIComponent(R.id)+'&sim=1';if(window.__SIM)$('simlink').hidden=true;
 }
 setupPage();
 try{load()}catch(e){}
