@@ -255,11 +255,15 @@ details.fold>div{padding:0 14px 12px}
 @media (max-width:420px){.kit{grid-template-columns:1fr}}
 .credit{margin-top:24px;padding-top:12px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;text-align:center}
 .credit a{color:inherit}
+/* the logo in light ink on dark backgrounds */
+.lg-dark{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .lg-light{display:none}:root:not([data-theme="light"]) .lg-dark{display:inline}}
+:root[data-theme="dark"] .lg-light{display:none}:root[data-theme="dark"] .lg-dark{display:inline}
 </style>
 </head>
 <body>
 <main>
-<div class="hero"><img id="cover" alt=""><a class="back" href="./"><img src="logo.png" alt="">‹ All routes</a><button class="ghost" id="theme" type="button">Dark</button>
+<div class="hero"><img id="cover" alt=""><a class="back" href="./"><img src="logo-dark.png" alt="">‹ All routes</a><button class="ghost" id="theme" type="button">Dark</button>
   <div class="ht"><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
 <a class="covercred" id="covercred" target="_blank" rel="noopener" hidden></a>
 <div class="stats num" id="stats"></div>
@@ -560,7 +564,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 12:00';
+const BUILD='2026-10-13 13:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
