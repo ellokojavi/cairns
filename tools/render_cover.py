@@ -89,6 +89,6 @@ if __name__=='__main__':
   nm=sys.argv[1]
   j=json.load(open(f'{nm}_oneway.json'))
   route=[(a,b,e) for (a,b),e in zip(j['ll'],j['el'])]
-  S=fw.transform(-121.6392795,47.4624091)
+  S=fw.transform(*map(float,sys.argv[7:9])) if len(sys.argv)>8 else fw.transform(-121.6392795,47.4624091)
   cam=fw.transform(*map(float,sys.argv[2:4])); camz=float(sys.argv[4])
   render(cam,(S[0]+float(sys.argv[5]),S[1]),camz,pitch=math.radians(float(sys.argv[6])),route=route,out=f'cover_{nm}.png')

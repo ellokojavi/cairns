@@ -199,6 +199,8 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .hero h1{color:#fff;margin:0}
 .hero .var{font:600 16px/1.2 var(--cond);opacity:.92;margin:2px 0 0}
 .hero .back{position:absolute;top:10px;left:10px;background:rgba(12,18,20,.62);color:#fff;text-decoration:none;border-radius:16px;padding:4px 11px;font-size:13px;font-weight:600}
+.drive{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.drive a{display:inline-block;border:1px solid var(--ink);border-radius:8px;padding:7px 12px;font-weight:600;font-size:14px;color:var(--ink);text-decoration:none}
 .covercred{display:block;margin:-6px 0 8px;font-size:11px;color:var(--muted);text-align:right;text-decoration:none}
 .hero .ghost{position:absolute;top:10px;right:10px;background:rgba(12,18,20,.62);color:#fff;border:0}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px}
@@ -212,6 +214,27 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 #planbox .pair{display:flex;gap:6px}
 #planbox p{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--muted)}
 #gpxlink{color:inherit}
+details.fold{padding:0}
+details.fold>summary{padding:12px 14px;font:600 18px/1.2 var(--cond);cursor:pointer;list-style:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:'▾';float:right;color:var(--muted)}
+details.fold:not([open])>summary::after{content:'▸'}
+details.fold>div{padding:0 14px 12px}
+.dline{margin:0 0 8px;font-size:14px}
+.dsrc{color:var(--muted);font-size:12px;margin:8px 0 0}
+.dsrc a{color:inherit}
+.kit{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.kit h3{font:600 14px var(--body);margin:0 0 4px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.kit ul{margin:0;padding-left:18px;font-size:14px}
+.kit li{margin:0 0 5px}
+.kit li span{display:block;color:var(--muted);font-size:12.5px}
+.kit .no li::marker{content:'– '}
+.wxrow{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.wxrow span{font-size:13px;border:1px solid var(--rule);border-radius:4px;padding:2px 7px;background:var(--bg)}
+.wxrow span.warn{border-color:var(--warn);color:var(--warn);font-weight:600}
+#revbody ul{margin:0;padding-left:18px;font-size:14px}
+#revbody li{margin:0 0 7px}
+@media (max-width:420px){.kit{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -220,6 +243,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
   <div class="ht"><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
 <a class="covercred" id="covercred" target="_blank" rel="noopener" hidden></a>
 <div class="stats num" id="stats"></div>
+<p class="drive" id="drive" hidden></p>
 <p class="who" id="when"></p>
 <p class="sub"><span id="summary"></span> <span id="sun"></span></p>
 
@@ -240,6 +264,9 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
   <label class="wide" id="gaterow" hidden>Parking gate closes (posted time)<input type="time" id="pgate"></label>
   <p>Sun times, cutoffs and temperatures follow the date and the forecast. On the day, starting the hike sets the date to today.</p>
 </div>
+
+<details class="panel fold" id="daybox" open><summary id="daysum">Your day</summary><div id="daybody"></div></details>
+<details class="panel fold" id="revbox" hidden><summary>What hikers say</summary><div id="revbody"></div></details>
 
 <div id="offline"><span id="offtxt">Checking offline copy…</span></div>
 
@@ -485,7 +512,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 00:30';
+const BUILD='2026-10-13 02:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -501,7 +528,7 @@ function climate(){
   LAPSE=[[r-30,2],[r+330,6.5],[s-30,6.5],[s+90,4]];
   for(const c of [VALLEY,LAPSE])for(let i=1;i<c.length;i++)if(c[i][0]<=c[i-1][0])c[i][0]=c[i-1][0]+10;   // short days: keep it in order
 }
-const tempAt=(e,t)=>Math.round(lerp(VALLEY,t)-lerp(LAPSE,t)*(e-(R.climate?.ref??400))/1000);
+const tempAt=(e,t)=>{const f=fcTemp(e,t);return f!=null?f:Math.round(lerp(VALLEY,t)-lerp(LAPSE,t)*(e-(R.climate?.ref??400))/1000)};
 
 const state={dep:R.dep||'07:00',date:null,lo:R.climate?.low??8,hi:R.climate?.high??18,gate:null,ci:new Array(N).fill(null),auto:true};
 let armed=null,armTimer=null,fix=null,offStreak=0,autoMsg='',autoMsgAt=0,lastFixM=null,resumeAt=null,resumeArmed=false,resumeTimer=null;
@@ -889,14 +916,22 @@ function legMarker(P,now){
 }
 
 const MINI_VB=[];   // each close-up's window on the map: [x, y, w, h]
-function mini(i){const p=PTS[STOP_AT[i]],w=Math.round(440*K),h=Math.round(240*K);
-  const x=Math.round(Math.max(0,Math.min(MW-w,p[0]-w/2))),y=Math.round(Math.max(0,Math.min(MH-h,p[1]-h/2)));
-  MINI_VB[i]=[x,y,w,h];
-  return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map close-up of ${STOPS[i].n}"><use href="#mapimg"/>${routeLine()}<circle class="ring" cx="${p[0]}" cy="${p[1]}" r="${(22*K).toFixed(1)}" style="stroke-width:${(5*K).toFixed(1)}"/><g id="mo${i}"></g></svg>`}
+// each stop's close-up frames the whole leg into it, from the previous stop: while you walk
+// towards a stop, your dot is always inside that stop's card (the start frames its surroundings)
+function mini(i){const p=PTS[STOP_AT[i]],A=440/240,pad=40*K;
+  let x0=p[0],y0=p[1],x1=p[0],y1=p[1];
+  if(i>0)for(let k=STOP_AT[i-1];k<=STOP_AT[i];k++){const q=PTS[k];x0=Math.min(x0,q[0]);y0=Math.min(y0,q[1]);x1=Math.max(x1,q[0]);y1=Math.max(y1,q[1])}
+  let w=Math.max(440*K,x1-x0+2*pad,(y1-y0+2*pad)*A),h=w/A;
+  if(w>MW){w=MW;h=w/A}if(h>MH){h=MH;w=h*A}
+  const x=Math.round(Math.max(0,Math.min(MW-w,(x0+x1)/2-w/2))),y=Math.round(Math.max(0,Math.min(MH-h,(y0+y1)/2-h/2)));
+  w=Math.round(w);h=Math.round(h);
+  const z=w/(440*K);   // marks keep the same size on screen however far the card zooms out
+  MINI_VB[i]=[x,y,w,h,z];
+  return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map of the leg into ${STOPS[i].n}"><use href="#mapimg"/>${routeLine(z)}<circle class="ring" cx="${p[0]}" cy="${p[1]}" r="${(22*K*z).toFixed(1)}" style="stroke-width:${(5*K*z).toFixed(1)}"/><g id="mo${i}"></g></svg>`}
 // the planned line, for maps that do not have it printed on them
-function routeLine(){
+function routeLine(z=1){
   if(!R.map.route)return'';
-  return `<path class="rte" style="stroke-width:${(6*K).toFixed(1)}" d="M${PTS.map(p=>p[0]+','+p[1]).join('L')}"/>`;
+  return `<path class="rte" style="stroke-width:${(6*K*z).toFixed(1)}" d="M${PTS.map(p=>p[0]+','+p[1]).join('L')}"/>`;
 }
 /* ---------- milestone photos ----------
    R.photos[i] = [path, caption]. A stop with no entry simply has no widget.
@@ -962,6 +997,7 @@ function update(){
   if(state.ci[0]!=null&&state.date!==isoToday()){state.date=isoToday();sunFor();$('pdate').value=state.date}
   const P=project(),now=nowRel(),L=lastIdx();
   $('planbox').hidden=P.started;
+  renderDay(P);
   sunLine();
   STOPS.forEach((s,i)=>{
     const t=P.t[i],done=state.ci[i]!=null,skip=!done&&i>0&&i<P.a;
@@ -1142,19 +1178,18 @@ function profile(P,now){
       +`<circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
   }else{const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
   // the same line and dot on every stop's close-up, so the card in hand shows where you are
-  let mo='';
-  if(hereM!=null){const d=tracedPath(hereM),q=pixAtM(hereM);
-    mo=`<path class="progcase" style="stroke-width:${16*K}" d="${d}"/><path class="prog${isGps?'':' est'}" style="stroke-width:${9*K}" d="${d}"/>`
-      +`<g transform="translate(${q[0].toFixed(1)},${q[1].toFixed(1)}) scale(${K.toFixed(3)})"><circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`}
-  for(let i=0;i<N;i++){const g=document.getElementById('mo'+i);if(!g)continue;
-    let o2=mo;
+  const tp=hereM!=null?tracedPath(hereM):'',hq=hereM!=null?pixAtM(hereM):null;
+  for(let i=0;i<N;i++){const g=document.getElementById('mo'+i);if(!g||!MINI_VB[i])continue;
+    const z=MINI_VB[i][4],kz=K*z;let o2='';
+    if(hereM!=null)o2=`<path class="progcase" style="stroke-width:${16*kz}" d="${tp}"/><path class="prog${isGps?'':' est'}" style="stroke-width:${9*kz}" d="${tp}"/>`
+      +`<g transform="translate(${hq[0].toFixed(1)},${hq[1].toFixed(1)}) scale(${kz.toFixed(3)})"><circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
     // you are outside this close-up: an arrow on its edge points your way, with the distance along the trail
-    if(hereM!=null&&MINI_VB[i]){const[x,y,w,h]=MINI_VB[i],q=pixAtM(hereM),pad=26*K;
+    if(hereM!=null){const[x,y,w,h]=MINI_VB[i],q=hq,pad=26*kz;
       if(q[0]<x||q[0]>x+w||q[1]<y||q[1]>y+h){
         const c=[x+w/2,y+h/2],dx=q[0]-c[0],dy=q[1]-c[1],t=Math.min((w/2-pad)/Math.abs(dx||1e-9),(h/2-pad)/Math.abs(dy||1e-9));
         const ax=c[0]+dx*t,ay=c[1]+dy*t,ang=Math.atan2(dy,dx)*180/Math.PI,dm=TRK.cd[SI[i]]-hereM;
         const lab=`You: ${distTxt(Math.abs(dm))} ${dm>0?'to go':'past'}`,right=ax<c[0];
-        o2+=`<g transform="translate(${ax.toFixed(1)},${ay.toFixed(1)}) scale(${K.toFixed(3)})">`
+        o2+=`<g transform="translate(${ax.toFixed(1)},${ay.toFixed(1)}) scale(${kz.toFixed(3)})">`
           +`<g transform="rotate(${ang.toFixed(1)})"><path class="${isGps?'gpsdot':'nowdot'}" d="M16,0 L-10,-12 L-5,0 L-10,12 Z" style="stroke:#fff;stroke-width:3"/></g>`
           +`<text class="mtag" x="${right?22:-22}" y="${ay>c[1]?-16:30}" text-anchor="${right?'start':'end'}">${lab}</text></g>`}}
     g.innerHTML=o2}
@@ -1267,6 +1302,10 @@ function setupPage(){
   const cov=ROUTE_META?.cover||R.cover;
   if(cov)$('cover').src=cov;else $('cover').parentNode.classList.add('nocover');
   $('cover').alt=tt;
+  const gm=g=>'https://www.google.com/maps/dir/?api=1&destination='+g[0]+','+g[1]+'&travelmode=driving';
+  if(ROUTE_META?.go){const d=$('drive');d.hidden=false;
+    d.innerHTML=`<a href="${gm(ROUTE_META.go)}" target="_blank" rel="noopener">➜ Directions: ${ROUTE_META.go[2]}</a>`
+      +(ROUTE_META.goEnd?`<a href="${gm(ROUTE_META.goEnd)}" target="_blank" rel="noopener">➜ ${ROUTE_META.goEnd[2]}</a>`:'')}
   if(ROUTE_META?.coverCredit){const c=$('covercred');c.textContent=ROUTE_META.coverCredit[0];c.href=ROUTE_META.coverCredit[1];c.hidden=false}
   const st=[[(TOT/1000).toFixed(1)+' km','distance'],['+'+UP_TOT.toLocaleString('en-US')+' m','climb'],
     [STOPS[HI_STOP].m.toLocaleString('en-US')+' m','high point'],[dur(PLAN_MV),'moving']];
@@ -1280,7 +1319,111 @@ function setupPage(){
   if(R.map.credit)$('mapcred').textContent=R.map.credit;
   $('simhref').href='planner.html?r='+encodeURIComponent(R.id)+'&sim=1';if(window.__SIM)$('simlink').hidden=true;
 }
+
+/* ---------- the day itself: forecast for the plan date, and what to bring ----------
+   Open-Meteo (free, no key) gives an hourly forecast up to 16 days ahead. It is asked for
+   two points, the trailhead and the high point, each at its own height, so the numbers are
+   what you will meet on the trail, not in town. The answer is kept per route and date, so
+   the brief still shows on the trail with no signal. */
+const FCKEY=()=>'hike-fc-'+R.id+'-'+state.date;
+let FC=null;
+function fcLoad(){FC=null;try{const c=JSON.parse(localStorage.getItem(FCKEY())||'null');if(c&&c.date===state.date)FC=c}catch(e){}}
+function daysAhead(){const[y,m,d]=state.date.split('-').map(Number),t=new Date(),a=Date.UTC(y,m-1,d),b=Date.UTC(t.getFullYear(),t.getMonth(),t.getDate());return Math.round((a-b)/864e5)}
+let fcBusy=false,fcTried={};
+function fcFetch(){
+  if(fcBusy||!navigator.onLine||Date.now()-(fcTried[state.date]||0)<60000)return;   // at most one try a minute per date
+  const ahead=daysAhead();if(ahead<0||ahead>15)return;
+  if(FC&&Date.now()-FC.at<3*3600e3)return;            // fresh enough
+  const top=STOPS[HI_STOP],th=STOPS[0];
+  const q=new URLSearchParams({latitude:`${TRK.la[0]},${TRK.la[SI[HI_STOP]]}`,longitude:`${TRK.lo[0]},${TRK.lo[SI[HI_STOP]]}`,
+    elevation:`${th.m},${top.m}`,timezone:R.tz||'auto',start_date:state.date,end_date:state.date,
+    hourly:'temperature_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,wind_speed_10m,wind_gusts_10m,freezing_level_height,cloud_cover,weather_code'});
+  fcBusy=true;fcTried[state.date]=Date.now();const want=state.date;
+  fetch('https://api.open-meteo.com/v1/forecast?'+q,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(r.status)).then(j=>{
+    const a=Array.isArray(j)?j:[j];if(a.length<2||!a[0].hourly)throw 'shape';
+    const pick=o=>{const h=o.hourly;return{t:h.temperature_2m,app:h.apparent_temperature,pp:h.precipitation_probability,pr:h.precipitation,
+      sf:h.snowfall,ws:h.wind_speed_10m,wg:h.wind_gusts_10m,fl:h.freezing_level_height,cc:h.cloud_cover,wc:h.weather_code}};
+    if(want!==state.date)return;              // the date changed while this was on its way
+    FC={date:want,at:Date.now(),th:{e:th.m,...pick(a[0])},top:{e:top.m,...pick(a[1])}};
+    try{localStorage.setItem(FCKEY(),JSON.stringify(FC))}catch(e){}
+    update();
+  }).catch(()=>{}).finally(()=>{fcBusy=false});
+}
+// a forecast value at minutes-after-midnight t, between the hourly steps
+function fcAt(arr,t){if(!arr)return null;const h=Math.max(0,Math.min(arr.length-1,t/60)),a=Math.floor(h),b=Math.min(arr.length-1,a+1),f=h-a;
+  const x=arr[a],y=arr[b];return x==null?y:y==null?x:x+(y-x)*f}
+function fcTemp(e,t){if(!FC||FC.date!==state.date)return null;
+  const a=fcAt(FC.th.t,t),b=fcAt(FC.top.t,t);if(a==null||b==null)return null;
+  const f=(e-FC.th.e)/Math.max(1,FC.top.e-FC.th.e);return Math.round(a+(b-a)*f)}
+function dayBrief(P){
+  const top=STOPS[HI_STOP],tTop=P.t[HI_STOP],dep=P.dep,fin=P.fin,hrs=(fin-dep)/60;
+  const descent=STOPS.reduce((a,s)=>a+(s.dn||0),0);
+  const fc=FC&&FC.date===state.date?FC:null;
+  const span=(arr)=>{let m=-1e9;for(let t=dep;t<=fin;t+=30){const v=fcAt(arr,t);if(v!=null&&v>m)m=v}return m===-1e9?null:m};
+  const sum=(arr)=>{if(!arr)return 0;let s2=0;for(let h=Math.floor(dep/60);h<=Math.min(23,Math.floor(fin/60));h++)s2+=arr[h]||0;return s2};
+  const tStart=tempAt(STOPS[0].m,dep),tTopV=tempAt(top.m,tTop),tFin=tempAt(STOPS[N-1].m,fin);
+  const feelsTop=fc?Math.round(fcAt(fc.top.app,tTop)):tTopV-(top.wind?4:0);
+  const maxT=Math.max(tStart,tTopV,tFin,fc?Math.round(span(fc.th.t)):-99);
+  const pp=fc?Math.round(Math.max(span(fc.th.pp)??0,span(fc.top.pp)??0)):null, rain=fc?sum(fc.top.pr):0, snow=fc?sum(fc.top.sf):0;
+  const gust=fc?Math.round(fcAt(fc.top.wg,tTop)):null, wind=fc?Math.round(fcAt(fc.top.ws,tTop)):null;
+  const fl=fc?Math.round((fcAt(fc.top.fl,tTop)??9999)/50)*50:null;
+  const icy=fc?(snow>0||(fl!=null&&fl<top.m+300)||feelsTop<=0):null;
+  const dark=dep<SUNRISE+20||fin>SUNSET-30;
+  const bring=[],leave=[],note=[];
+  const L=Math.max(1,Math.round((hrs*0.45+(maxT>=20?0.5:0)+(maxT>=26?0.5:0))*2)/2);
+  bring.push(['Water: about '+L+' L each',`${dur(fin-dep)} on the trail${maxT>=20?', warm afternoon':''}. Refill only where the route has water.`]);
+  bring.push(['Food: about '+Math.round(PLAN_MV/60*250/50)*50+' kcal each','~250 kcal per moving hour, plus lunch at the top.']);
+  bring.push(dark?['Headlamp, with spare batteries',`You start at ${fmt(dep)}${dep<SUNRISE?`, before sunrise (${fmt(SUNRISE)})`:''}${fin>SUNSET-30?`, and finish near sunset (${fmt(SUNSET)})`:''}.`]
+                 :['Headlamp','Not planned, but a slow day or a twisted ankle ends in the dark.']);
+  if(feelsTop<=5)bring.push(['Warm layer, beanie and gloves',`About ${tTopV} °C at the top around ${fmt(tTop)}, feels like ${feelsTop} °C${gust!=null&&gust>=30?` with gusts to ${gust} km/h`:''}.`]);
+  else if(feelsTop<=12)bring.push(['A light warm layer',`About ${tTopV} °C at the top around ${fmt(tTop)}${fc?`, feels like ${feelsTop} °C`:''}. You cool down fast once you stop.`]);
+  if(fc){
+    if(pp>=50||rain>=2)bring.push(['Rain jacket and pack cover; phone in a bag',`Rain chance up to ${pp}%${rain>=0.5?`, about ${Math.round(rain)} mm over the day`:''}. Roots and rock get slick.`]);
+    else if(pp>=20)bring.push(['A light rain shell',`Rain chance up to ${pp}%.`]);
+    else leave.push(['Rain pants and umbrella',`Rain chance ${pp}% at most.`]);
+    if(icy)bring.push(['Microspikes; trail runners will slip on ice',snow>0?`Snow forecast at the top (${snow.toFixed(1)} cm).`:`Freezing level near ${fl.toLocaleString('en-US')} m, at or below the top.`]);
+    else leave.push(['Microspikes and gaiters',`Freezing level around ${fl.toLocaleString('en-US')} m, far above the top (${top.m.toLocaleString('en-US')} m).`]);
+    if(gust!=null&&gust>=40)bring.push(['Windproof shell',`Gusts to ${gust} km/h at the top. Stay off exposed rock in strong gusts.`]);
+    if(!icy&&pp<50)note.push('Dry trail expected: trail runners are fine.');
+  }else{
+    const mo=+state.date.slice(5,7);
+    if(mo>=11||mo<=4)bring.push(['Microspikes','Winter months: the upper trail is often icy. Check recent trip reports.']);
+    bring.push(['A rain shell','No forecast yet for this date; the Cascades can rain any month.']);
+  }
+  if(maxT>=22)bring.push(['Sun hat, sunscreen, sunglasses',`Up to ${maxT} °C in the afternoon.`]);
+  if(descent>=700)bring.push(['Poles',`${descent.toLocaleString('en-US')} m of descent: they save your knees on the way down.`]);
+  if(feelsTop>12)leave.push(['A heavy insulated jacket',`Mild at the top (${tTopV} °C).`]);
+  if(fc&&!icy&&pp<50)leave.push(['Heavy boots','Trail runners with good grip are enough on a dry trail.']);
+  bring.push(['Phone charged, this page saved offline','It works with no signal; the GPS works without coverage.']);
+  if(R.deadline?.kind==='gate')note.push(`The ${R.deadline.label} closes around ${fmt(DEADLINE)}: plan to be back well before.`);
+  const wd=new Date(state.date+'T12:00').getDay();
+  note.push(wd===0||wd===6?'Weekend: the lot can fill early. Arrive before 8:00 or have a plan B.':'Weekday: parking is usually easy, and the trail quieter.');
+  return{fc,tStart,tTopV,tFin,feelsTop,pp,gust,wind,fl,bring,leave,note,tTop};
+}
+function renderDay(P){
+  fcLoad();fcFetch();
+  const b=dayBrief(P),ahead=daysAhead();
+  $('daysum').textContent='Your day: '+dayName(state.date);
+  const li=a=>a.map(([t,w])=>`<li>${t}<span>${w}</span></li>`).join('');
+  const chips=[`Start ${fmt(P.dep)} · ${b.tStart} °C`,`Top ${fmt(b.tTop)} · ${b.tTopV} °C${b.fc?`, feels ${b.feelsTop}`:''}`,`Back ${fmt(P.fin)} · ${b.tFin} °C`];
+  if(b.fc){chips.push(`Rain ${b.pp}%`);if(b.gust!=null)chips.push(`Gusts ${b.gust} km/h at top`);if(b.fl!=null)chips.push(`Freezing level ${b.fl.toLocaleString('en-US')} m`)}
+  const src=b.fc?`Forecast: Open-Meteo, for the trailhead and the top at their own heights, updated ${new Date(b.fc.at).toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'})}. <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> (CC BY 4.0).`
+    :ahead>15?`No forecast yet: the date is ${ahead} days away (forecasts reach 16 days). Temperatures use the low and high you entered above.`
+    :ahead<0?'This date has passed. Temperatures use the low and high you entered above.'
+    :navigator.onLine?'Fetching the forecast…':'Offline: no forecast saved for this date yet. Open the page once with signal before you go.';
+  $('daybody').innerHTML=`<div class="wxrow num">${chips.map(c=>`<span class="${/Rain [5-9]\d|Rain 100|Gusts [4-9]\d/.test(c)?'warn':''}">${c}</span>`).join('')}</div>`
+    +(b.note.length?`<p class="dline">${b.note.join(' ')}</p>`:'')
+    +`<div class="kit"><div><h3>Bring</h3><ul>${li(b.bring)}</ul></div>${b.leave.length?`<div class="no"><h3>Leave at home</h3><ul>${li(b.leave)}</ul></div>`:''}</div>`
+    +`<p class="dsrc">${src}</p>`;
+}
+function renderReviews(){
+  const r=R.reviews;if(!r)return;
+  $('revbox').hidden=false;
+  $('revbody').innerHTML=`<ul>${r.points.map(x=>`<li>${x}</li>`).join('')}</ul>`
+    +`<p class="dsrc">Summarised from hikers' trip reports and reviews: ${r.sources.map(([n,u])=>`<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join(', ')}. Conditions change; read the latest reports before you go.</p>`;
+}
 setupPage();
+renderReviews();
 try{load()}catch(e){}
 if(!state.date)state.date=R.date&&R.date>=isoToday()?R.date:isoToday();
 sunFor();
