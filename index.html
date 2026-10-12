@@ -56,12 +56,16 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #off.ready{border-color:var(--ok)} #off.no{border-color:var(--warn)}
 .credit{margin-top:24px;padding-top:12px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;text-align:center}
 .credit a{color:inherit}
+/* the logo in light ink on dark backgrounds */
+.lg-dark{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .lg-light{display:none}:root:not([data-theme="light"]) .lg-dark{display:inline}}
+:root[data-theme="dark"] .lg-light{display:none}:root[data-theme="dark"] .lg-dark{display:inline}
 </style>
 </head>
 <body>
 <main>
 <header>
-  <div class="brand"><img class="logo" src="logo.png" alt="" width="56" height="56"><div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div></div>
+  <div class="brand"><img class="logo lg-light" src="logo.png" alt="" width="56" height="56"><img class="logo lg-dark" src="logo-dark.png" alt="" width="56" height="56"><div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div></div>
   <button class="ghost" id="theme" type="button">Dark</button>
 </header>
 <p class="sub">Pick a route. Set the date, start time and forecast, and it times every stop, the turnaround and the finish. Works with no signal once opened.</p>
