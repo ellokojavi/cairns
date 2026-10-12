@@ -69,7 +69,7 @@ is saved.
 | `routes/catalog.js` | The list of routes, parking coordinates, and every file each needs offline |
 | `routes/<area>/` | Each route's data file, map, covers, photos and milestone GPX |
 | `sw.js` | Service worker: stores every route for offline use |
-| `manifest.webmanifest`, `icon-*.png`, `logo.png`, `favicon.png` | App name, icons and logo |
+| `manifest.webmanifest`, `cairns-*.png`, `logo.png`, `favicon.png` | App name, home-screen icons (regular, Android adaptive, iPhone) and logo |
 | `tools/` | Scripts that build a route from OpenStreetMap trails and USGS lidar |
 | `.github/workflows/photo-search.yml` | Creative Commons photo search, run on GitHub Actions |
 
