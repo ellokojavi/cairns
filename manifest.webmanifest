@@ -1,6 +1,6 @@
 {
-  "name": "Enchantments traverse — Sept 22, 2026",
-  "short_name": "Enchantments",
+  "name": "Hike planner",
+  "short_name": "Hikes",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
