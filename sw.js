@@ -1,8 +1,10 @@
-// Enchantments planner - offline cache
-const BUILD='2026-09-21 23:05';
-const CACHE='ench-'+BUILD;
-const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png']
-  .concat(['01','02','03','04','05','06','07','08'].map(n=>'./photos/'+n+'.webp'));
+// Hike planner - offline cache. Every route in routes/catalog.js is stored on install.
+const BUILD='2026-10-12 22:15';
+const CACHE='hike-'+BUILD;
+importScripts('./routes/catalog.js');
+const CORE=['./','./index.html','./planner.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./routes/catalog.js']
+  .concat(self.HIKES.flatMap(h=>h.assets.concat([h.cover,h.file])).map(u=>'./'+u))
+  .filter((u,i,a)=>a.indexOf(u)===i);
 self.addEventListener('install',e=>{
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(CORE.map(u=>c.add(new Request(u,{cache:'reload'}))))));

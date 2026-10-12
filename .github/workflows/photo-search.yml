@@ -1,0 +1,25 @@
+# Searches Creative Commons photos for a route (tools/fetch_photos.py) and commits the
+# candidates back to the branch, for the gallery. Runs when a photo request changes.
+name: photo search
+on:
+  push:
+    paths: ['tools/photo-requests/*.json']
+permissions:
+  contents: write
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - name: Search and download candidates
+        run: |
+          routes=$(git diff --name-only HEAD~1 HEAD -- 'tools/photo-requests/*.json' | xargs -rn1 basename | sed 's/\.json$//')
+          [ -n "$routes" ] || routes=$(ls tools/photo-requests | sed 's/\.json$//')
+          python3 tools/fetch_photos.py $routes
+      - name: Commit candidates
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add tools/photo-candidates
+          git diff --cached --quiet || git commit -m "Photo candidates from Creative Commons search" && git push
