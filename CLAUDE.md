@@ -7,7 +7,7 @@ step by step: `tools/README.md`.
 
 ## Network reality (Claude Code cloud container, last checked 2026-10-12)
 
-Blocked (proxy 403, or DNS fails for WebFetch too): alltrails.com, openstreetmap.org,
+Blocked (proxy 403, or DNS fails for WebFetch too): alltrails.com, openverse.org, flickr, openstreetmap.org,
 overpass-api.de, tile servers (OSM, OpenTopoMap, CyclOSM, Stadia, ArcGIS), wikimedia /
 commons / upload.wikimedia.org, wta.org, caltopo.com, flickr, imgur, unsplash, mapillary,
 unpkg, jsdelivr, epqs / basemap.nationalmap.gov, opentopodata, geofabrik.
@@ -20,6 +20,10 @@ Open, and enough to build a route:
 - **raw.githubusercontent.com**, **api.github.com**: files in public repos.
 - **WebSearch**: text facts only (distances, gate hours, permits, hazards). It returns
   summaries, not files.
+- **GitHub Actions** in this repo: open internet. Use a workflow (push-triggered, it
+  commits its results back to the branch) for anything the container can't reach.
+- Not useful: YFCC100M (`multimedia-commons` on S3) has the images but no public
+  metadata with coordinates; iNaturalist open data (S3) is wildlife close-ups.
 
 ## First-choice sources
 
@@ -32,7 +36,7 @@ Open, and enough to build a route:
 | Satellite imagery (10 m) | Sentinel-2 COGs, bucket `sentinel-cogs` (us-west-2) | Not used yet: could add a true-colour backdrop. NAIP (`naip-visualization`) is 403 |
 | Facts: length, gain, junctions, water, gates, permits, hazards | WebSearch on WTA, Hiking Project, 10Adventures, Wikipedia, SummitPost | Cross-check numbers. OSM tracks read ~10% shorter than GPS-recorded totals, which is normal |
 | Map and cover images | Render them, don't download: `tools/render_map.py` (relief, contours, trails, labels, from lidar + Overture) and `tools/render_cover.py` (perspective view with the route drawn on it) | Label fonts around 20 px on a ~1700 px map, or they are unreadable on a phone |
-| Photos for milestones | None reachable (Wikimedia is blocked). Ask the user for their own, or leave `photos` empty | Enchantments photos came from Wikimedia Commons in an earlier session with a different network |
+| Photos for milestones and covers | **Creative Commons search on GitHub Actions** (the runner has open internet): Wikimedia Commons by category, text search and geosearch around the route, plus Openverse | Do this yourself, without asking first. Write `tools/photo-requests/<route>.json` (queries, Commons categories, `[lat, lon, radius_m]` points) and push: `.github/workflows/photo-search.yml` runs `tools/fetch_photos.py` and commits 1024 px candidates with author and licence to `tools/photo-candidates/<route>/`. Pull, drop off-topic hits (same-name places elsewhere, DPLA scans), then build a gallery artifact with the photos inlined and a "Use for" picker per photo; the user picks, you wire the picks in with credits. After wiring, delete `tools/photo-candidates/<route>/` (it is ~40 MB). Openverse returned nothing new for Mailbox; Commons had 50 usable photos |
 
 ## Gotchas found the hard way
 
