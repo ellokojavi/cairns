@@ -2,6 +2,9 @@
 
 **Always:** after every significant change (a new route, a new feature, a renamed or moved
 file), update `README.md` in the same pull request. Text only, no images, unless the user asks.
+Also keep the repository's **About** (description, website, topics) current. The container cannot
+write repo settings (the proxy returns 403), so when a change makes it stale, give the user the
+new text to paste (repo page → ⚙️ next to About). Current website: https://ellokojavi.github.io/cairns/
 
 Read this before researching a new route. It records which data sources actually work
 from the cloud container, so the next route starts with them instead of re-probing.
