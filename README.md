@@ -38,7 +38,7 @@ leaving signal.
 | `manifest.webmanifest`, `icon-*.png` | Makes it installable as an app |
 | `tools/` | Scripts that build a route from OpenStreetMap trails and USGS lidar |
 
-Adding a route: see `tools/README.md`.
+Adding a route: see `tools/README.md`. Data sources that work from the build environment: `CLAUDE.md`.
 
 When publishing a change, bump `BUILD` in both `planner.html` and `sw.js` (same value):
 installed copies then show "A newer version is ready".
