@@ -109,6 +109,11 @@ svg{display:block;width:100%;height:auto;margin:2px 0 10px}
 .mk text{font:700 19px system-ui,sans-serif;fill:#1C2A2E;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .mk.done rect{fill:#3C7A4E;stroke:#fff} .mk.done text{fill:#fff}
 .mk.next rect{stroke:#B0432A;stroke-width:7}
+.mlab{pointer-events:none}
+.mlab rect{fill:#fff;opacity:.82}
+.mlab text{font:700 22px system-ui,-apple-system,sans-serif;fill:#14201B;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.mlab .t2{font:600 18px system-ui,-apple-system,sans-serif;fill:#3B4A44}
+.mlab.done text{fill:#2F6A42} .mlab.next text{fill:#9A3A22}
 .nowdot{fill:#B0432A} .gpsdot{fill:#1669C7}
 .gpshalo{fill:#fff}
 .progcase{fill:none;stroke:#fff;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
@@ -316,6 +321,56 @@ STOPS.forEach((s,i)=>{const p=R.map.pts.find(q=>q[2]===i);
   const g=MARKS.find(g=>{const q=R.map.pts.find(q=>q[2]===g[0]);return Math.hypot(p[0]-q[0],p[1]-q[1])<30*(R.map.w/1163)});
   g?g.push(i):MARKS.push([i])});
 
+/* ---------- milestone names on the map: placed once, beside each mark, where the line and
+   other labels are not; the planned (or logged) time is redrawn with every update ---------- */
+const MARK_W=g=>{const lab=g.map(i=>i+1).join('·');return g.length>1?19*(0.9+lab.length*0.42):19};
+function markName(g){
+  const ns=[...new Set(g.map(i=>STOPS[i].n.replace(/ \((down|return)\)$/,'')))];
+  if(ns.length===2&&ns[0].replace(/\bup\b/,'~')===ns[1].replace(/\bdown\b/,'~'))return ns[0].replace(/\bup\b/,'up/down');
+  return ns.join(' · ');
+}
+let LABELS=null;
+function labelLayout(){
+  if(LABELS)return LABELS;
+  const F1=22,F2=18,H=F1+F2+8;
+  // the drawn line, sampled every ~10 px, in map pixels
+  const line=[];for(let k=0;k<PTS.length-1;k++){const a=PTS[k],b=PTS[k+1],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/10));
+    for(let j=0;j<n;j++)line.push([a[0]+(b[0]-a[0])*j/n,a[1]+(b[1]-a[1])*j/n])}
+  const marks=MARKS.map(g=>{const p=PTS[STOP_AT[g[0]]],w=MARK_W(g)*K,h=19*K;return[p[0]-w,p[1]-h,p[0]+w,p[1]+h]});
+  const ov=(a,b)=>Math.max(0,Math.min(a[2],b[2])-Math.max(a[0],b[0]))*Math.max(0,Math.min(a[3],b[3])-Math.max(a[1],b[1]));
+  const placed=[];
+  LABELS=MARKS.map((g,gi)=>{
+    const p=PTS[STOP_AT[g[0]]],name=markName(g);
+    const t2=g.length>1?g.map(()=>'00:00').join(' / '):`km ${STOPS[g[0]].km.toFixed(1)} · 00:00`;
+    const w=Math.max(name.length*F1*.62,t2.length*F2*.58)*K,h=H*K,mw=MARK_W(g)*K,gap=8*K,r=19*K;
+    // candidate spots: right, left, above, below, then the corners
+    const C=[[mw+gap,-h/2,'start'],[-mw-gap,-h/2,'end'],[0,-r-gap-h,'middle'],[0,r+gap,'middle'],
+             [mw*.7,-r-h,'start'],[-mw*.7,-r-h,'end'],[mw*.7,r,'start'],[-mw*.7,r,'end']];
+    let best=null;
+    C.forEach(([dx,dy,an],ci)=>{
+      const x0=an==='start'?p[0]+dx:an==='end'?p[0]+dx-w:p[0]-w/2, y0=p[1]+dy, box=[x0,y0,x0+w,y0+h];
+      let sc=ci*2;
+      if(box[0]<4||box[1]<4||box[2]>MW-4||box[3]>MH-4)sc+=1e6;
+      marks.forEach((m,mi)=>{if(mi!==gi)sc+=ov(box,m)*60});
+      placed.forEach(b=>{sc+=ov(box,b)*80});
+      line.forEach(q=>{if(q[0]>box[0]&&q[0]<box[2]&&q[1]>box[1]&&q[1]<box[3])sc+=40*K*K});
+      if(!best||sc<best.sc)best={sc,box,an,x:an==='start'?box[0]:an==='end'?box[2]:p[0],y:box[1]};
+    });
+    placed.push(best.box);
+    return{g,name,an:best.an,x:best.x,y:best.y};
+  });
+  return LABELS;
+}
+function mapLabels(P,L){
+  const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
+  return labelLayout().map(l=>{
+    const cls=l.g.some(i=>st(i)==='next')?'next':l.g.every(i=>st(i)==='done')?'done':'';
+    const t=l.g.map(i=>fmt(P.t[i])).join(' / '),t2=l.g.length>1?t:`km ${STOPS[l.g[0]].km.toFixed(1)} · ${t}`;
+    return `<g class="mlab ${cls}" transform="translate(${l.x.toFixed(1)},${l.y.toFixed(1)}) scale(${K.toFixed(3)})" text-anchor="${l.an}">`
+      +`<text y="20">${l.name}</text><text class="t2" y="42">${t2}</text></g>`;
+  }).join('');
+}
+
 /* ---------- words that differ from route to route ---------- */
 const DEFAULT_TEXT={
   turn:"Turn back if not here by {lim}. {rel}",
@@ -423,7 +478,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-12 21:30';
+const BUILD='2026-10-12 22:15';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1058,6 +1113,7 @@ function profile(P,now){
   const hereM=here?here.m:null, isGps=!!here&&here.gps;
   if(hereM!=null){const d=tracedPath(hereM);
     o+=`<path class="progcase" style="stroke-width:${16*K}" d="${d}"/><path class="prog${isGps?'':' est'}" style="stroke-width:${9*K}" d="${d}"/>`}
+  if(R.map.labels!==false)o+=mapLabels(P,L);
   MARKS.forEach(g=>{const p=PTS[STOP_AT[g[0]]],r=19;
     const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
     const cls=g.some(i=>st(i)==='next')?'next':g.every(i=>st(i)==='done')?'done':'';
@@ -1070,6 +1126,11 @@ function profile(P,now){
   }else{const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
   o+=mapBadge();
   $('mapov').innerHTML=o;
+  // a soft card behind each milestone name, sized to the text, so it reads over the map's own lettering
+  document.querySelectorAll('#mapov .mlab').forEach(g=>{try{const b=g.getBBox();if(!b.width)return;
+    const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x',b.x-5);r.setAttribute('y',b.y-2);r.setAttribute('width',b.width+10);r.setAttribute('height',b.height+4);r.setAttribute('rx',6);
+    g.insertBefore(r,g.firstChild)}catch(e){}});
 }
 
 /* ---------- wiring ---------- */
