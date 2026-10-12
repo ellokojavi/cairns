@@ -1,34 +1,44 @@
-# Enchantments traverse — Jo, Juanjo, Javier — Sept 22, 2026
+# Hike planner
 
-Installable offline hike planner. Works with no signal; GPS keeps working because
-position comes from satellites, not the network.
+Installable, offline hike planner. Pick a route, set the date, start time and forecast,
+and it times every stop, the turnaround cutoffs and the finish against sunset (or a
+parking gate). On the trail it checks you in from GPS and re-times the rest from your
+real pace. Works with no signal; GPS keeps working because position comes from
+satellites, not the network.
 
-## Publish (one time, ~5 minutes)
+Routes:
 
-1. Create a new **public** repository on GitHub, e.g. `enchantments`.
-2. Upload every file in this folder to the repository root:
-   `index.html`, `sw.js`, `manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `.nojekyll`
-3. Repository **Settings → Pages** → Source: **Deploy from a branch**,
-   Branch: **main**, Folder: **/ (root)** → Save.
-4. Wait 1–2 minutes. The page appears at
-   `https://<your-username>.github.io/enchantments/`
+- **Mailbox Peak, New Trail** (long): 15.9 km out and back, +1,219 m.
+- **Mailbox Peak, Old Trail** (short): 7.5 km out and back, +1,207 m.
+- **Enchantments traverse**: 29.8 km, Stuart Lake to Snow Lakes. Walked Sept 22, 2026.
 
-`.nojekyll` matters: without it GitHub Pages runs Jekyll, which can mangle files.
+## Publish
+
+Repository **Settings → Pages** → Source: **Deploy from a branch**, Branch: **main**,
+Folder: **/ (root)**. The site appears at `https://<your-username>.github.io/<repo>/`.
+`.nojekyll` stops GitHub Pages from processing the files.
 
 ## Install on a phone
 
 **Android (Chrome):** open the link → menu (⋮) → *Add to Home screen* / *Install app*.
 **iOS (Safari — must be Safari):** open the link → Share → *Add to Home Screen*.
 
-Wait until the strip at the top of the page reads **"Saved for offline"** before
-leaving signal. That is the confirmation the page has stored itself.
+Wait until the strip at the top reads **"Every route works in Airplane mode"** before
+leaving signal.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole planner: route, map, elevation, schedule, intake, GPS |
-| `sw.js` | Service worker — stores the page for offline use |
-| `manifest.webmanifest` | Makes it installable as an app |
-| `icon-192.png`, `icon-512.png` | Home screen icons |
-| `.nojekyll` | Stops GitHub Pages from processing the files |
+| `index.html` | Route picker, with a cover and the key numbers for each route |
+| `planner.html` | The planner: schedule, map, elevation, intake, cutoffs, GPS check-ins |
+| `routes/catalog.js` | The list of routes, and every file each one needs offline |
+| `routes/<area>/` | Each route's data file, map, cover, photos and milestone GPX |
+| `sw.js` | Service worker: stores every route for offline use |
+| `manifest.webmanifest`, `icon-*.png` | Makes it installable as an app |
+| `tools/` | Scripts that build a route from OpenStreetMap trails and USGS lidar |
+
+Adding a route: see `tools/README.md`. Data sources that work from the build environment: `CLAUDE.md`.
+
+When publishing a change, bump `BUILD` in both `planner.html` and `sw.js` (same value):
+installed copies then show "A newer version is ready".

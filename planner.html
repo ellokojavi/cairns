@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#1C2A2E">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>Hike planner</title>
+<script src="routes/catalog.js"></script>
+<script>
+// which route: ?r=<id>, else the last one opened. Its data file sets window.ROUTE.
+(function(){
+  let id=new URLSearchParams(location.search).get('r');
+  try{if(!id)id=localStorage.getItem('hike-last')}catch(e){}
+  const h=(self.HIKES||[]).find(x=>x.id===id);
+  if(!h){location.replace('./');return}
+  try{localStorage.setItem('hike-last',h.id)}catch(e){}
+  document.write('<script src="'+h.file+'"><\/script>');
+})();
+</script>
+<style>
+:root{
+  --bg:#E9ECE8; --panel:#F6F7F4; --ink:#1C2A2E; --muted:#5E6B67; --rule:#C9CFCA;
+  --salt:#23708A; --gel:#9C7812; --gate:#B0432A; --ok:#3C7A4E; --warn:#A86C12; --dark:#3F4E75;
+  --cond:"Avenir Next Condensed","Roboto Condensed","sans-serif-condensed","Arial Narrow",system-ui,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#12191B; --panel:#1A2326; --ink:#E4EAE6; --muted:#93A09B; --rule:#2E3A3D;
+  --salt:#5DB3CC; --gel:#E0B94A; --gate:#E77C64; --ok:#6DBB83; --warn:#E3A94B; --dark:#9AA9D6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12191B; --panel:#1A2326; --ink:#E4EAE6; --muted:#93A09B; --rule:#2E3A3D;
+    --salt:#5DB3CC; --gel:#E0B94A; --gate:#E77C64; --ok:#6DBB83; --warn:#E3A94B; --dark:#9AA9D6;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--body);
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:560px;margin:0 auto;padding:16px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+h1{font:600 30px/1.05 var(--cond);letter-spacing:-.01em;margin:4px 0 2px}
+.who{font:600 18px/1.2 var(--cond);margin:2px 0 6px}
+.sub{color:var(--muted);margin:0 0 14px;font-size:14px}
+.num{font-variant-numeric:tabular-nums}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px;margin-bottom:12px}
+
+#bar{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+#bar .hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+#bar .h{font:600 21px/1.2 var(--cond)}
+.barfix{flex:none;background:none;border:1px solid rgba(255,255,255,.55);color:inherit;
+  border-radius:7px;padding:5px 11px;font:600 13px var(--body);white-space:nowrap}
+.barfix:disabled{opacity:.45}
+#bar .d{font-size:13px;margin:2px 0 8px;opacity:.9}
+.big{display:block;width:100%;border:0;border-radius:8px;padding:11px;font:700 17px var(--body);background:var(--bg);color:var(--ink)}
+.big.armed{background:var(--gate);color:#fff}
+.big:disabled{opacity:.45;cursor:default}
+#planrow{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px}
+#planrow input{padding:6px 8px;border:0;border-radius:6px;font-size:16px;background:var(--bg);color:var(--ink)}
+#undo{background:none;border:0;padding:0;margin-top:6px;color:inherit;opacity:.8;text-decoration:underline;font-size:14px}
+
+/* GPS */
+#gps{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:12px;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);font-size:14px}
+#gps.on{border-color:var(--ok)}
+#gps.off{border-color:var(--gate)}
+#offline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  border:1px solid var(--rule);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:14px;background:var(--panel)}
+#offline.ready{border-color:var(--ok)} #offline.no{border-color:var(--warn)}
+#offtxt b{color:var(--ink)} #offline.ready #offtxt b{color:var(--ok)} #offline.no #offtxt b{color:var(--warn)}
+#gpsline{flex:1 1 100%;color:var(--muted)}
+#autolab,#autolab2{display:flex;align-items:center;gap:6px;color:var(--muted);cursor:pointer}
+#autolab input,#autolab2 input{width:17px;height:17px;accent-color:var(--ok)}
+#fixbtn{font-weight:600;color:var(--ink);border-color:var(--ink)}
+#fixbtn:disabled{opacity:.5}
+#fixage{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+#fixage .stale{color:var(--warn);font-weight:600}
+#autobar{background:var(--ok);color:#fff;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+#autobar button{background:none;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:6px;padding:4px 10px;font-size:13px}
+#newver{background:var(--salt);color:#fff;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+#newver button{border-color:rgba(255,255,255,.7);color:#fff}
+#build{color:var(--muted);font-size:12px;margin-top:14px}
+#gpsline b{color:var(--ink);font-variant-numeric:tabular-nums}
+#gpsline .bad{color:var(--gate);font-weight:700}
+
+.finish{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.finish b{font:600 44px/1 var(--cond)}
+.finish span{color:var(--muted)}
+#margin{margin:6px 0 6px;font-weight:600}
+#paceinfo{font-size:14px;color:var(--muted);margin:0 0 8px}
+.totals{font-size:13px;color:var(--muted);margin:0}
+.totals b{color:var(--ink)}
+
+svg{display:block;width:100%;height:auto;margin:2px 0 10px}
+#defs{position:absolute;width:0;height:0;overflow:hidden}
+.mapwrap{position:relative;border:1px solid var(--rule);border-radius:10px;overflow:auto;background:#fff;-webkit-overflow-scrolling:touch}
+.mapwrap svg{margin:0;width:100%}
+.mapwrap.zoom{height:68vh}
+.mapwrap.zoom svg{width:240%}
+.maptools{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin:6px 0 14px}
+.mk{cursor:pointer}
+.mk rect{fill:#fff;stroke:#1C2A2E;stroke-width:4}
+.mk text{font:700 19px system-ui,sans-serif;fill:#1C2A2E;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.mk.done rect{fill:#3C7A4E;stroke:#fff} .mk.done text{fill:#fff}
+.mk.next rect{stroke:#B0432A;stroke-width:7}
+.mlab{pointer-events:none}
+.mlab rect{fill:#fff;opacity:.82}
+.mlab text{font:700 22px system-ui,-apple-system,sans-serif;fill:#14201B;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.mlab .t2{font:600 18px system-ui,-apple-system,sans-serif;fill:#3B4A44}
+.mlab.done text{fill:#2F6A42} .mlab.next text{fill:#9A3A22}
+.nowdot{fill:#B0432A} .gpsdot{fill:#1669C7}
+.gpshalo{fill:#fff}
+.progcase{fill:none;stroke:#fff;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.prog{fill:none;stroke:#1669C7;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.prog.est{stroke:#B0432A;stroke-dasharray:14 12;opacity:.85}
+.pulse{fill:none;stroke:#1669C7;stroke-width:5;opacity:.7;animation:mpulse 2.2s ease-out infinite}
+.oob rect{fill:#12191B;opacity:.93;stroke:#fff;stroke-width:4}
+.oobdot{fill:#1669C7;stroke:#fff;stroke-width:4}
+.oob1{font:700 42px system-ui,sans-serif;fill:#fff}
+.oob2{font:34px system-ui,sans-serif;fill:#B8C2BE}
+@keyframes mpulse{0%{r:16;opacity:.75}75%{r:40;opacity:0}100%{r:40;opacity:0}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:.4}}
+svg.legsvg{margin:6px 0 2px;border-radius:6px;border:1px solid var(--rule);background:var(--panel)}
+.lgarea{fill:var(--rule);opacity:.55}
+.lgline{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round}
+.lggrid{stroke:var(--rule);stroke-width:1;stroke-dasharray:3 3}
+.pgrid{stroke:var(--muted);stroke-width:.6;opacity:.42;stroke-dasharray:2 3}
+.pax{font:9px var(--body);fill:var(--muted);opacity:.85;text-anchor:end}
+.pax.hilo{fill:var(--ink);opacity:1}
+.lgax{font:9px var(--body);fill:var(--muted)}
+.lgax.end{text-anchor:end}
+.lgfrom{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}
+.lgto{fill:var(--gate);stroke:var(--panel);stroke-width:1.6}
+.lgme{fill:#1669C7;stroke:#fff;stroke-width:2}
+.lgme.est{fill:var(--gate)}
+.lgmel{font:700 9px var(--body);fill:#1669C7;paint-order:stroke;stroke:var(--panel);stroke-width:2.2}
+.lgmel.est{fill:var(--gate)} .lgmel.end{text-anchor:end}
+details.ph{margin:6px 0 2px;border:1px solid var(--rule);border-radius:6px;background:var(--panel)}
+details.ph summary{padding:7px 10px;font:13px var(--body);color:var(--muted);cursor:pointer;list-style:none}
+details.ph summary::-webkit-details-marker{display:none}
+details.ph summary::before{content:'▸ ';color:var(--muted)}
+details.ph[open] summary::before{content:'▾ '}
+details.ph[open] summary{border-bottom:1px solid var(--rule)}
+.phi{display:block;width:100%;height:auto;border-radius:0 0 5px 5px}
+details.ph[open] .phi{border-radius:0}
+.phc{margin:0;padding:7px 10px;font:12px var(--body);color:var(--muted)}
+.cred{font-size:11px;opacity:.8}.cred a{color:inherit}
+svg.mini{margin:8px 0 2px;border-radius:6px;border:1px solid var(--rule);background:#fff}
+.mini .ring{fill:none;stroke:#B0432A;stroke-width:5}
+.badge{display:inline-block;min-width:22px;padding:0 6px;margin-right:6px;border-radius:11px;background:var(--ink);color:var(--bg);font:700 13px/22px var(--body);text-align:center;vertical-align:2px}
+
+.area{fill:var(--rule)} .line{fill:none;stroke:var(--ink);stroke-width:1.4}
+.dot{fill:var(--panel);stroke:var(--ink);stroke-width:1.4} .dot.done{fill:var(--ok);stroke:var(--ok)}
+.me{fill:var(--gate)} .gme{fill:#1669C7}
+.halo{fill:var(--panel)}
+.lbl{font:10px var(--body);fill:var(--muted)} .lbl.end{text-anchor:end}
+.hlbl{font:700 10px var(--body);fill:#1669C7;paint-order:stroke;stroke:var(--bg);stroke-width:2.4}
+.hlbl.est{fill:var(--gate)} .hlbl.end{text-anchor:end}
+.nbox{fill:var(--panel);stroke:var(--rule);stroke-width:.8;opacity:.96}
+.nlbl{font:10px var(--body);fill:var(--muted)}
+
+ol{list-style:none;margin:0;padding:0}
+li.stop{display:grid;grid-template-columns:64px 1fr;gap:0 12px;position:relative;padding:14px 0;border-top:1px solid var(--rule)}
+li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
+.clock{font:600 23px/1 var(--cond);text-align:right}
+.clock.done{color:var(--ok)} .clock.skip{color:var(--muted);text-decoration:line-through}
+.clock small{display:block;font:12px/1.35 var(--body);color:var(--muted);margin-top:5px;white-space:pre-line;text-decoration:none}
+.name{font:600 18px/1.15 var(--cond);margin:0}
+.meta{color:var(--muted);font-size:13px;margin:2px 0 4px}
+.leg{color:var(--muted);font-size:13px;margin:0 0 4px}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.tag{font-size:13px;padding:3px 8px;border-radius:4px;border:1px solid var(--rule);background:var(--panel)}
+.tag.salt{border-color:var(--salt);color:var(--salt);font-weight:600}
+.tag.gel{border-color:var(--gel);color:var(--gel);font-weight:600}
+.tag.nite{border-color:var(--dark);color:var(--dark);font-weight:600}
+.note{font-size:14px;margin:4px 0}
+.gate{font-size:14px;font-weight:600;margin:6px 0;padding:6px 8px;border-left:3px solid var(--ok)}
+.gate.warn{border-color:var(--warn)} .gate.bad{border-color:var(--gate);color:var(--gate)}
+.ci{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;flex-wrap:wrap}
+.ci button{border:1px solid var(--ink);background:none;border-radius:6px;padding:6px 12px;font-weight:600;font-size:14px}
+.ci button.armed{background:var(--gate);border-color:var(--gate);color:#fff}
+
+/* multi-route additions */
+.rte{fill:none;stroke:#D2371F;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.hero{position:relative;margin:0 0 10px;border-radius:12px;overflow:hidden;background:#1C2A2E;aspect-ratio:16/8}
+.hero img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.hero .ht{position:absolute;inset:auto 0 0 0;padding:28px 14px 10px;color:#fff;background:linear-gradient(transparent,rgba(10,16,18,.82))}
+.hero h1{color:#fff;margin:0}
+.hero .var{font:600 16px/1.2 var(--cond);opacity:.92;margin:2px 0 0}
+.hero .back{position:absolute;top:10px;left:10px;background:rgba(12,18,20,.62);color:#fff;text-decoration:none;border-radius:16px;padding:4px 11px;font-size:13px;font-weight:600}
+.covercred{display:block;margin:-6px 0 8px;font-size:11px;color:var(--muted);text-align:right;text-decoration:none}
+.hero .ghost{position:absolute;top:10px;right:10px;background:rgba(12,18,20,.62);color:#fff;border:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px}
+.stats div{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:6px 8px}
+.stats b{display:block;font:600 18px/1.1 var(--cond);white-space:nowrap}
+.stats span{font-size:11.5px;color:var(--muted)}
+#planbox{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-items:end}
+#planbox label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+#planbox input{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;font-size:16px;background:var(--bg);color:var(--ink);width:100%}
+#planbox .wide{grid-column:1/-1}
+#planbox .pair{display:flex;gap:6px}
+#planbox p{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--muted)}
+#gpxlink{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<div class="hero"><img id="cover" alt=""><a class="back" href="./">‹ All routes</a><button class="ghost" id="theme" type="button">Dark</button>
+  <div class="ht"><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
+<a class="covercred" id="covercred" target="_blank" rel="noopener" hidden></a>
+<div class="stats num" id="stats"></div>
+<p class="who" id="when"></p>
+<p class="sub"><span id="summary"></span> <span id="sun"></span></p>
+
+<div id="bar" aria-live="polite">
+  <div class="hrow"><div class="h" id="bh"></div><button class="barfix" id="barfix" type="button">Fix</button></div>
+  <div class="d" id="bd"></div>
+  <div id="planrow"><label for="dep">Planned departure</label><input type="time" id="dep" value="07:00"></div>
+  <button class="big" id="bigbtn" type="button"></button>
+  <button class="big" id="resumebtn" type="button" hidden></button>
+  <button id="undo" type="button" hidden>Undo last check-in</button>
+</div>
+
+<div class="panel" id="planbox">
+  <label class="wide">Hike date<input type="date" id="pdate"></label>
+  <label>Forecast low at trailhead, °C<input type="number" id="plo" step="1" inputmode="decimal"></label>
+  <label>Forecast high at trailhead, °C<input type="number" id="phi" step="1" inputmode="decimal"></label>
+  <label class="wide" id="gaterow" hidden>Parking gate closes (posted time)<input type="time" id="pgate"></label>
+  <p>Sun times, cutoffs and temperatures follow the date and the forecast. On the day, starting the hike sets the date to today.</p>
+</div>
+
+<div id="offline"><span id="offtxt">Checking offline copy…</span></div>
+
+<div id="gps">
+  <button class="ghost" id="fixbtn" type="button">Fix position</button>
+  <span id="fixage"></span>
+  <label id="autolab"><input type="checkbox" id="autochk" checked> Check in automatically</label>
+  <label id="autolab2"><input type="checkbox" id="watchchk"> Keep GPS on</label>
+  <span id="gpsline">One tap takes a single fix and switches the GPS off again, so it costs almost no battery. Leave it off between milestones.</span>
+</div>
+<div id="autobar" hidden></div>
+<div id="newver" hidden><span>A newer version is ready.</span><button class="ghost" id="reloadbtn" type="button">Reload</button></div>
+
+<div class="panel">
+  <div class="finish"><b class="num" id="fin"></b><span id="finlbl"></span></div>
+  <div id="margin"></div>
+  <p id="paceinfo"></p>
+  <p class="totals" id="resetrow"><button type="button" id="wipe" class="ghost">Start a fresh day</button></p>
+  <p class="totals" id="totals" hidden></p>
+</div>
+
+<svg id="defs" aria-hidden="true"><defs><image id="mapimg"/></defs></svg>
+<div class="mapwrap" id="mapwrap"><svg id="map" role="img" aria-label="Route map with numbered stops"><use href="#mapimg"/><g id="mapov"></g></svg></div>
+<div class="maptools"><span id="maphint">Tap a number to jump to that stop.</span><button class="ghost" id="zoom" type="button">Enlarge map</button></div>
+
+<svg id="prof" viewBox="0 0 340 136" role="img" aria-label="Elevation profile from the GPX track"></svg>
+
+<ol id="list"></ol>
+
+<section class="help">
+  <p><b>Fix position</b> takes one GPS reading, then switches it off. Cheap on battery. Tap it at each milestone.</p>
+  <p><b>Check in</b> at each milestone — two taps, or it happens by itself when GPS says you're there. Everything after re-times from your real pace.</p>
+  <p><b>Turnarounds</b> are the latest you can leave and still finish in time. They move earlier if you slow down.</p>
+  <p id="gpshint"><b>Keep GPS on</b> only where an off-route warning is worth the battery.</p>
+  <p class="fine">Distances and elevations come from the route GPX. A watch will read a few km high, which is normal. Leg times are modelled from each leg's climb and descent. <a id="gpxlink" download>Milestone GPX</a> for a map app with offline maps.</p>
+  <p class="fine" id="mapcred"></p>
+  <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
+</section>
+</main>
+
+<script>
+"use strict";
+/* ---------- route data: routes/<id>/*.js sets window.ROUTE before this runs ---------- */
+const R=window.ROUTE;
+const TRK=(()=>{
+  const p=R.trk.split('|').map(s=>s.split(',').map(Number));
+  const n=p[0].length,la=[],lo=[],el=[],cd=[];
+  let a=0,b=0,c=0,d=0;
+  for(let i=0;i<n;i++){a+=p[0][i];b+=p[1][i];c+=p[2][i];d+=p[3][i];
+    la.push(a/1e5);lo.push(b/1e5);el.push(c);cd.push(d)}
+  return{la,lo,el,cd,n};
+})();
+const TOT=TRK.cd[TRK.n-1];                       // metres
+const SI=R.si;                                  // stop index into TRK
+
+const STOPS=R.stops;
+const N=STOPS.length, GAP=3, ARM_MS=3000;
+let SUNRISE=420, SUNSET=1140, DARK_AM=390, DARK_PM=1170, DEADLINE=1170;   // set from the plan date by sunFor()
+const NEAR=120, OFFROUTE=200, OFF_STREAK=2, AUTOSTART_M=200;
+// walking away from the trailhead starts the hike: up to the first stop, or the first km if that stop is close
+const AUTOSTART_TO=Math.min(Math.max(TRK.cd[SI[1]],1000),TRK.cd[SI[Math.min(2,N-1)]]-NEAR);
+const ON_ROUTE=1000;   // beyond this the snapped position is meaningless: draw nothing
+// per-stop km / elevation / leg stats straight from the track
+STOPS.forEach((s,i)=>{const k=SI[i];s.km=TRK.cd[k]/1000;s.m=TRK.el[k];
+  if(i>0){s.legkm=(TRK.cd[k]-TRK.cd[SI[i-1]])/1000;let up=0,dn=0,ref=TRK.el[SI[i-1]];
+    for(let j=SI[i-1];j<=k;j++){const e=TRK.el[j];if(e-ref>3){up+=e-ref;ref=e}else if(ref-e>3){dn+=ref-e;ref=e}}
+    s.up=Math.round(up);s.dn=Math.round(dn);
+    s.grade=Math.round((s.m-STOPS[i-1].m)/(s.legkm*1000)*100)}});
+
+/* ---------- route-wide numbers, for the header, profile and summaries ---------- */
+const ROUTE_META=(self.HIKES||[]).find(h=>h.id===R.id);
+const PLAN_MV=STOPS.reduce((a,s)=>a+s.mv,0), PLAN_BR=STOPS.slice(0,-1).reduce((a,s)=>a+s.b,0);
+const UP_TOT=(()=>{let up=0,ref=TRK.el[0];for(const e of TRK.el){if(e-ref>3){up+=e-ref;ref=e}else if(ref-e>3)ref=e}return Math.round(up)})(), HI_STOP=STOPS.reduce((a,s,i)=>s.m>STOPS[a].m?i:a,0);
+// whole-route profile: the route's own, or 160 samples straight from the track
+const PROF=R.prof||Array.from({length:160},(_,j)=>{const m=TRK.cd[TRK.n-1]*j/159;
+  let k=0;while(k<TRK.n-2&&TRK.cd[k+1]<m)k++;const f=(m-TRK.cd[k])/Math.max(1,TRK.cd[k+1]-TRK.cd[k]);
+  return Math.round(TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*f)});
+const PLO=Math.floor((Math.min(...TRK.el)-60)/50)*50, PHI=Math.ceil((Math.max(...TRK.el)+(Math.max(...TRK.el)-Math.min(...TRK.el))*.1)/10)*10;
+const PL_STOP=R.profLabel?.stop??HI_STOP;
+const PL_TEXT=R.profLabel?.text??`${STOPS[PL_STOP].n.split(',')[0]} ${STOPS[PL_STOP].m.toLocaleString('en-US')} m`;
+// map marks: stops that sit on the same spot (start and finish of an out and back, the
+// same junction up and down) share one mark, labelled with every number
+const MARKS=[];
+STOPS.forEach((s,i)=>{const p=R.map.pts.find(q=>q[2]===i);
+  const g=MARKS.find(g=>{const q=R.map.pts.find(q=>q[2]===g[0]);return Math.hypot(p[0]-q[0],p[1]-q[1])<30*(R.map.w/1163)});
+  g?g.push(i):MARKS.push([i])});
+
+/* ---------- milestone names on the map: placed once, beside each mark, where the line and
+   other labels are not; the planned (or logged) time is redrawn with every update ---------- */
+const MARK_W=g=>{const lab=g.map(i=>i+1).join('·');return g.length>1?19*(0.9+lab.length*0.42):19};
+function markName(g){
+  const ns=[...new Set(g.map(i=>STOPS[i].n.replace(/ \((down|return)\)$/,'')))];
+  if(ns.length===2&&ns[0].replace(/\bup\b/,'~')===ns[1].replace(/\bdown\b/,'~'))return ns[0].replace(/\bup\b/,'up/down');
+  return ns.join(' · ');
+}
+let LABELS=null;
+function labelLayout(){
+  if(LABELS)return LABELS;
+  const F1=22,F2=18,H=F1+F2+8;
+  // the drawn line, sampled every ~10 px, in map pixels
+  const line=[];for(let k=0;k<PTS.length-1;k++){const a=PTS[k],b=PTS[k+1],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/10));
+    for(let j=0;j<n;j++)line.push([a[0]+(b[0]-a[0])*j/n,a[1]+(b[1]-a[1])*j/n])}
+  const marks=MARKS.map(g=>{const p=PTS[STOP_AT[g[0]]],w=MARK_W(g)*K,h=19*K;return[p[0]-w,p[1]-h,p[0]+w,p[1]+h]});
+  const ov=(a,b)=>Math.max(0,Math.min(a[2],b[2])-Math.max(a[0],b[0]))*Math.max(0,Math.min(a[3],b[3])-Math.max(a[1],b[1]));
+  const placed=[];
+  LABELS=MARKS.map((g,gi)=>{
+    const p=PTS[STOP_AT[g[0]]],name=markName(g);
+    const t2=g.length>1?g.map(()=>'00:00').join(' / '):`km ${STOPS[g[0]].km.toFixed(1)} · 00:00`;
+    const w=Math.max(name.length*F1*.62,t2.length*F2*.58)*K,h=H*K,mw=MARK_W(g)*K,gap=8*K,r=19*K;
+    // candidate spots: right, left, above, below, then the corners
+    const C=[[mw+gap,-h/2,'start'],[-mw-gap,-h/2,'end'],[0,-r-gap-h,'middle'],[0,r+gap,'middle'],
+             [mw*.7,-r-h,'start'],[-mw*.7,-r-h,'end'],[mw*.7,r,'start'],[-mw*.7,r,'end']];
+    let best=null;
+    C.forEach(([dx,dy,an],ci)=>{
+      const x0=an==='start'?p[0]+dx:an==='end'?p[0]+dx-w:p[0]-w/2, y0=p[1]+dy, box=[x0,y0,x0+w,y0+h];
+      let sc=ci*2;
+      if(box[0]<4||box[1]<4||box[2]>MW-4||box[3]>MH-4)sc+=1e6;
+      marks.forEach((m,mi)=>{if(mi!==gi)sc+=ov(box,m)*60});
+      placed.forEach(b=>{sc+=ov(box,b)*80});
+      line.forEach(q=>{if(q[0]>box[0]&&q[0]<box[2]&&q[1]>box[1]&&q[1]<box[3])sc+=40*K*K});
+      if(!best||sc<best.sc)best={sc,box,an,x:an==='start'?box[0]:an==='end'?box[2]:p[0],y:box[1]};
+    });
+    placed.push(best.box);
+    return{g,name,an:best.an,x:best.x,y:best.y};
+  });
+  return LABELS;
+}
+function mapLabels(P,L){
+  const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
+  return labelLayout().map(l=>{
+    const cls=l.g.some(i=>st(i)==='next')?'next':l.g.every(i=>st(i)==='done')?'done':'';
+    const t=l.g.map(i=>fmt(P.t[i])).join(' / '),t2=l.g.length>1?t:`km ${STOPS[l.g[0]].km.toFixed(1)} · ${t}`;
+    return `<g class="mlab ${cls}" transform="translate(${l.x.toFixed(1)},${l.y.toFixed(1)}) scale(${K.toFixed(3)})" text-anchor="${l.an}">`
+      +`<text y="20">${l.name}</text><text class="t2" y="42">${t2}</text></g>`;
+  }).join('');
+}
+
+/* ---------- words that differ from route to route ---------- */
+const DEFAULT_TEXT={
+  turn:"Turn back if not here by {lim}. {rel}",
+  turnDone:["Arrived after the {lim} cutoff. Turn back unless everyone is strong and the weather is clear.","Arrived {ahead} before the cutoff."],
+  commit:"No way back past here. Not here by {lim} means finishing after dark: headlamps ready, short stops. {rel}",
+  commitDone:["Arrived after {lim}. Forward is the only way out: headlamps ready, keep every stop short.","Arrived {ahead} inside the daylight window."]
+};
+const gateText=(kind,done)=>(R.text||{})[kind+(done?'Done':'')]||DEFAULT_TEXT[kind+(done?'Done':'')];
+const say=(t,v)=>t.replace(/\{(\w+)\}/g,(_,k)=>v[k]??'');
+
+/* ---------- sun: rise, set and civil twilight for the plan date, at the trailhead ---------- */
+const isoToday=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const dayName=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})};
+// minutes after local midnight in the route's time zone (the phone's own if none is given)
+function localMin(ms,y,mo,d){
+  const tz=R.tz||'America/Los_Angeles';
+  try{
+    const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'})
+      .formatToParts(new Date(ms)).map(x=>[x.type,x.value]));
+    const day=Date.UTC(+p.year,+p.month-1,+p.day)-Date.UTC(y,mo-1,d);
+    return day/60000+(+p.hour)*60+(+p.minute)+new Date(ms).getSeconds()/60;
+  }catch(e){return(ms-new Date(y,mo-1,d).getTime())/60000}
+}
+// NOAA's simplified solar position: good to a minute or two, which is all a plan needs
+function sunTimes(iso,lat,lon){
+  const[y,mo,d]=iso.split('-').map(Number), rad=Math.PI/180;
+  const J=Date.UTC(y,mo-1,d,12)/86400000+2440587.5, n=Math.round(J-2451545.0+0.0008);
+  const Js=n-lon/360, M=(357.5291+0.98560028*Js)%360;
+  const C=1.9148*Math.sin(M*rad)+0.02*Math.sin(2*M*rad)+0.0003*Math.sin(3*M*rad);
+  const lam=(M+C+180+102.9372)%360;
+  const Jt=2451545+Js+0.0053*Math.sin(M*rad)-0.0069*Math.sin(2*lam*rad);
+  const dec=Math.asin(Math.sin(lam*rad)*Math.sin(23.4397*rad));
+  const at=h=>{const c=(Math.sin(h*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec));
+    const w=Math.acos(Math.max(-1,Math.min(1,c)))/rad;
+    return[localMin((Jt-w/360-2440587.5)*86400000,y,mo,d),localMin((Jt+w/360-2440587.5)*86400000,y,mo,d)]};
+  const[rise,set]=at(-0.833),[dawn,dusk]=at(-6);
+  return{rise,set,dawn,dusk};
+}
+function sunFor(){
+  const s=sunTimes(state.date,R.lat,R.lon);
+  SUNRISE=Math.round(s.rise);SUNSET=Math.round(s.set);DARK_AM=Math.round(s.dawn);DARK_PM=Math.round(s.dusk);
+  DEADLINE=DARK_PM;
+  if(R.deadline?.kind==='gate')DEADLINE=Math.min(DARK_PM,toMin(state.gate)??Math.floor((DARK_PM+(R.deadline.dusk??-60))/5)*5);
+  climate();
+}
+function sunLine(){
+  const g=R.deadline?.kind==='gate'?` The ${R.deadline.label} opens about ${fmt(Math.ceil((DARK_AM+60)/5)*5)} and closes about ${fmt(DEADLINE)}: check the sign.`:'';
+  $('when').textContent=(R.who?R.who+'. ':'')+dayName(state.date);
+  $('sun').textContent=`Sunrise ${fmt(SUNRISE)}, sunset ${fmt(SUNSET)}, dark by ${fmt(DARK_PM)}.`+g;
+}
+
+/* ---------- map trace (pixels) ---------- */
+const PTS=R.map.pts, MW=R.map.w, MH=R.map.h, K=MW/1163;   // map pixels; marks were sized for a 1163 px map
+const STOP_AT=[];PTS.forEach((p,k)=>{if(p.length===3)STOP_AT[p[2]]=k});
+function legPoint(i,r){const a=STOP_AT[i-1],b=STOP_AT[i];const segs=[];let tot=0;
+  for(let k=a;k<b;k++){const d=Math.hypot(PTS[k+1][0]-PTS[k][0],PTS[k+1][1]-PTS[k][1]);segs.push(d);tot+=d}
+  let t=Math.max(0,Math.min(1,r))*tot;
+  for(let k=0;k<segs.length;k++){if(t<=segs[k]){const f=segs[k]?t/segs[k]:0,p=PTS[a+k],q=PTS[a+k+1];
+    return[p[0]+(q[0]-p[0])*f,p[1]+(q[1]-p[1])*f]}t-=segs[k]}
+  return PTS[b].slice(0,2)}
+function traceAt(m){ // metres along route -> point on the traced line, and the last point behind it
+  let g=N-1;for(let i=1;i<N;i++){if(m<=TRK.cd[SI[i]]){g=i;break}}
+  const a=STOP_AT[g-1],b=STOP_AT[g],A=TRK.cd[SI[g-1]],B=TRK.cd[SI[g]];
+  const r=Math.max(0,Math.min(1,(m-A)/(B-A)));
+  const segs=[];let tot=0;
+  for(let k=a;k<b;k++){const d=Math.hypot(PTS[k+1][0]-PTS[k][0],PTS[k+1][1]-PTS[k][1]);segs.push(d);tot+=d}
+  let t=r*tot;
+  for(let k=0;k<segs.length;k++){
+    if(t<=segs[k]){const f=segs[k]?t/segs[k]:0,P=PTS[a+k],Q=PTS[a+k+1];
+      return{x:P[0]+(Q[0]-P[0])*f,y:P[1]+(Q[1]-P[1])*f,k:a+k}}
+    t-=segs[k];
+  }
+  return{x:PTS[b][0],y:PTS[b][1],k:b};
+}
+function pixAtM(m){const p=traceAt(m);return[p.x,p.y]}
+// the stretch of route already behind you, for drawing over the map
+// a fix that cannot be placed on the map still gets said out loud, in the corner
+function mapBadge(){
+  if(!fix)return'';
+  const far=fix.off>ON_ROUTE, stale=fixAge()>FIX_OLD;
+  if(!far&&!stale)return'';
+  const d=fix.off>=10000?(fix.off/1000).toFixed(0)+' km'
+         :fix.off>=1000?(fix.off/1000).toFixed(1)+' km':Math.round(fix.off)+' m';
+  const t1=far?'Out of map':'Position not shown';
+  const t2=far?`${d} from the route`:`fix ${Math.round(fixAge()/60)} min old`;
+  const x=40,y=184,w=620,h=116;
+  return `<g class="oob" transform="scale(${K.toFixed(3)})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="24"/>`
+    +`<circle class="oobdot" cx="${x+50}" cy="${y+h/2}" r="19"/>`
+    +`<text class="oob1" x="${x+90}" y="${y+50}">${t1}</text>`
+    +`<text class="oob2" x="${x+90}" y="${y+94}">${t2}</text></g>`;
+}
+function tracedPath(m){
+  const p=traceAt(m);let d=`M${PTS[0][0]},${PTS[0][1]}`;
+  for(let k=1;k<=p.k;k++)d+=`L${PTS[k][0]},${PTS[k][1]}`;
+  return d+`L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+}
+
+// modelled moving + break minutes from the trailhead to a distance along the route
+function modelAt(m){
+  let mv=0,br=0;
+  for(let i=1;i<N;i++){
+    const a=TRK.cd[SI[i-1]],b=TRK.cd[SI[i]];
+    if(m>=b){mv+=STOPS[i].mv;br+=STOPS[i].b;}
+    else{mv+=STOPS[i].mv*Math.max(0,(m-a)/(b-a));break;}
+  }
+  return{mv,br};
+}
+const BUILD='2026-10-12 22:15';
+const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
+const $=id=>document.getElementById(id);
+const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
+const fmt=m=>{m=Math.round(m);const h=((Math.floor(m/60)%24)+24)%24,x=((m%60)+60)%60;return String(h).padStart(2,'0')+':'+String(x).padStart(2,'0')};
+const dur=m=>{m=Math.round(m);const s=m<0?'−':'';m=Math.abs(m);return s+Math.floor(m/60)+':'+String(m%60).padStart(2,'0')};
+const lerp=(p,x)=>{if(x<=p[0][0])return p[0][1];for(let i=1;i<p.length;i++)if(x<=p[i][0]){const a=p[i-1],b=p[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0])}return p[p.length-1][1]};
+// air temperature: a daily curve through the forecast low (at sunrise) and high (mid-afternoon),
+// at the trailhead's height, then the usual lapse rate with altitude
+let VALLEY=[],LAPSE=[];
+function climate(){
+  const lo=state.lo,hi=state.hi,a=hi-lo,r=SUNRISE,s=SUNSET;
+  VALLEY=[[r-90,lo+.5],[r,lo],[r+150,lo+a*.45],[Math.max(r+300,870),hi],[Math.max(r+390,s-120),hi-a*.08],[s,hi-a*.3],[s+90,lo+a*.4],[s+240,lo+a*.2]];
+  LAPSE=[[r-30,2],[r+330,6.5],[s-30,6.5],[s+90,4]];
+  for(const c of [VALLEY,LAPSE])for(let i=1;i<c.length;i++)if(c[i][0]<=c[i-1][0])c[i][0]=c[i-1][0]+10;   // short days: keep it in order
+}
+const tempAt=(e,t)=>Math.round(lerp(VALLEY,t)-lerp(LAPSE,t)*(e-(R.climate?.ref??400))/1000);
+
+const state={dep:R.dep||'07:00',date:null,lo:R.climate?.low??8,hi:R.climate?.high??18,gate:null,ci:new Array(N).fill(null),auto:true};
+let armed=null,armTimer=null,fix=null,offStreak=0,autoMsg='',autoMsgAt=0,lastFixM=null,resumeAt=null,resumeArmed=false,resumeTimer=null;
+// explicit mid-route pickup: back-date the start and log what is behind you
+function resumeFrom(m){
+  const now=nowRel(),md=modelAt(m);
+  state.ci[0]=Math.round((now-md.mv-md.br)*10)/10;
+  for(let i=1;i<N;i++){if(TRK.cd[SI[i]]<=m-NEAR){const mdi=modelAt(TRK.cd[SI[i]]);state.ci[i]=Math.round((state.ci[0]+mdi.mv+mdi.br)*10)/10}}
+  resumeAt=null;note(`Resumed at km ${(m/1000).toFixed(2)}. Start estimated at ${fmt(state.ci[0])}.`);update();
+}
+
+function nowRel(){const d=new Date();let m=d.getHours()*60+d.getMinutes()+d.getSeconds()/60;const s=state.ci[0];if(s!=null&&m<s-600)m+=1440;return m}
+function lastIdx(){for(let i=N-1;i>=0;i--)if(state.ci[i]!=null)return i;return -1}
+
+/* ---------- save ---------- */
+let lastHash='';
+let CAN_SAVE=(()=>{try{return window.self===window.top&&/^(https?|file):$/.test(location.protocol)}catch(e){return false}})();
+const LSKEY='hike-'+R.id;
+const today=()=>{const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()};
+function save(){
+  const q=[`d=${state.dep.replace(':','')}`,`t=${today()}`,`D=${state.date.replace(/-/g,'')}`,`L=${state.lo}`,`H=${state.hi}`];
+  if(state.gate)q.push(`G=${state.gate.replace(':','')}`);
+  if(!state.auto)q.push('x=1');
+  state.ci.forEach((v,i)=>{if(v!=null)q.push(`c${i}=${Math.round(v)}`)});
+  const str=q.join('&');
+  try{localStorage.setItem(LSKEY,str)}catch(e){}
+  if(!CAN_SAVE)return;
+  const h='#'+str;if(h===lastHash)return;
+  try{history.replaceState(null,'',h);lastHash=h}catch(e){CAN_SAVE=false}
+}
+function load(){
+  let h='';
+  try{h=location.hash.slice(1)}catch(e){}
+  if(!h){try{h=localStorage.getItem(LSKEY)||''}catch(e){}}
+  if(!h)return;
+  const kv=h.split('&').map(x=>x.split('='));
+  const saved=(kv.find(x=>x[0]==='t')||[])[1];
+  const sameDay=String(saved)===String(today());   // check-ins from another day are a trap, not a record
+  kv.forEach(([k,v])=>{if(v==null)return;
+    if(k==='d'&&/^\d{4}$/.test(v))state.dep=v.slice(0,2)+':'+v.slice(2);
+    else if(k==='x')state.auto=false;
+    else if(k==='D'&&/^\d{8}$/.test(v))state.date=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6);
+    else if(k==='L'&&isFinite(+v)&&v!=='')state.lo=+v;
+    else if(k==='H'&&isFinite(+v)&&v!=='')state.hi=+v;
+    else if(k==='G'&&/^\d{4}$/.test(v))state.gate=v.slice(0,2)+':'+v.slice(2);
+    else if(sameDay&&/^c\d+$/.test(k)){const i=+k.slice(1),n=parseInt(v,10);if(i>=0&&i<N&&n>=0&&n<3000)state.ci[i]=n}});
+  if(!sameDay&&kv.some(x=>/^c\d+$/.test(x[0])))staleNote=true;
+}
+let staleNote=false;
+
+/* ---------- GPS: snap a fix to the track ---------- */
+const LAT0=(Math.min(...TRK.la)+Math.max(...TRK.la))/2, LON0=(Math.min(...TRK.lo)+Math.max(...TRK.lo))/2;
+const KX=6371000*Math.cos(LAT0*Math.PI/180)*Math.PI/180, KY=6371000*Math.PI/180;
+// nearest point of the track. Where the track runs over itself (out and back, or a shared
+// stretch) the same spot is on it twice: take the pass nearest where we expect to be.
+function snap(lat,lon,hint){
+  const px=(lon-LON0)*KX, py=(lat-LAT0)*KY;
+  const c=[];let best=Infinity;
+  for(let k=0;k<TRK.n-1;k++){
+    const ax=(TRK.lo[k]-LON0)*KX, ay=(TRK.la[k]-LAT0)*KY;
+    const bx=(TRK.lo[k+1]-LON0)*KX, by=(TRK.la[k+1]-LAT0)*KY;
+    const dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy;
+    const t=L2<1e-9?0:Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/L2));
+    const ex=px-(ax+t*dx),ey=py-(ay+t*dy),d=Math.sqrt(ex*ex+ey*ey);
+    c.push([d,TRK.cd[k]+(TRK.cd[k+1]-TRK.cd[k])*t,TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*t]);
+    if(d<best)best=d;
+  }
+  // each stretch of track within GPS noise of the best distance is one candidate pass
+  let runs=[],cur=null;
+  c.forEach(x=>{if(x[0]<=best+25){if(!cur||x[0]<cur[0])cur=x}else if(cur){runs.push(cur);cur=null}});
+  if(cur)runs.push(cur);
+  // never a pass behind the last milestone logged: once the summit is checked in, you are coming down
+  const L=lastIdx(),floor=L>0?TRK.cd[SI[L]]-150:-Infinity;
+  if(runs.some(x=>x[1]>=floor))runs=runs.filter(x=>x[1]>=floor);
+  let pick=runs.reduce((a,b)=>b[0]<a[0]?b:a);
+  if(hint!=null){
+    // another pass far along the track (not a neighbouring switchback): take the one nearest where we expect to be
+    const all=runs.filter(x=>Math.abs(x[1]-pick[1])>1500).concat([pick]);
+    pick=all.reduce((a,b)=>Math.abs(b[1]-hint)<Math.abs(a[1]-hint)?b:a);
+  }
+  return{m:pick[1],off:pick[0],el:pick[2]};
+}
+// where we expect to be along the track, to tell the way up from the way down
+function snapHint(){
+  if(state.ci[0]==null)return 0;                       // not started: you are on the way out
+  if(fix&&fix.off<=ON_ROUTE&&fixAge()<1800)return fix.m;   // a recent fix that was on the line
+  const pos=nowPos(project(),nowRel());
+  if(pos){const A=STOPS[pos.i-1],B=STOPS[pos.i];return(A.km+(B.km-A.km)*pos.r)*1000}
+  const L=lastIdx();return L>=0?TRK.cd[SI[L]]:0;
+}
+function climbBetween(m1,m2){ // metres of ascent along track between two distances
+  let up=0,ref=null;
+  for(let k=0;k<TRK.n;k++){const c=TRK.cd[k];if(c<m1-30)continue;if(c>m2+30)break;
+    const e=TRK.el[k];if(ref===null){ref=e;continue}
+    if(e-ref>3){up+=e-ref;ref=e}else if(e<ref)ref=e}
+  return Math.round(up);
+}
+let watchId=null,busy=false,busyAt=0,busyTimer=null;
+const FIX_STALE=180, FIX_OLD=600;            // seconds: too old to log from / to trust
+function fixAge(){return fix?(Date.now()-fix.at)/1000:1e9}
+// a fix only means something once you are actually near the line
+function onRoute(){return !!fix&&fix.off<=ON_ROUTE&&fixAge()<=FIX_OLD}
+
+function applyFix(p){
+  const sn=snap(p.coords.latitude,p.coords.longitude,snapHint());
+  fix={...sn,acc:p.coords.accuracy,at:Date.now()};
+  offStreak=fix.off>OFFROUTE?offStreak+1:0;
+  $('gps').className='on';autoLogic();update();recentre();
+}
+// when the map is enlarged, follow a fresh fix instead of leaving it off-screen
+function recentre(){
+  const w=$('mapwrap');if(!w.classList.contains('zoom'))return;
+  const sc=w.scrollWidth/MW;
+  w.scrollTo({left:mapFocus[0]*sc-w.clientWidth/2,top:mapFocus[1]*sc-w.clientHeight/2,behavior:'smooth'});
+}
+function gpsFail(e){
+  busy=false;
+  $('gps').className='off';
+  $('gpsline').innerHTML=(e.code===1&&LOCAL)
+    ? '<b>Chrome blocks GPS for files opened from storage.</b> It only allows location on https pages, and this one opens as file:// or content://, so there is no permission to grant. Everything else here works offline. For live position, use the milestone GPX in a map app.'
+    : '<span class="bad">No fix: '+(e.code===1?'location permission is off for this page.':e.code===3?'no satellites in 90 s. Move clear of cliffs and trees, stand still, try again.':'position unavailable.')+'</span>';
+  update();
+}
+// one-shot fix: radio on, fix, radio off. The cheap way to use GPS.
+function fixOnce(quiet){
+  if(busy||!navigator.geolocation)return;
+  busy=true;busyAt=Date.now();update();
+  clearInterval(busyTimer);busyTimer=setInterval(update,1000);   // count up while acquiring
+  const done=()=>{busy=false;clearInterval(busyTimer);busyTimer=null};
+  navigator.geolocation.getCurrentPosition(
+    p=>{done();applyFix(p)},
+    e=>{done();if(quiet){update();return}gpsFail(e)},
+    // no cell or wifi means no assisted GPS: a first fix can take a minute or more
+    {enableHighAccuracy:true,maximumAge:0,timeout:90000});
+}
+// continuous tracking, for the sections where an off-route warning is worth the battery
+function watchStop(){
+  if(watchId!==null)navigator.geolocation.clearWatch(watchId);
+  watchId=null;$('watchchk').checked=false;update();
+}
+function watchStart(){
+  if(!navigator.geolocation||watchId!==null)return;
+  watchId=navigator.geolocation.watchPosition(applyFix,e=>{
+      if(e.code===1){watchStop();gpsFail(e);return}     // permission gone: stop
+      $('gpsline').innerHTML='<span class="bad">GPS dropout — waiting for satellites…</span>';   // transient: keep watching
+    },{enableHighAccuracy:true,maximumAge:5000,timeout:90000});
+  update();
+}
+function watchToggle(on){on?watchStart():watchStop()}
+// on open and on waking the phone: take one fix if the last is stale, then release GPS
+function gpsAuto(){
+  if(!navigator.geolocation)return;
+  if(LOCAL){
+    $('gpsline').innerHTML='<b>GPS is unavailable in this copy.</b> Chrome only allows location on https pages, and a file opened from storage is not one. Check-ins below are manual, two taps each. For live position and an off-route warning, use the milestone GPX in a map app with offline maps.';
+    return;
+  }
+  if(watchId===null&&fixAge()>60)fixOnce(true);
+}
+
+/* ---------- automatic check-in from position and clock ---------- */
+function note(t){autoMsg=t;autoMsgAt=Date.now()}
+function autoLogic(){
+  if(!state.auto||!fix)return;
+  if(fixAge()>FIX_STALE)return; // an old fix must not log a milestone you are no longer at
+  if(fix.off>500)return;        // not on the route at all: never log anything
+  const now=nowRel();
+  if(fix.acc>80)return;                       // too vague a fix to log anything
+  // 1. start the hike by itself, but only once you are walking away from the trailhead.
+  //    Anywhere else on the line (dropping the car at Snow Lakes, driving past it) is not a start.
+  if(state.ci[0]==null){
+    if(fix.m>AUTOSTART_M&&fix.m<AUTOSTART_TO){
+      const md=modelAt(fix.m);
+      state.ci[0]=Math.round((now-md.mv-md.br)*10)/10;
+      note(`Started automatically, ${fmt(state.ci[0])}, from your position at km ${(fix.m/1000).toFixed(2)}.`);
+    }else{
+      resumeAt=fix.m>=TRK.cd[SI[1]]?fix.m:null;   // show a resume offer instead
+      return;
+    }
+  }
+  resumeAt=null;
+  // 2. log milestones: the one you are standing on, and any you have clearly gone past
+  const f=Math.min(2.2,Math.max(0.6,project().f));
+  let logged=0,last='';
+  for(let i=Math.max(1,lastIdx()+1);i<N;i++){
+    if(state.ci[i]!=null)continue;
+    const d=fix.m-TRK.cd[SI[i]];
+    if(d>NEAR){                               // already past it: estimate when you crossed
+      const md=modelAt(fix.m),mdi=modelAt(TRK.cd[SI[i]]);
+      const back=(md.mv-mdi.mv)*f+(md.br-mdi.br);
+      state.ci[i]=Math.round(Math.max(state.ci[i-1]??state.ci[0],now-back)*10)/10;
+      logged++;last=STOPS[i].n;continue;
+    }
+    if(Math.abs(d)<NEAR&&canCheck(i).ok){     // standing on it
+      state.ci[i]=Math.round(now*10)/10;
+      note(`Checked in automatically at ${STOPS[i].n}, ${fmt(state.ci[i])}.`);
+      if(navigator.vibrate)try{navigator.vibrate([40,60,40])}catch(e){}
+      logged=0;
+    }
+    break;
+  }
+  if(logged===1)note(`Logged ${last} from your position — GPS puts you past it.`);
+  else if(logged>1)note(`Logged ${logged} milestones you had already passed, through ${last}.`);
+  lastFixM=fix.m;
+}
+
+function gpsNext(){ // first milestone ahead of you that has not been logged yet
+  for(let i=1;i<N;i++)if(state.ci[i]==null&&TRK.cd[SI[i]]>fix.m+30)return i;
+  for(let i=1;i<N;i++)if(TRK.cd[SI[i]]>fix.m+30)return i;
+  return N-1;
+}
+function gpsText(P){
+  if(!fix)return null;
+  const km=fix.m/1000, pct=Math.round(fix.m/TOT*100);
+  const nx=gpsNext();
+  const togo=Math.max(0,TRK.cd[SI[nx]]-fix.m);
+  const up=climbBetween(fix.m,TRK.cd[SI[nx]]);
+  let s=`<b>km ${km.toFixed(2)}</b> of ${(TOT/1000).toFixed(1)}, ${pct}% · <b>${Math.round(fix.el)} m</b> · `;
+  s+=`${STOPS[nx].n} in <b>${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'}</b>${up>25?` and <b>+${up} m</b>`:''}`;
+  s+=` · ±${Math.round(fix.acc)} m`;
+  if(fixAge()>FIX_OLD)s+=` · <span class="bad">${Math.round(fixAge()/60)} min old</span>`;
+  if(fix.off>ON_ROUTE)return `<b>You are ${fix.off>=1000?(fix.off/1000).toFixed(1)+' km':Math.round(fix.off)+' m'} from the route.</b> No position is shown on the map until you are on it. Nearest point of the line is km ${km.toFixed(1)}.`;
+  if(fix.off>OFFROUTE&&offStreak>=OFF_STREAK)s+=` · <span class="bad">${Math.round(fix.off)} m off route — stop and find the line</span>`;
+  return s;
+}
+
+/* ---------- check-in rules ---------- */
+function canCheck(i){
+  const L=lastIdx();
+  if(i===0)return L<0?{ok:true}:{ok:false,why:'Started'};
+  if(L<0)return{ok:false,why:'Start first'};
+  if(state.ci[i]!=null)return{ok:false,why:'Checked in'};
+  if(i<L)return{ok:false,why:'Skipped'};
+  if(nowRel()-state.ci[L]<GAP)return{ok:false,why:'Just checked in'};
+  return{ok:true};
+}
+function tap(i){
+  if(!canCheck(i).ok)return;
+  if(armed!==i){armed=i;clearTimeout(armTimer);armTimer=setTimeout(()=>{armed=null;update()},ARM_MS);update();return}
+  clearTimeout(armTimer);armed=null;
+  state.ci[i]=Math.round(nowRel()*10)/10;
+  if(navigator.vibrate)try{navigator.vibrate(60)}catch(e){}
+  update();
+}
+let undoArmed=false,undoTimer=null;
+function undo(){const L=lastIdx();if(L<0)return;const u=$('undo');
+  if(!undoArmed){undoArmed=true;u.textContent=`Tap again to undo ${STOPS[L].n} (${fmt(state.ci[L])})`;
+    clearTimeout(undoTimer);undoTimer=setTimeout(()=>{undoArmed=false;u.textContent='Undo last check-in'},ARM_MS);return}
+  clearTimeout(undoTimer);undoArmed=false;u.textContent='Undo last check-in';state.ci[L]=null;update()}
+
+/* ---------- model ---------- */
+function project(){
+  const dep=state.ci[0]??(toMin(state.dep)??345),ci=state.ci;
+  const base=[dep];for(let i=1;i<N;i++)base[i]=base[i-1]+STOPS[i-1].b+STOPS[i].mv;
+  const a=Math.max(0,lastIdx());
+  let f=1,src='plan';
+  if(a>0){let mv=0,br=0;for(let i=1;i<=a;i++){mv+=STOPS[i].mv;br+=STOPS[i-1].b}
+    f=Math.min(2.2,Math.max(0.6,(ci[a]-dep-br)/mv));src='check-ins'}
+  // a live fix is more current than the last check-in: pace from distance actually covered
+  if(onRoute()&&ci[0]!=null&&fix.m>400){
+    const md=modelAt(fix.m);let el=nowRel()-dep;if(el<-600)el+=1440;
+    if(md.mv>5&&el>5){f=Math.min(2.2,Math.max(0.6,(el-md.br)/md.mv));src='GPS'}
+  }
+  const t=[];
+  for(let i=0;i<N;i++){
+    if(i===0)t[i]=dep;
+    else if(i<=a)t[i]=ci[i]??base[i];
+    else t[i]=t[i-1]+STOPS[i-1].b+STOPS[i].mv*f;
+  }
+  // with a live fix, re-time the stop you are walking towards from where you actually are
+  if(onRoute()&&ci[0]!=null){
+    let g=N-1;for(let i=1;i<N;i++)if(TRK.cd[SI[i]]>fix.m+30){g=i;break}
+    if(g>a&&state.ci[g]==null){
+      const A=TRK.cd[SI[g-1]],B=TRK.cd[SI[g]];
+      const left=STOPS[g].mv*Math.max(0,Math.min(1,(B-fix.m)/(B-A)))*f;
+      let nw=nowRel();if(nw<dep-600)nw+=1440;
+      t[g]=Math.max(nw,nw+left);
+      for(let i=g+1;i<N;i++)t[i]=t[i-1]+STOPS[i-1].b+STOPS[i].mv*f;
+    }
+  }
+  // a cutoff may move earlier when you are slow, never later: a wrong "fast" reading must not buy a night out
+  const gate={};
+  STOPS.forEach((s,g)=>{if(!s.gate)return;let rem=s.b,remPlan=s.b;
+    for(let j=g+1;j<N;j++){rem+=STOPS[j].mv*f+(j<N-1?STOPS[j].b:0);remPlan+=STOPS[j].mv+(j<N-1?STOPS[j].b:0)}
+    gate[g]=Math.floor((DEADLINE-Math.max(rem,remPlan))/5)*5});
+  return{dep,base,t,a,f,src,gate,fin:t[N-1],started:ci[0]!=null};
+}
+
+/* ---------- DOM ---------- */
+function intakeTags(s){
+  if(R.intake)return R.intake(s);
+  return(s.take||[]).map(([k,t])=>`<span class="tag ${k}">${t}</span>`);
+}
+// a round altitude step that gives at most `want` gridlines over `range` metres
+function gridStep(range,want){
+  for(const s of [10,20,25,50,100,200,250,500,1000])if(range/s<=want)return s;
+  return 1000;
+}
+// elevation profile of the leg into a stop, straight from the track
+function legProfile(i){
+  const W=300,H=74,PL=30,PR=6,PT=8,PB=14;
+  let a,b;
+  if(i===0){a=0;b=TRK.n-1}else{a=SI[i-1];b=SI[i]}
+  let lo=Infinity,hi=-Infinity;
+  for(let k=a;k<=b;k++){const e=TRK.el[k];if(e<lo)lo=e;if(e>hi)hi=e}
+  const pad=Math.max(12,(hi-lo)*0.12);lo-=pad;hi+=pad;
+  const m0=TRK.cd[a],m1=TRK.cd[b],span=Math.max(1,m1-m0);
+  const X=m=>PL+(m-m0)/span*(W-PL-PR), Y=e=>PT+(hi-e)/(hi-lo)*(H-PT-PB);
+  let d='';
+  const step=Math.max(1,Math.floor((b-a)/110));
+  for(let k=a;k<=b;k+=step)d+=(d?'L':'M')+X(TRK.cd[k]).toFixed(1)+','+Y(TRK.el[k]).toFixed(1);
+  d+='L'+X(m1).toFixed(1)+','+Y(TRK.el[b]).toFixed(1);
+  const base=H-PB;
+  let s=`<svg class="legsvg" id="lp${i}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevation of the leg into ${STOPS[i].n}">`;
+  s+=`<path class="lgarea" d="${d}L${X(m1).toFixed(1)},${base}L${X(m0).toFixed(1)},${base}Z"/>`;
+  // faint altitude graduation, on round metre values
+  const st=gridStep(hi-lo,i===0?5:4),gy=[];
+  for(let e=Math.ceil(lo/st)*st;e<=hi;e+=st){
+    const y=Y(e);gy.push(y);
+    s+=`<line class="pgrid" x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}"/>`;
+    s+=`<text class="pax" x="${PL-4}" y="${(y+3.2).toFixed(1)}">${e}</text>`;
+  }
+  s+=`<path class="lgline" d="${d}"/>`;
+  // gridline at the arrival elevation
+  s+=`<line class="lggrid" x1="${PL}" y1="${Y(TRK.el[b]).toFixed(1)}" x2="${W-PR}" y2="${Y(TRK.el[b]).toFixed(1)}"/>`;
+  // exact high and low points, unless a graduation label already sits there
+  const free=y=>gy.every(g=>Math.abs(g-y)>9.5);
+  [hi-pad,lo+pad].forEach(e=>{const y=Y(e);
+    if(free(y))s+=`<text class="pax hilo" x="${PL-4}" y="${(y+3.2).toFixed(1)}">${Math.round(e)}</text>`});
+  if(i>0){
+    s+=`<circle class="lgfrom" cx="${X(m0).toFixed(1)}" cy="${Y(TRK.el[a]).toFixed(1)}" r="3.6"/>`;
+    s+=`<circle class="lgto" cx="${X(m1).toFixed(1)}" cy="${Y(TRK.el[b]).toFixed(1)}" r="4.6"/>`;
+    s+=`<text class="lgax" x="${PL}" y="${H-3}">${STOPS[i-1].n.length>18?STOPS[i-1].n.slice(0,17)+'…':STOPS[i-1].n}</text>`;
+    s+=`<text class="lgax end" x="${W-PR}" y="${H-3}">${(STOPS[i].km-STOPS[i-1].km).toFixed(2)} km</text>`;
+  }else{
+    STOPS.forEach((st,j)=>{s+=`<circle class="lgfrom" cx="${X(TRK.cd[SI[j]]).toFixed(1)}" cy="${Y(st.m).toFixed(1)}" r="2.6"/>`});
+    s+=`<text class="lgax" x="${PL}" y="${H-3}">whole route</text><text class="lgax end" x="${W-PR}" y="${H-3}">${(TOT/1000).toFixed(2)} km</text>`;
+  }
+  s+=`<circle class="lgme" id="lm${i}" r="4.5" style="display:none"/>`;
+  s+=`<text class="lgmel" id="lml${i}" style="display:none"></text></svg>`;
+  return s;
+}
+// mark the position on the whole-route profile and on the leg you are inside
+function legMarker(P,now){
+  for(let i=0;i<N;i++){const e=document.getElementById('lm'+i),t=document.getElementById('lml'+i);
+    if(e)e.style.display='none';if(t)t.style.display='none'}
+  const here=herePos(P,now);
+  if(!here)return;
+  const m=here.m,isGps=here.gps;
+  const W=300,H=74,PL=30,PR=6,PT=8,PB=14;
+  const place=(i,a,b)=>{
+    const e=document.getElementById('lm'+i);if(!e)return;
+    let lo=Infinity,hi=-Infinity;
+    for(let k=a;k<=b;k++){const v=TRK.el[k];if(v<lo)lo=v;if(v>hi)hi=v}
+    const pad=Math.max(12,(hi-lo)*0.12);lo-=pad;hi+=pad;
+    const m0=TRK.cd[a],m1=TRK.cd[b],span=Math.max(1,m1-m0);
+    let el=TRK.el[a];                                  // elevation at m, from the track
+    for(let k=a;k<b;k++){if(TRK.cd[k+1]>=m){const f=(m-TRK.cd[k])/Math.max(1,TRK.cd[k+1]-TRK.cd[k]);
+      el=TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*f;break}}
+    const t=Math.max(0,Math.min(1,(m-m0)/span));
+    const cx=PL+t*(W-PL-PR), cy=PT+(hi-el)/(hi-lo)*(H-PT-PB);
+    e.setAttribute('cx',cx.toFixed(1));
+    e.setAttribute('cy',cy.toFixed(1));
+    e.setAttribute('class','lgme'+(isGps?'':' est'));
+    e.style.display='';
+    // the altitude, beside the dot
+    const t2=document.getElementById('lml'+i);if(!t2)return;
+    const sl=elAtM(m+150)-elAtM(m-150);
+    let right=sl<0; if(cx>W-PR-54)right=false; if(cx<PL+54)right=true;
+    const lab=Math.round(el).toLocaleString('en-US')+' m '+(isGps?'GPS':'est');
+    const lw=lab.length*4.9, mpp=span/(W-PL-PR);
+    const rise=Math.max(0,elAtM(m+(right?lw:-lw)*mpp)-el)/(hi-lo)*(H-PT-PB);
+    const ly=cy>19?Math.max(9,cy-9-Math.min(rise,26)):cy+13;
+    t2.textContent=lab;
+    t2.setAttribute('x',(right?cx+8:cx-8).toFixed(1));
+    t2.setAttribute('y',ly.toFixed(1));
+    t2.setAttribute('class','lgmel'+(isGps?'':' est')+(right?'':' end'));
+    t2.style.display='';
+  };
+  place(0,0,TRK.n-1);                                  // the whole-route profile on card 1
+  for(let i=1;i<N;i++){const a=SI[i-1],b=SI[i];
+    if(m>=TRK.cd[a]-20&&m<=TRK.cd[b]+20){place(i,a,b);break}}
+}
+
+function mini(i){const p=PTS[STOP_AT[i]],w=Math.round(440*K),h=Math.round(240*K);
+  const x=Math.round(Math.max(0,Math.min(MW-w,p[0]-w/2))),y=Math.round(Math.max(0,Math.min(MH-h,p[1]-h/2)));
+  return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map close-up of ${STOPS[i].n}"><use href="#mapimg"/>${routeLine()}<circle class="ring" cx="${p[0]}" cy="${p[1]}" r="${(22*K).toFixed(1)}" style="stroke-width:${(5*K).toFixed(1)}"/></svg>`}
+// the planned line, for maps that do not have it printed on them
+function routeLine(){
+  if(!R.map.route)return'';
+  return `<path class="rte" style="stroke-width:${(6*K).toFixed(1)}" d="M${PTS.map(p=>p[0]+','+p[1]).join('L')}"/>`;
+}
+/* ---------- milestone photos ----------
+   R.photos[i] = [path, caption]. A stop with no entry simply has no widget.
+   Open by default, above the map; tap the header to collapse one. The service worker
+   precaches them (routes/catalog.js), so they show with no signal. */
+const PHOTOS=R.photos||{};
+function photoBox(i){
+  let p=PHOTOS[i];if(!p)return'';
+  if(!Array.isArray(p[0]))p=[p];                  // one [path, caption], or a list of them
+  return `<details class="ph" open><summary>${p.length>1?p.length+' photos':'Photo'} — what it looks like</summary>`
+    +p.map(q=>`<img class="phi" loading="lazy" src="${q[0]}" alt="${STOPS[i].n}">`
+      +(q[1]?`<p class="phc">${q[1]}</p>`:'')).join('')+`</details>`;
+}
+function build(){
+  const ol=$('list');
+  STOPS.forEach((s,i)=>{
+    const li=document.createElement('li');li.className='stop';li.id='s'+i;
+    li.innerHTML=`<div class="clock num" id="c${i}"><span></span><small></small></div>
+    <div><p class="name"><span class="badge">${i+1}</span>${s.n}</p>
+    <div class="meta num" id="m${i}"></div>
+    ${i>0?`<p class="leg num">Leg ${s.legkm.toFixed(2)} km, +${s.up} m, −${s.dn} m, ${dur(s.mv)} moving${s.grade>=8?` · ${s.grade}% average climb`:''}</p>`:''}
+    <div class="row" id="r${i}"></div>
+    <p class="note">${s.note}</p>${photoBox(i)}${mini(i)}${legProfile(i)}<div id="g${i}"></div>
+    <div class="ci"><button type="button" data-i="${i}" id="b${i}"></button><span id="x${i}"></span></div></div>`;
+    ol.appendChild(li);
+  });
+  ol.addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b)tap(+b.dataset.i)});
+}
+
+function nowPos(P,now){
+  if(!P.started||state.ci[N-1]!=null||now<P.dep)return null;
+  for(let i=Math.max(1,P.a+1);i<N;i++){const leave=P.t[i-1]+STOPS[i-1].b;
+    if(now<leave)return{i,r:0};if(now<P.t[i])return{i,r:(now-leave)/(P.t[i]-leave)}}
+  return{i:N-1,r:1};
+}
+// elevation on the track at a given distance along it
+function elAtM(m){
+  if(m<=TRK.cd[0])return TRK.el[0];
+  for(let k=0;k<TRK.n-1;k++)if(TRK.cd[k+1]>=m){
+    const f=(m-TRK.cd[k])/Math.max(1,TRK.cd[k+1]-TRK.cd[k]);
+    return TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*f;
+  }
+  return TRK.el[TRK.n-1];
+}
+function distTxt(d){return d>=10000?(d/1000).toFixed(0)+' km':d>=1000?(d/1000).toFixed(1)+' km':Math.round(d)+' m'}
+// where we are right now: a trusted GPS fix if there is one, otherwise the schedule
+function herePos(P,now){
+  if(onRoute())return{m:fix.m,el:fix.el,gps:true};
+  const pos=nowPos(P,now);
+  if(!pos)return null;
+  const A=STOPS[pos.i-1],B=STOPS[pos.i],m=(A.km+(B.km-A.km)*pos.r)*1000;
+  return{m,el:elAtM(m),gps:false};
+}
+// when there is nothing to draw, say why in plain words
+function whyNoPos(P,now){
+  if(state.ci[N-1]!=null)return 'Hike complete';
+  if(!P.started)return 'Not on the trail yet';
+  if(now<P.dep)return 'Not on the trail yet';
+  if(fix&&fixAge()<=FIX_OLD&&fix.off>ON_ROUTE)return 'Off route — '+distTxt(fix.off)+' from the trail';
+  return 'No position yet';
+}
+function update(){
+  if(state.ci[0]!=null&&state.date!==isoToday()){state.date=isoToday();sunFor();$('pdate').value=state.date}
+  const P=project(),now=nowRel(),L=lastIdx();
+  $('planbox').hidden=P.started;
+  sunLine();
+  STOPS.forEach((s,i)=>{
+    const t=P.t[i],done=state.ci[i]!=null,skip=!done&&i>0&&i<P.a;
+    const c=$('c'+i);c.className='clock num'+(done?' done':skip?' skip':'');
+    c.firstElementChild.textContent=fmt(t);
+    c.lastElementChild.textContent=i===N-1?`T+${dur(t-P.dep)}`:`T+${dur(t-P.dep)}\n${dur(P.fin-t)} to go`;
+    const tc=tempAt(s.m,t);
+    $('m'+i).textContent=`km ${s.km.toFixed(2)}, ${s.m.toLocaleString('en-US')} m, about ${tc} °C${s.wind?`, feels ${tc-4} °C in wind`:''}`;
+    const tags=intakeTags(s);
+    if(s.b)tags.push(`<span class="tag">${s.b} min stop</span>`);
+    if(t<DARK_AM||t>DARK_PM)tags.push(`<span class="tag nite">Dark: headlamp</span>`);
+    else if(t<SUNRISE||t>SUNSET)tags.push(`<span class="tag nite">Twilight</span>`);
+    $('r'+i).innerHTML=tags.join('');
+    const g=$('g'+i);
+    if(s.gate&&!done){const lim=P.gate[i],cls=t>lim?'bad':t>lim-20?'warn':'',rel=t>lim?`Projected ${dur(t-lim)} past it.`:`Projected ${dur(lim-t)} ahead of it.`;
+      g.innerHTML=`<div class="gate ${cls}">${say(gateText(s.gate,false),{lim:fmt(lim),rel})}</div>`}
+    else if(s.gate&&done){const lim=P.gate[i],late=state.ci[i]>lim,tx=gateText(s.gate,true);
+      g.innerHTML=`<div class="gate ${late?'bad':''}">${say(late?tx[0]:tx[1],{lim:fmt(lim),ahead:dur(lim-state.ci[i])})}</div>`}
+    else if(s.pace&&!done){const lim=P.base[i]+30;
+      g.innerHTML=`<div class="gate ${t>lim?'warn':''}">Pace check: here by ${fmt(lim)}, or you're 30+ min behind. Decide early.</div>`}
+    else g.innerHTML='';
+    const b=$('b'+i),x=$('x'+i),cc=canCheck(i);
+    const near=onRoute()&&Math.abs(fix.m-TRK.cd[SI[i]])<NEAR;
+    if(done){b.hidden=true;const dlt=Math.round(state.ci[i]-P.base[i]);
+      x.innerHTML=i===0?`<span class="stamp">Started ${fmt(state.ci[0])}</span>`
+        :`<span class="stamp">Checked in ${fmt(state.ci[i])}</span> <span class="${dlt>10?'late':dlt<-5?'early':''}">${Math.abs(dlt)<3?'on plan':(dlt>0?'+':'')+dlt+' min'}</span>`}
+    else{b.hidden=false;b.disabled=!cc.ok;b.classList.toggle('armed',armed===i);
+      b.textContent=armed===i?'Tap again to confirm':cc.ok?(i===0?'Start hike':'Check in')
+        :cc.why==='Just checked in'?'Check in':cc.why;
+      x.innerHTML=near&&cc.ok?'<span class="near">GPS says you\'re here</span>':''}
+    $('s'+i).classList.toggle('isnext',P.started&&i===L+1);
+  });
+
+  $('fin').textContent=fmt(P.fin);
+  $('finlbl').textContent=state.ci[N-1]!=null?'finished':P.a>0?'projected finish':'planned finish';
+  const m=$('margin');
+  const gw=R.deadline?.kind==='gate'
+    ?(P.fin<=DEADLINE?` Back at the car ${dur(DEADLINE-P.fin)} before the ${R.deadline.label} closes (${fmt(DEADLINE)}).`
+      :` Back ${dur(P.fin-DEADLINE)} after the ${R.deadline.label} closes (${fmt(DEADLINE)}): the car would be locked in.`):'';
+  if(gw&&P.fin>DEADLINE){m.textContent=gw.trim()+' Start earlier or turn around sooner.';m.className='late'}
+  else if(P.fin<=SUNSET){m.textContent=`${dur(SUNSET-P.fin)} of daylight to spare before sunset.`+gw;m.className=SUNSET-P.fin<30?'':'early'}
+  else if(P.fin<=DARK_PM){m.textContent=`Finishes ${Math.round(P.fin-SUNSET)} min after sunset, in twilight.${R.text?.twilight?' '+R.text.twilight:' Headlamps out.'}`+gw;m.className='late'}
+  else{m.textContent=`Finishes ${dur(P.fin-SUNSET)} after sunset, in the dark. Check the turnaround times.`;m.className='late'}
+  const pct=Math.round((P.f-1)*100);
+  $('paceinfo').textContent=(P.src!=='plan')
+    ?`Pace so far, from ${P.src}: ${pct===0?'on plan':pct>0?pct+'% slower than plan':(-pct)+'% faster than plan'}. The rest is projected at that pace.`
+    :`Plan: ${(TOT/1000).toFixed(1)} km, moving ${dur(PLAN_MV)}, breaks ${dur(PLAN_BR)}, total ${dur(P.fin-P.dep)}.`;
+
+  const fb=$('fixbtn'),fa=$('fixage');
+  fb.disabled=busy||LOCAL;
+  const secs=busy?Math.round((Date.now()-busyAt)/1000):0;
+  fb.textContent=busy?`Getting fix… ${secs}s`:fix?'Update position':'Fix position';
+  if(busy&&secs>12)$('gpsline').innerHTML='<b>Looking for satellites.</b> With no signal there is no assisted GPS, so a first fix can take a minute. Stand still under open sky.';
+  if(LOCAL)fa.textContent='';
+  else if(!fix)fa.textContent=busy?'':'no fix yet';
+  else{const a=Math.round(fixAge());
+    fa.innerHTML=a<90?`fixed ${a}s ago`
+      :`<span class="${a>FIX_OLD?'stale':''}">fixed ${Math.round(a/60)} min ago${a>FIX_OLD?' — take a new one':''}</span>`}
+  const bx=$('barfix');
+  bx.hidden=LOCAL;bx.disabled=busy;
+  bx.textContent=busy?`${secs}s`:!fix?'Fix':fixAge()>FIX_OLD?'Fix · old':`Fix · ${fixAge()<90?Math.round(fixAge())+'s':Math.round(fixAge()/60)+'m'}`;
+  const gl=gpsText(P);if(gl&&!busy)$('gpsline').innerHTML=gl;
+  $('maphint').textContent=onRoute()?'Blue line and dot: where GPS puts you.'
+    :P.started?'Dashed line and dot: where the schedule says you are. Take a fix for the real one.'
+    :'Tap a number to jump to that stop.';
+  const ab=$('autobar');
+  if(autoMsg&&Date.now()-autoMsgAt<120000){ab.hidden=false;
+    ab.innerHTML=`<span>${autoMsg}</span>`;
+    const u=document.createElement('button');u.type='button';u.textContent='Undo';
+    u.onclick=()=>{autoMsg='';undoArmed=true;undo();ab.hidden=true};ab.appendChild(u);
+  }else ab.hidden=true;
+
+  const big=$('bigbtn'),nx=L+1;
+  $('planrow').hidden=P.started;$('undo').hidden=L<0;
+  const rb=$('resumebtn');
+  rb.hidden=!(resumeAt!=null&&!P.started&&onRoute());
+  if(!rb.hidden){rb.classList.toggle('armed',resumeArmed);
+    rb.textContent=resumeArmed?'Tap again to confirm':`Already hiking? Resume from km ${(resumeAt/1000).toFixed(1)}`}
+  if(!P.started){
+    const toGo=P.dep-now;
+    $('bh').textContent=`Departure ${fmt(P.dep)}`;
+    const pre=R.text?.beforeStart?R.text.beforeStart(toGo,P.dep,fmt,dur):null;
+    $('bd').textContent=pre||(state.date!==isoToday()?`Planned for ${dayName(state.date)}. On the day, tap Start hike at the trailhead.`
+      :toGo>0&&toGo<720?`Departure in ${dur(toGo)}. Tap Start hike at the trailhead.`
+      :'Tap Start hike at the trailhead. The time comes from your phone.');
+    big.hidden=false;
+  }else if(nx<N){
+    const s=STOPS[nx],it=intakeTags(s).map(h=>h.replace(/<[^>]+>/g,'')).join('; '),t=P.t[nx],d=t-now;
+    $('bh').textContent=`Next: ${s.n}, ${fmt(t)}`;
+    let line=`${d>=0?'In '+dur(d):dur(-d)+' behind projection'}, km ${s.km.toFixed(1)}`;
+    if(onRoute()){const gn=gpsNext(),togo=Math.max(0,TRK.cd[SI[gn]]-fix.m);
+      line+=gn===nx?` · ${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'} away by GPS`
+        :` · GPS puts you past it, ${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'} short of ${STOPS[gn].n}`}
+    $('bd').textContent=line+(it?' · Take: '+it:'');
+    big.hidden=false;
+  }else{
+    $('bh').textContent=`Finished at ${fmt(state.ci[N-1])}`;
+    $('bd').textContent=`Total ${dur(state.ci[N-1]-P.dep)} for ${(TOT/1000).toFixed(1)} km and ${UP_TOT.toLocaleString('en-US')} m of climb. Well done.`;
+    big.hidden=true;
+  }
+  if(!big.hidden){const i=P.started?nx:0,cc=canCheck(i);
+    big.disabled=!cc.ok;big.classList.toggle('armed',armed===i);big.dataset.i=i;
+    const near=onRoute()&&Math.abs(fix.m-TRK.cd[SI[i]])<NEAR;
+    big.textContent=armed===i?'Tap again to confirm'
+      :cc.ok?(i===0?'Start hike':`${near?'You\'re here — ':''}Check in: ${STOPS[i].n}`)
+      :cc.why==='Just checked in'?`Check in: ${STOPS[i].n}`:cc.why}
+
+  profile(P,now);legMarker(P,now);save();
+}
+
+let mapFocus=PTS[0].slice(0,2);
+function profile(P,now){
+  const PLL=30;
+  const X=m=>PLL+m/TOT*(328-PLL), Y=e=>118-(e-PLO)/(PHI-PLO)*102;
+  let d='';PROF.forEach((e,j)=>{const x=X(TOT*j/(PROF.length-1));d+=(j?'L':'M')+x.toFixed(1)+','+Y(e).toFixed(1)});
+  let h=`<path class="area" d="${d}L${X(TOT).toFixed(1)},118L${PLL},118Z"/>`;
+  // faint altitude graduation on round values
+  const gs=gridStep(PHI-PLO,5);
+  for(let e=Math.ceil(PLO/gs)*gs;e<=PHI;e+=gs){const y=Y(e).toFixed(1);
+    h+=`<line class="pgrid" x1="${PLL}" y1="${y}" x2="328" y2="${y}"/>`
+      +`<text class="pax" x="${PLL-4}" y="${(+y+3.2).toFixed(1)}">${e}</text>`}
+  h+=`<text class="pax" x="${PLL-4}" y="14">m</text>`;
+  h+=`<path class="line" d="${d}"/>`;
+  STOPS.forEach((s,i)=>{h+=`<circle class="dot${state.ci[i]!=null?' done':''}" cx="${X(s.km*1000).toFixed(1)}" cy="${Y(s.m).toFixed(1)}" r="3.4"/>`});
+  const here=herePos(P,now);
+  if(here){
+    const cx=X(here.m),cy=Y(here.el);
+    h+=`<circle class="halo" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="7"/>`
+      +`<circle class="${here.gps?'gme':'me'}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5"/>`;
+  }
+  {const hs=STOPS[PL_STOP],lx=X(hs.km*1000),end=lx>244;
+   h+=`<text class="lbl${end?' end':''}" x="${(end?lx+6:lx-22).toFixed(0)}" y="${(Y(hs.m)-6).toFixed(0)}">${PL_TEXT}</text>`;}
+  h+=`<text class="lbl" x="${PLL}" y="132">0 km</text><text class="lbl end" x="328" y="132">${(TOT/1000).toFixed(1)} km</text>`;
+  if(here){
+    // current altitude, beside the dot; flip sides near the right edge
+    const cx=X(here.m),cy=Y(here.el),txt=Math.round(here.el).toLocaleString('en-US')+' m '+(here.gps?'GPS':'est');
+    // sit in the open sky above the dot, on the downhill side where nothing is drawn
+    const sl=elAtM(here.m+150)-elAtM(here.m-150);
+    let right=sl<0; if(cx>244)right=false; if(cx<PLL+72)right=true;
+    // lift it clear of the line when the label sits over rising ground
+    const lw=txt.length*5.4, rise=Math.max(0,elAtM(here.m+(right?lw:-lw)*TOT/(328-PLL))-here.el)*102/(PHI-PLO);
+    const ly=cy>26?Math.max(11,cy-11-Math.min(rise,30)):cy+15;
+    h+=`<text class="hlbl${here.gps?'':' est'}${right?'':' end'}" x="${(right?cx+9:cx-9).toFixed(0)}" y="${ly.toFixed(0)}">${txt}</text>`;
+  }
+  // a note when there is no dot, or when GPS disagrees with the estimate on screen
+  let note='';
+  if(!here)note=whyNoPos(P,now);
+  else if(!here.gps&&fix&&fixAge()<=FIX_OLD&&fix.off>ON_ROUTE)
+    note='GPS: off route, '+distTxt(fix.off)+' from the trail';
+  if(note){
+    const w=note.length*5.3+14;
+    // keep clear of the dot if it happens to sit in the same corner
+    const ny=(here&&X(here.m)<PLL+3+w&&Y(here.el)>84&&Y(here.el)<116)?16:92;
+    h+=`<rect class="nbox" x="${PLL+3}" y="${ny}" width="${w.toFixed(0)}" height="18" rx="9"/>`
+      +`<text class="nlbl" x="${PLL+10}" y="${ny+12.5}">${note}</text>`;
+  }
+  $('prof').innerHTML=h;
+
+  const L=lastIdx();let o=routeLine();
+  // how far along we are: GPS when it is trustworthy, otherwise the schedule
+  const hereM=here?here.m:null, isGps=!!here&&here.gps;
+  if(hereM!=null){const d=tracedPath(hereM);
+    o+=`<path class="progcase" style="stroke-width:${16*K}" d="${d}"/><path class="prog${isGps?'':' est'}" style="stroke-width:${9*K}" d="${d}"/>`}
+  if(R.map.labels!==false)o+=mapLabels(P,L);
+  MARKS.forEach(g=>{const p=PTS[STOP_AT[g[0]]],r=19;
+    const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
+    const cls=g.some(i=>st(i)==='next')?'next':g.every(i=>st(i)==='done')?'done':'';
+    const go=g.find(i=>state.ci[i]==null)??g[0], lab=g.map(i=>i+1).join('·');
+    const w=g.length>1?r*(0.9+lab.length*0.42):r;
+    o+=`<g class="mk ${cls}" data-go="${go}" transform="translate(${p[0]},${p[1]}) scale(${K.toFixed(3)})"><rect x="${(-w).toFixed(1)}" y="-19" width="${(2*w).toFixed(1)}" height="38" rx="19"/><text>${lab}</text></g>`});
+  if(hereM!=null){const q=pixAtM(hereM);mapFocus=q;
+    o+=`<g transform="translate(${q[0].toFixed(1)},${q[1].toFixed(1)}) scale(${K.toFixed(3)})"><circle class="pulse" r="16"/>`
+      +`<circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
+  }else{const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
+  o+=mapBadge();
+  $('mapov').innerHTML=o;
+  // a soft card behind each milestone name, sized to the text, so it reads over the map's own lettering
+  document.querySelectorAll('#mapov .mlab').forEach(g=>{try{const b=g.getBBox();if(!b.width)return;
+    const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x',b.x-5);r.setAttribute('y',b.y-2);r.setAttribute('width',b.width+10);r.setAttribute('height',b.height+4);r.setAttribute('rx',6);
+    g.insertBefore(r,g.firstChild)}catch(e){}});
+}
+
+/* ---------- wiring ---------- */
+$('dep').addEventListener('input',e=>{if(e.target.value){state.dep=e.target.value;update()}});
+$('pdate').addEventListener('change',e=>{if(/^\d{4}-\d\d-\d\d$/.test(e.target.value)){state.date=e.target.value;sunFor();
+  if(!state.gate&&R.deadline?.kind==='gate')$('pgate').value=fmt(DEADLINE);update()}});
+$('plo').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){state.lo=v;sunFor();update()}});
+$('phi').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){state.hi=v;sunFor();update()}});
+$('pgate').addEventListener('change',e=>{state.gate=e.target.value||null;sunFor();if(!state.gate)$('pgate').value=fmt(DEADLINE);update()});
+$('bigbtn').addEventListener('click',e=>tap(+e.currentTarget.dataset.i));
+$('resumebtn').addEventListener('click',()=>{
+  if(resumeAt==null)return;
+  if(!resumeArmed){resumeArmed=true;clearTimeout(resumeTimer);resumeTimer=setTimeout(()=>{resumeArmed=false;update()},ARM_MS);update();return}
+  clearTimeout(resumeTimer);resumeArmed=false;resumeFrom(resumeAt);
+});
+$('buildver').textContent='Version '+BUILD;
+$('reloadbtn').addEventListener('click',()=>location.reload(true));
+// with a connection, say plainly whether this copy matches what is published
+function checkLive(){
+  if(LOCAL){$('netver').textContent='downloaded file — check the link for newer';return}
+  fetch('./planner.html?live=1&v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{
+    const m=t.match(/const BUILD='([^']+)'/);
+    if(!m)return;
+    $('netver').textContent = m[1]===BUILD ? 'up to date' : 'newer version published: '+m[1];
+    if(m[1]!==BUILD)$('newver').hidden=false;
+  }).catch(()=>{$('netver').textContent='offline — cannot check for a newer one'});
+}
+$('undo').addEventListener('click',undo);
+let wipeArmed=false,wipeTimer=null;
+$('wipe').addEventListener('click',()=>{const w=$('wipe');
+  if(!wipeArmed){wipeArmed=true;w.textContent='Tap again to clear every check-in';
+    clearTimeout(wipeTimer);wipeTimer=setTimeout(()=>{wipeArmed=false;w.textContent='Start a fresh day'},ARM_MS);return}
+  clearTimeout(wipeTimer);wipeArmed=false;w.textContent='Start a fresh day';
+  state.ci=new Array(N).fill(null);try{localStorage.removeItem(LSKEY)}catch(e){}
+  lastHash='';update()});
+$('fixbtn').addEventListener('click',()=>fixOnce(false));
+$('barfix').addEventListener('click',()=>fixOnce(false));
+$('watchchk').addEventListener('change',e=>watchToggle(e.target.checked));
+$('autochk').addEventListener('change',e=>{state.auto=e.target.checked;if(state.auto)autoLogic();update()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){gpsAuto();autoLogic();update()}});
+window.addEventListener('pageshow',()=>{autoLogic();update()});
+$('mapov').addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;
+  const el=$('s'+g.dataset.go);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})});
+$('zoom').addEventListener('click',()=>{const w=$('mapwrap'),z=w.classList.toggle('zoom');
+  $('zoom').textContent=z?'Fit map':'Enlarge map';
+  if(z)requestAnimationFrame(()=>{const sc=w.scrollWidth/MW;w.scrollLeft=mapFocus[0]*sc-w.clientWidth/2;w.scrollTop=mapFocus[1]*sc-w.clientHeight/2})});
+$('theme').addEventListener('click',()=>{
+  const r=document.documentElement,dark=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);
+  r.dataset.theme=dark?'light':'dark';$('theme').textContent=dark?'Dark':'Light';
+  try{localStorage.setItem('ench-theme',r.dataset.theme)}catch(e){}
+});
+try{const th=localStorage.getItem('ench-theme');if(th)document.documentElement.dataset.theme=th}catch(e){}
+$('theme').textContent=(document.documentElement.dataset.theme==='dark'||(!document.documentElement.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches))?'Light':'Dark';
+
+/* ---------- offline copy ---------- */
+const offEl=()=>$('offline'),offTxt=()=>$('offtxt');
+function offState(kind,msg){offEl().className=kind;offTxt().innerHTML=msg}
+function initOffline(){
+  if(LOCAL){
+    offState('ready','<b>Offline copy.</b> This is the downloaded file: it needs no connection. GPS is not available in it.');
+    return;
+  }
+  if(!('serviceWorker'in navigator)){
+    offState('no','<b>This browser cannot store the page offline.</b> Save a copy instead, or keep this tab open.');return;
+  }
+  const hadController=!!navigator.serviceWorker.controller;   // false on a first install
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadController)$('newver').hidden=false});
+  navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(reg=>{
+    reg.update().catch(()=>{});
+    reg.addEventListener('updatefound',()=>{
+      const w=reg.installing;if(!w)return;
+      w.addEventListener('statechange',()=>{
+        if(w.state==='installed'&&navigator.serviceWorker.controller)$('newver').hidden=false;
+      });
+    });
+    setInterval(()=>reg.update().catch(()=>{}),300000);
+    const done=()=>{
+      // this route's own files, not just the page: a map or photo missing would only show up on the trail
+      const need=['./planner.html'].concat((ROUTE_META?.assets||[R.map.src]).map(u=>'./'+u));
+      Promise.all(need.map(u=>caches.match(u,{ignoreSearch:true}).then(r=>!!r))).then(a=>a.every(Boolean)).catch(()=>false).then(ok=>{
+        offState(ok?'ready':'no', ok
+          ? '<b>Works in Airplane mode.</b> This route, its map and photos are on your phone now. GPS still works with no signal, and only checks your position when you ask it to, so it barely touches the battery. Add it to your home screen from the browser menu to reopen it without the link.'
+          : '<b>Not stored yet.</b> Stay on a connection a few more seconds, then pull down to reload.');
+      });
+    };
+    if(reg.active)done(); else navigator.serviceWorker.ready.then(done).catch(()=>offState('no','<b>Offline storage failed.</b> Use the downloaded file instead.'));
+    setTimeout(done,2500);
+  }).catch(err=>{
+    offState('no','<b>Not stored offline here.</b> '+(String(err.name)==='SecurityError'?'This viewer blocks it. ':'')+'Open the link in Chrome or Safari directly, then check this line again.');
+  });
+  window.addEventListener('online',()=>offEl().classList.remove('warnoff'));
+}
+/* ---------- page: cover, key numbers and map for this route ---------- */
+function setupPage(){
+  const tt=R.title+(R.variant?' — '+R.variant:'');
+  document.title=tt;
+  $('title').textContent=R.title;
+  $('variant').textContent=[R.variant,R.size&&R.size[0].toUpperCase()+R.size.slice(1),ROUTE_META?.type].filter(Boolean).join(' · ');
+  const cov=ROUTE_META?.cover||R.cover;
+  if(cov)$('cover').src=cov;else $('cover').parentNode.classList.add('nocover');
+  $('cover').alt=tt;
+  if(ROUTE_META?.coverCredit){const c=$('covercred');c.textContent=ROUTE_META.coverCredit[0];c.href=ROUTE_META.coverCredit[1];c.hidden=false}
+  const st=[[(TOT/1000).toFixed(1)+' km','distance'],['+'+UP_TOT.toLocaleString('en-US')+' m','climb'],
+    [STOPS[HI_STOP].m.toLocaleString('en-US')+' m','high point'],[dur(PLAN_MV),'moving']];
+  $('stats').innerHTML=st.map(([b,s])=>`<div><b>${b}</b><span>${s}</span></div>`).join('');
+  $('summary').textContent=R.summary||'';
+  const img=$('mapimg');img.setAttribute('width',MW);img.setAttribute('height',MH);img.setAttribute('href',R.map.src);
+  $('map').setAttribute('viewBox',`0 0 ${MW} ${MH}`);
+  if(R.text?.totals){$('totals').innerHTML=R.text.totals;$('totals').hidden=false}
+  if(R.text?.gpsHint)$('gpshint').innerHTML=R.text.gpsHint;
+  if(R.gpx)$('gpxlink').href=R.gpx;else $('gpxlink').hidden=true;
+  if(R.map.credit)$('mapcred').textContent=R.map.credit;
+}
+setupPage();
+try{load()}catch(e){}
+if(!state.date)state.date=R.date&&R.date>=isoToday()?R.date:isoToday();
+sunFor();
+$('dep').value=state.dep;$('autochk').checked=state.auto;
+$('pdate').value=state.date;$('plo').value=state.lo;$('phi').value=state.hi;
+if(R.deadline?.kind==='gate'){$('gaterow').hidden=false;$('pgate').value=state.gate||fmt(DEADLINE)}
+build();if(staleNote)note('Check-ins from another day were cleared. Today starts fresh.');update();gpsAuto();initOffline();checkLive();
+setInterval(()=>{if(armed===null){autoLogic();update()}},15000);</script>
+</body>
+</html>
