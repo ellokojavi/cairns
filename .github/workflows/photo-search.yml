@@ -3,6 +3,8 @@
 name: photo search
 on:
   push:
+    # working branches only: on main a merge would re-run the search and commit ~40 MB of candidates
+    branches-ignore: [main]
     paths: ['tools/photo-requests/*.json']
 permissions:
   contents: write
