@@ -26,7 +26,7 @@ keeps working because position comes from satellites, not the network.
 
 **Before the hike**
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
-  parking, and a link to rehearse the route in test mode.
+  parking, and a "Simulate your hike" link.
 - Plan by date: sunrise, sunset and dusk computed for the trailhead on that day.
 - **Your day:** with a connection, an hourly forecast (Open-Meteo, up to 16 days) for the
   trailhead and the high point at their own heights, plus, within 7 days, the official
