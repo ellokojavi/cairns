@@ -28,8 +28,11 @@ keeps working because position comes from satellites, not the network.
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
   parking, and a link to rehearse the route in test mode.
 - Plan by date: sunrise, sunset and dusk computed for the trailhead on that day.
-- **Your day:** with a connection, an hourly forecast (Open-Meteo) for the trailhead and
-  the high point at their own heights; every stop's temperature at the time you pass it;
+- **Your day:** with a connection, an hourly forecast (Open-Meteo, up to 16 days) for the
+  trailhead and the high point at their own heights, plus, within 7 days, the official
+  National Weather Service forecast: its active alerts for the hours you are out, its
+  temperature and rain chance (the kit list follows whichever source is harsher, and says
+  when they disagree), and the forecasters' text for the day; every stop's temperature at the time you pass it;
   what to bring and what to leave at home, each with its reason (water, food, headlamp,
   layers, rain gear, microspikes by freezing level, sun, wind, poles). Saved for offline.
 - **What hikers say:** a short summary of trip reports and reviews, with links.
@@ -73,6 +76,7 @@ is saved.
 | `manifest.webmanifest`, `cairns-*.png`, `logo.png`, `logo-dark.png` (same-size stones with a soft, muted grey-green glow for dark mode), `favicon.png` | App name, home-screen icons (regular, Android adaptive, iPhone) and logo |
 | `tools/` | Scripts that build a route from OpenStreetMap trails and USGS lidar |
 | `.github/workflows/photo-search.yml` | Creative Commons photo search, run on GitHub Actions |
+| `.github/workflows/nws-sample.yml` | Saves real NWS responses for a route (`tools/nws-requests/`), to test the forecast code offline |
 
 ## Adding a route
 
@@ -93,7 +97,7 @@ Keep this README current: update it with every significant change.
 ## Credits
 
 Terrain: USGS 3DEP (public domain). Trails: © OpenStreetMap contributors, via Overture
-Maps (ODbL). Weather: Open-Meteo (CC BY 4.0). Photos: Wikimedia Commons, credited on each
+Maps (ODbL). Weather: Open-Meteo (CC BY 4.0) and the National Weather Service (NOAA, public domain). Photos: Wikimedia Commons, credited on each
 photo.
 
 © 2026 · by El Loko Javi

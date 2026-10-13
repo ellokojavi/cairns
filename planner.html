@@ -250,6 +250,10 @@ details.fold>div{padding:0 14px 12px}
 .wxrow{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 .wxrow span{font-size:13px;border:1px solid var(--rule);border-radius:4px;padding:2px 7px;background:var(--bg)}
 .wxrow span.warn{border-color:var(--warn);color:var(--warn);font-weight:600}
+.alert{border:1.5px solid var(--accent);border-radius:8px;padding:8px 10px;margin:4px 0 10px;font-size:14px}
+.alert b{color:var(--accent)}.alert>span{color:var(--muted);font-size:12.5px}.alert p{margin:4px 0}
+.alert details{font-size:13px;color:var(--muted)}.alert summary{cursor:pointer}
+.nwstxt{font-size:13.5px;margin:6px 0}.nwstxt summary{cursor:pointer;font-weight:600}.nwstxt p{margin:5px 0}
 #revbody ul{margin:0;padding-left:18px;font-size:14px}
 #revbody li{margin:0 0 7px}
 @media (max-width:420px){.kit{grid-template-columns:1fr}}
@@ -564,7 +568,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 18:00';
+const BUILD='2026-10-13 20:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1422,6 +1426,48 @@ function fcFetch(){
     update();
   }).catch(()=>{}).finally(()=>{fcBusy=false});
 }
+/* The National Weather Service (NOAA, api.weather.gov: official, free, no key, US only, 7 days):
+   its hourly forecast for the grid cells at the trailhead and at the top (2.5 km cells: their
+   height can be far from the trail's, so the top's temperature is moved to the real height at 6.5 °C/km), the forecasters' text for the day, and any active alert (storm, wind, heat, smoke).
+   Asked alongside Open-Meteo and kept the same way, per route and date, for use offline. */
+const NWSKEY=()=>'hike-nws-'+R.id+'-'+state.date;
+let NWS=null,nwsBusy=false,nwsTried={};
+function nwsLoad(){NWS=null;try{const c=JSON.parse(localStorage.getItem(NWSKEY())||'null');if(c&&c.date===state.date)NWS=c}catch(e){}}
+const nwsGet=u=>fetch(u,{cache:'no-store',headers:{Accept:'application/geo+json'}}).then(r=>r.ok?r.json():Promise.reject(r.status));
+// minutes after local midnight of the plan date, in the route's time zone
+function localMin(iso){const p=new Intl.DateTimeFormat('en-CA',{timeZone:R.tz||undefined,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+  .formatToParts(new Date(iso)).reduce((o,x)=>(o[x.type]=x.value,o),{});return{date:`${p.year}-${p.month}-${p.day}`,m:+p.hour*60+ +p.minute}}
+function nwsHourly(j,date){
+  const o={e:j.properties?.elevation?.value??null,t:Array(24).fill(null),pp:Array(24).fill(null),ws:Array(24).fill(null)};
+  for(const p of j.properties.periods){const L=localMin(p.startTime);if(L.date!==date)continue;const h=Math.floor(L.m/60);
+    o.t[h]=p.temperature;o.pp[h]=p.probabilityOfPrecipitation?.value??0;
+    const w=String(p.windSpeed||'').match(/\d+/g);o.ws[h]=w?Math.max(...w.map(Number)):null}
+  return o}
+function nwsFetch(){
+  if(nwsBusy||!navigator.onLine||Date.now()-(nwsTried[state.date]||0)<60000)return;
+  const ahead=daysAhead();if(ahead<0||ahead>6)return;
+  if(NWS&&Date.now()-NWS.at<3*3600e3)return;
+  const want=state.date,pt=k=>`${TRK.la[k].toFixed(4)},${TRK.lo[k].toFixed(4)}`,kTop=SI[HI_STOP];
+  nwsBusy=true;nwsTried[want]=Date.now();
+  const point=k=>nwsGet('https://api.weather.gov/points/'+pt(k)).then(j=>j.properties);
+  Promise.all([point(0),point(kTop)]).then(([a,b])=>Promise.all([
+    nwsGet(a.forecastHourly+'?units=si'),nwsGet(b.forecastHourly+'?units=si'),nwsGet(b.forecast+'?units=si'),
+    nwsGet('https://api.weather.gov/alerts/active?point='+pt(kTop)).catch(()=>({features:[]}))])
+  ).then(([h0,h1,txt,al])=>{
+    if(want!==state.date)return;
+    const text=txt.properties.periods.filter(p=>localMin(p.startTime).date===want).map(p=>({n:p.name,d:p.detailedForecast}));
+    const alerts=(al.features||[]).map(f=>f.properties).map(p=>({ev:p.event,hd:p.headline,sev:p.severity,from:p.onset||p.effective,to:p.ends||p.expires,desc:p.description,ins:p.instruction}));
+    NWS={date:want,at:Date.now(),th:nwsHourly(h0,want),top:nwsHourly(h1,want),text,alerts};
+    try{localStorage.setItem(NWSKEY(),JSON.stringify(NWS))}catch(e){}
+    update();
+  }).catch(()=>{}).finally(()=>{nwsBusy=false});
+}
+// alerts that touch the hours you are out, on the plan date
+function nwsAlerts(dep,fin){
+  if(!NWS)return[];
+  return NWS.alerts.filter(a=>{const s=a.from?localMin(a.from):null,e=a.to?localMin(a.to):null;
+    const sm=!s?-1:s.date<state.date?-1:s.date>state.date?1e4:s.m, em=!e?1e4:e.date>state.date?1e4:e.date<state.date?-1:e.m;
+    return sm<=fin&&em>=dep})}
 // a forecast value at minutes-after-midnight t, between the hourly steps
 function fcAt(arr,t){if(!arr)return null;const h=Math.max(0,Math.min(arr.length-1,t/60)),a=Math.floor(h),b=Math.min(arr.length-1,a+1),f=h-a;
   const x=arr[a],y=arr[b];return x==null?y:y==null?x:x+(y-x)*f}
@@ -1435,12 +1481,17 @@ function dayBrief(P){
   const span=(arr)=>{let m=-1e9;for(let t=dep;t<=fin;t+=30){const v=fcAt(arr,t);if(v!=null&&v>m)m=v}return m===-1e9?null:m};
   const sum=(arr)=>{if(!arr)return 0;let s2=0;for(let h=Math.floor(dep/60);h<=Math.min(23,Math.floor(fin/60));h++)s2+=arr[h]||0;return s2};
   const tStart=tempAt(STOPS[0].m,dep),tTopV=tempAt(top.m,tTop),tFin=tempAt(STOPS[N-1].m,fin);
-  const feelsTop=fc?Math.round(fcAt(fc.top.app,tTop)):tTopV-(top.wind?4:0);
+  let feelsTop=fc?Math.round(fcAt(fc.top.app,tTop)):tTopV-(top.wind?4:0),nTopR=null;
   const maxT=Math.max(tStart,tTopV,tFin,fc?Math.round(span(fc.th.t)):-99);
-  const pp=fc?Math.round(Math.max(span(fc.th.pp)??0,span(fc.top.pp)??0)):null, rain=fc?sum(fc.top.pr):0, snow=fc?sum(fc.top.sf):0;
+  let pp=fc?Math.round(Math.max(span(fc.th.pp)??0,span(fc.top.pp)??0)):null; const rain=fc?sum(fc.top.pr):0, snow=fc?sum(fc.top.sf):0;
   const gust=fc?Math.round(fcAt(fc.top.wg,tTop)):null, wind=fc?Math.round(fcAt(fc.top.ws,tTop)):null;
   const fl=fc?Math.round((fcAt(fc.top.fl,tTop)??9999)/50)*50:null;
-  const icy=fc?(snow>0||(fl!=null&&fl<top.m+300)||feelsTop<=0):null;
+  // the official NWS forecast, when there is one: the kit list follows whichever source is harsher
+  const nw=NWS&&NWS.date===state.date?NWS:null,nTop=nw&&fcAt(nw.top.t,tTop)!=null?fcAt(nw.top.t,tTop)+(nw.top.e!=null?(nw.top.e-top.m)*0.0065:0):null,nPP=nw?Math.round(Math.max(span(nw.th.pp)??0,span(nw.top.pp)??0)):null;
+  const diff=[];
+  if(nTop!=null){nTopR=Math.round(nTop);if(fc&&Math.abs(nTopR-tTopV)>=4)diff.push(`top ${tTopV} vs ${nTopR} °C`);if(!fc)feelsTop=nTopR-(top.wind?4:0);else if(nTopR<feelsTop)feelsTop=nTopR}
+  if(nPP!=null){if(pp!=null&&Math.abs(nPP-pp)>=30)diff.push(`rain ${pp}% vs ${nPP}%`);pp=Math.max(pp??0,nPP)}
+  const icy=fc?(snow>0||(fl!=null&&fl<top.m+300)||feelsTop<=0):nw?feelsTop<=0:null;
   const dark=dep<SUNRISE+20||fin>SUNSET-30;
   const bring=[],leave=[],note=[];
   const L=Math.max(1,Math.round((hrs*0.45+(maxT>=20?0.5:0)+(maxT>=26?0.5:0))*2)/2);
@@ -1450,12 +1501,12 @@ function dayBrief(P){
                  :['Headlamp','Not planned, but a slow day or a twisted ankle ends in the dark.']);
   if(feelsTop<=5)bring.push(['Warm layer, beanie and gloves',`About ${tTopV} °C at the top around ${fmt(tTop)}, feels like ${feelsTop} °C${gust!=null&&gust>=30?` with gusts to ${gust} km/h`:''}.`]);
   else if(feelsTop<=12)bring.push(['A light warm layer',`About ${tTopV} °C at the top around ${fmt(tTop)}${fc?`, feels like ${feelsTop} °C`:''}. You cool down fast once you stop.`]);
-  if(fc){
+  if(fc||nw){
     if(pp>=50||rain>=2)bring.push(['Rain jacket and pack cover; phone in a bag',`Rain chance up to ${pp}%${rain>=0.5?`, about ${Math.round(rain)} mm over the day`:''}. Roots and rock get slick.`]);
     else if(pp>=20)bring.push(['A light rain shell',`Rain chance up to ${pp}%.`]);
     else leave.push(['Rain pants and umbrella',`Rain chance ${pp}% at most.`]);
-    if(icy)bring.push(['Microspikes; trail runners will slip on ice',snow>0?`Snow forecast at the top (${snow.toFixed(1)} cm).`:`Freezing level near ${fl.toLocaleString('en-US')} m, at or below the top.`]);
-    else leave.push(['Microspikes and gaiters',`Freezing level around ${fl.toLocaleString('en-US')} m, far above the top (${top.m.toLocaleString('en-US')} m).`]);
+    if(icy)bring.push(['Microspikes; trail runners will slip on ice',snow>0?`Snow forecast at the top (${snow.toFixed(1)} cm).`:fl!=null&&fl<top.m+300?`Freezing level near ${fl.toLocaleString('en-US')} m, at or below the top.`:`Below freezing at the top (${feelsTop} °C).`]);
+    else if(fl!=null)leave.push(['Microspikes and gaiters',`Freezing level around ${fl.toLocaleString('en-US')} m, far above the top (${top.m.toLocaleString('en-US')} m).`]);
     if(gust!=null&&gust>=40)bring.push(['Windproof shell',`Gusts to ${gust} km/h at the top. Stay off exposed rock in strong gusts.`]);
     if(!icy&&pp<50)note.push('Dry trail expected: trail runners are fine.');
   }else{
@@ -1466,28 +1517,42 @@ function dayBrief(P){
   if(maxT>=22)bring.push(['Sun hat, sunscreen, sunglasses',`Up to ${maxT} °C in the afternoon.`]);
   if(descent>=700)bring.push(['Poles',`${descent.toLocaleString('en-US')} m of descent: they save your knees on the way down.`]);
   if(feelsTop>12)leave.push(['A heavy insulated jacket',`Mild at the top (${tTopV} °C).`]);
-  if(fc&&!icy&&pp<50)leave.push(['Heavy boots','Trail runners with good grip are enough on a dry trail.']);
+  if((fc||nw)&&!icy&&pp<50)leave.push(['Heavy boots','Trail runners with good grip are enough on a dry trail.']);
   bring.push(['Phone charged, this page saved offline','It works with no signal; the GPS works without coverage.']);
   if(R.deadline?.kind==='gate')note.push(`The ${R.deadline.label} closes around ${fmt(DEADLINE)}: plan to be back well before.`);
   const wd=new Date(state.date+'T12:00').getDay();
   note.push(wd===0||wd===6?'Weekend: the lot can fill early. Arrive before 8:00 or have a plan B.':'Weekday: parking is usually easy, and the trail quieter.');
-  return{fc,tStart,tTopV,tFin,feelsTop,pp,gust,wind,fl,bring,leave,note,tTop};
+  const al=nwsAlerts(dep,fin);
+  if(al.some(a=>/wind/i.test(a.ev))&&!bring.some(x=>/Windproof/.test(x[0])))bring.push(['Windproof shell',`NWS ${al.find(a=>/wind/i.test(a.ev)).ev} during your hike. Stay off exposed ridges in strong gusts.`]);
+  if(al.length)note.unshift('Official NWS alert for the hours you are out: read it before you go, and be ready to change plans.');
+  if(diff.length)note.push(`Open-Meteo and the NWS disagree (${diff.join(', ')}); the list follows the harsher one.`);
+  return{fc,nw,nTopR,alerts:al,tStart,tTopV,tFin,feelsTop,pp,gust,wind,fl,bring,leave,note,tTop};
 }
 function renderDay(P){
-  fcLoad();fcFetch();
+  fcLoad();fcFetch();nwsLoad();nwsFetch();
   const b=dayBrief(P),ahead=daysAhead();
   $('daysum').textContent='Your day: '+dayName(state.date);
   const li=a=>a.map(([t,w])=>`<li>${t}<span>${w}</span></li>`).join('');
   const chips=[`Start ${fmt(P.dep)} · ${b.tStart} °C`,`Top ${fmt(b.tTop)} · ${b.tTopV} °C${b.fc?`, feels ${b.feelsTop}`:''}`,`Back ${fmt(P.fin)} · ${b.tFin} °C`];
-  if(b.fc){chips.push(`Rain ${b.pp}%`);if(b.gust!=null)chips.push(`Gusts ${b.gust} km/h at top`);if(b.fl!=null)chips.push(`Freezing level ${b.fl.toLocaleString('en-US')} m`)}
+  if(b.nTopR!=null)chips.push(`NWS top ${b.nTopR} °C`);
+  if(b.fc||b.nw){chips.push(`Rain ${b.pp}%`)}
+  if(b.fc){if(b.gust!=null)chips.push(`Gusts ${b.gust} km/h at top`);if(b.fl!=null)chips.push(`Freezing level ${b.fl.toLocaleString('en-US')} m`)}
   const src=b.fc?`Forecast: Open-Meteo, for the trailhead and the top at their own heights, updated ${new Date(b.fc.at).toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'})}. <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> (CC BY 4.0).`
     :ahead>15?`No forecast yet: the date is ${ahead} days away (forecasts reach 16 days). Temperatures use the low and high you entered above.`
     :ahead<0?'This date has passed. Temperatures use the low and high you entered above.'
     :navigator.onLine?'Fetching the forecast…':'Offline: no forecast saved for this date yet. Open the page once with signal before you go.';
-  $('daybody').innerHTML=`<div class="wxrow num">${chips.map(c=>`<span class="${/Rain [5-9]\d|Rain 100|Gusts [4-9]\d/.test(c)?'warn':''}">${c}</span>`).join('')}</div>`
+  const esc=t=>String(t||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
+  const tz=R.tz||undefined,hm=iso=>iso?new Date(iso).toLocaleString('en-US',{timeZone:tz,weekday:'short',hour:'numeric',minute:'2-digit'}):'until further notice';
+  const alerts=b.alerts.map(a=>`<div class="alert"><b>⚠ ${esc(a.ev)}</b> <span>${hm(a.from)} to ${hm(a.to)}</span><p>${esc(a.hd)}</p>`
+    +`<details><summary>Details</summary><p>${esc(a.desc).replace(/\n\n/g,'</p><p>')}</p>${a.ins?`<p><b>What to do:</b> ${esc(a.ins)}</p>`:''}</details></div>`).join('');
+  const nwsTxt=b.nw&&b.nw.text.length?`<details class="nwstxt"><summary>NWS forecast for the top, in words</summary>${b.nw.text.map(p=>`<p><b>${esc(p.n)}:</b> ${esc(p.d)}</p>`).join('')}</details>`:'';
+  const pt=`${TRK.la[SI[HI_STOP]].toFixed(4)}&lon=${TRK.lo[SI[HI_STOP]].toFixed(4)}`;
+  const nsrc=b.nw?` Official forecast and alerts: <a href="https://forecast.weather.gov/MapClick.php?lat=${pt}" target="_blank" rel="noopener">National Weather Service</a> (NOAA), updated ${new Date(b.nw.at).toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'})}.`
+    :ahead>=0&&ahead<=6&&navigator.onLine?' Fetching the official NWS forecast…':ahead>6&&ahead<=15?' The official NWS forecast starts 7 days ahead.':'';
+  $('daybody').innerHTML=alerts+`<div class="wxrow num">${chips.map(c=>`<span class="${/Rain [5-9]\d|Rain 100|Gusts [4-9]\d/.test(c)?'warn':''}">${c}</span>`).join('')}</div>`
     +(b.note.length?`<p class="dline">${b.note.join(' ')}</p>`:'')
     +`<div class="kit"><div><h3>Bring</h3><ul>${li(b.bring)}</ul></div>${b.leave.length?`<div class="no"><h3>Leave at home</h3><ul>${li(b.leave)}</ul></div>`:''}</div>`
-    +`<p class="dsrc">${src}</p>`;
+    +nwsTxt+`<p class="dsrc">${src}${nsrc}</p>`;
 }
 function renderReviews(){
   const r=R.reviews;if(!r)return;
