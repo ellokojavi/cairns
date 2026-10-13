@@ -23,6 +23,13 @@ self.HIKES=[
   blurb:'The classic North Bend climb: steady switchbacks through big forest to the boulders under the Haystack, with the whole valley below.',
   assets:['routes/mount-si/route.js','routes/mount-si/map.webp','routes/mount-si/cover-photo.webp','routes/mount-si/cover-3d.webp','routes/mount-si/mount-si.gpx']
     .concat(['from-the-valley','haystack-cliffs','summit-boulders','rainier-from-si','valley-view','i90-from-si','si-and-river'].map(n=>'routes/mount-si/photos/'+n+'.webp'))},
+ {id:'little-bandera', go:[47.4247,-121.5835,'Ira Spring trailhead'], file:'routes/little-bandera/route.js', peak:'Little Bandera', title:'Little Bandera Mountain', variant:'Ira Spring Trail', size:'Long',
+  place:'Alpine Lakes Wilderness, I-90 exit 45, WA', type:'Out and back',
+  km:10.6, up:919, hi:1575, moving:245, breaks:45, cover:'routes/little-bandera/cover-photo.webp',
+  coverCredit:['Bandera Mountain (left) and Mount Defiance from Mount Catherine. Ron Clausen, CC BY-SA 4.0','https://commons.wikimedia.org/wiki/File:Bandera_and_Defiance.jpg'],
+  blurb:'A long, easy-graded climb out of the I-90 valley, then a steep, rocky kilometre up the ridge to Rainier and the lakes basin.',
+  assets:['routes/little-bandera/route.js','routes/little-bandera/map.webp','routes/little-bandera/cover-photo.webp','routes/little-bandera/cover-3d.webp','routes/little-bandera/little-bandera.gpx']
+    .concat(['bandera-from-pratt','kaleetan-from-trail','from-little-bandera','chair-peak','lakes-below','bandera-winter'].map(n=>'routes/little-bandera/photos/'+n+'.webp'))},
  {id:'enchantments', go:[47.52777,-120.82083,'Stuart Lake trailhead (start)'], goEnd:[47.54415,-120.70969,'Snow Lakes trailhead (finish)'], file:'routes/enchantments/route.js', peak:'Enchantments', title:'Enchantments traverse', variant:'Stuart Lake to Snow Lakes', size:'Long',
   place:'Alpine Lakes Wilderness, near Leavenworth, WA', type:'Point to point', done:'Walked Sept 22, 2026',
   km:29.8, up:1957, hi:2387, moving:645, breaks:110, cover:'routes/enchantments/photos/05.webp',

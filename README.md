@@ -17,6 +17,7 @@ keeps working because position comes from satellites, not the network.
 | Mailbox Peak: New Trail | Out and back | 15.9 km | +1,219 m | 5:45 |
 | Mailbox Peak: Old Trail | Out and back | 7.5 km | +1,207 m | 4:30 |
 | Mount Si (main trail) | Out and back | 12.2 km | +989 m | 4:30 |
+| Little Bandera Mountain | Out and back | 10.6 km | +919 m | 4:05 |
 | Enchantments traverse | Point to point | 29.8 km | +1,957 m | 10:45 |
 
 \* At the pace the group walked the Enchantments; on the day it re-times from your real pace.

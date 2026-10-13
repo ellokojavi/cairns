@@ -32,7 +32,7 @@ folder; only `build_mailbox.py` writes into the repo.
 | Wider 10 m terrain for the cover's horizon | `fetch_dem_wide.py` | USGS 3DEP 1/3 arc-second |
 | Topo map: relief, contours, trails, labels | `render_map.py` | the above |
 | Cover: perspective view with the route on it | `render_cover.py <new\|old> <cam lon> <cam lat> <cam m> <aim offset m> <pitch°>` | the above |
-| Route files, GPX, leg times | `build_mailbox.py <scratch dir> routes/mailbox`, `build_mount_si.py <scratch dir> routes/mount-si <photo candidates>` | the above |
+| Route files, GPX, leg times | `build_mailbox.py <scratch dir> routes/mailbox`, `build_mount_si.py <scratch dir> routes/mount-si <photo candidates>`, `build_little_bandera.py <scratch dir> routes/little-bandera <photo candidates>` | the above |
 
 Leg times use the model the group's Enchantments plan fits: 5 km/h on the flat,
 +700 m/h climbing, and descents at 3000 / 1500 / 900 m/h for grades under 15%,
