@@ -36,8 +36,8 @@ fig=plt.figure(figsize=(W/100,H/100),dpi=100); ax=fig.add_axes([0,0,1,1]); ax.se
 ax.imshow(img,extent=(0,W,H,0),interpolation='bilinear')
 xs=np.arange(W)+.5; ys=np.arange(H)+.5
 zs=ndimage.gaussian_filter(z,2)
-ax.contour(xs,ys,zs,levels=np.arange(200,1600,20),colors='#8a6a45',linewidths=.6,alpha=.55)
-cs=ax.contour(xs,ys,zs,levels=np.arange(300,1600,100),colors='#7a5530',linewidths=1.5,alpha=.75)
+ax.contour(xs,ys,zs,levels=np.arange(200,2000,20),colors='#8a6a45',linewidths=.6,alpha=.55)
+cs=ax.contour(xs,ys,zs,levels=np.arange(300,2000,100),colors='#7a5530',linewidths=1.5,alpha=.75)
 ax.clabel(cs,fmt=lambda v:f'{int(v)}',fontsize=15,inline=True,inline_spacing=2,colors='#6b4a28')
 def px(lon,lat):
   x,y=fw.transform(lon,lat); return (x-X0)/MPP,(Y1-y)/MPP
