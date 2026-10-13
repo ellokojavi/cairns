@@ -287,8 +287,6 @@ details.fold>div{padding:0 14px 12px}
 
 <div class="panel" id="planbox">
   <label class="wide">Hike date<input type="date" id="pdate"></label>
-  <label>Forecast low at trailhead, °C<input type="number" id="plo" step="1" inputmode="decimal"></label>
-  <label>Forecast high at trailhead, °C<input type="number" id="phi" step="1" inputmode="decimal"></label>
   <label class="wide" id="gaterow" hidden>Parking gate closes (posted time)<input type="time" id="pgate"></label>
   <p>Sun times, cutoffs and temperatures follow the date and the forecast. On the day, starting the hike sets the date to today.</p>
 </div>
@@ -568,7 +566,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 20:00';
+const BUILD='2026-10-13 21:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -605,7 +603,7 @@ let CAN_SAVE=(()=>{try{return !window.__SIM&&window.self===window.top&&/^(https?
 const LSKEY=(window.__SIM?'hike-sim-':'hike-')+R.id;   // test mode keeps its own check-ins
 const today=()=>{const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()};
 function save(){
-  const q=[`d=${state.dep.replace(':','')}`,`t=${today()}`,`D=${state.date.replace(/-/g,'')}`,`L=${state.lo}`,`H=${state.hi}`];
+  const q=[`d=${state.dep.replace(':','')}`,`t=${today()}`,`D=${state.date.replace(/-/g,'')}`];
   if(state.gate)q.push(`G=${state.gate.replace(':','')}`);
   if(state.datePicked)q.push('U=1');
   if(!state.auto)q.push('x=1');
@@ -629,8 +627,6 @@ function load(){
     else if(k==='x')state.auto=false;
     else if(k==='D'&&/^\d{8}$/.test(v))state.date=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6);
     else if(k==='U')state.datePicked=true;
-    else if(k==='L'&&isFinite(+v)&&v!=='')state.lo=+v;
-    else if(k==='H'&&isFinite(+v)&&v!=='')state.hi=+v;
     else if(k==='G'&&/^\d{4}$/.test(v))state.gate=v.slice(0,2)+':'+v.slice(2);
     else if(sameDay&&/^c\d+$/.test(k)){const i=+k.slice(1),n=parseInt(v,10);if(i>=0&&i<N&&n>=0&&n<3000)state.ci[i]=n}});
   if(!sameDay&&kv.some(x=>/^c\d+$/.test(x[0])))staleNote=true;
@@ -1279,8 +1275,6 @@ function profile(P,now){
 $('dep').addEventListener('input',e=>{if(e.target.value){state.dep=e.target.value;update()}});
 $('pdate').addEventListener('change',e=>{if(/^\d{4}-\d\d-\d\d$/.test(e.target.value)){state.date=e.target.value;state.datePicked=true;sunFor();
   if(!state.gate&&R.deadline?.kind==='gate')$('pgate').value=fmt(DEADLINE);update()}});
-$('plo').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){state.lo=v;sunFor();update()}});
-$('phi').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){state.hi=v;sunFor();update()}});
 $('pgate').addEventListener('change',e=>{state.gate=e.target.value||null;sunFor();if(!state.gate)$('pgate').value=fmt(DEADLINE);update()});
 $('bigbtn').addEventListener('click',e=>tap(+e.currentTarget.dataset.i));
 $('manualci').addEventListener('click',()=>{const nx=lastIdx()+1;if(nx<N){tap(nx)}});
@@ -1538,9 +1532,9 @@ function renderDay(P){
   if(b.fc||b.nw){chips.push(`Rain ${b.pp}%`)}
   if(b.fc){if(b.gust!=null)chips.push(`Gusts ${b.gust} km/h at top`);if(b.fl!=null)chips.push(`Freezing level ${b.fl.toLocaleString('en-US')} m`)}
   const src=b.fc?`Forecast: Open-Meteo, for the trailhead and the top at their own heights, updated ${new Date(b.fc.at).toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'})}. <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> (CC BY 4.0).`
-    :ahead>15?`No forecast yet: the date is ${ahead} days away (forecasts reach 16 days). Temperatures use the low and high you entered above.`
-    :ahead<0?'This date has passed. Temperatures use the low and high you entered above.'
-    :navigator.onLine?'Fetching the forecast…':'Offline: no forecast saved for this date yet. Open the page once with signal before you go.';
+    :ahead>15?`No forecast yet: the date is ${ahead} days away (forecasts reach 16 days). Temperatures are typical for this route in season.`
+    :ahead<0?'This date has passed. Temperatures are typical for this route in season.'
+    :navigator.onLine?'Fetching the forecast…':'Offline: no forecast saved for this date yet, so temperatures are typical for the season. Open the page once with signal before you go.';
   const esc=t=>String(t||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
   const tz=R.tz||undefined,hm=iso=>iso?new Date(iso).toLocaleString('en-US',{timeZone:tz,weekday:'short',hour:'numeric',minute:'2-digit'}):'until further notice';
   const alerts=b.alerts.map(a=>`<div class="alert"><b>⚠ ${esc(a.ev)}</b> <span>${hm(a.from)} to ${hm(a.to)}</span><p>${esc(a.hd)}</p>`
@@ -1568,7 +1562,7 @@ if(R.date&&R.date>=isoToday()&&!state.datePicked)state.date=R.date;
 if(!state.date||state.date<isoToday()&&state.ci[0]==null)state.date=R.date&&R.date>=isoToday()?R.date:isoToday();
 sunFor();
 $('dep').value=state.dep;$('autochk').checked=state.auto;
-$('pdate').value=state.date;$('plo').value=state.lo;$('phi').value=state.hi;
+$('pdate').value=state.date;
 if(R.deadline?.kind==='gate'){$('gaterow').hidden=false;$('pgate').value=state.gate||fmt(DEADLINE)}
 build();if(staleNote)note('Check-ins from another day were cleared. Today starts fresh.');update();gpsAuto();initOffline();checkLive();
 setInterval(()=>{if(armed===null){autoLogic();update()}},15000);</script>
