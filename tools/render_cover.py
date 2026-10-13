@@ -34,7 +34,7 @@ def render(cam,target,camz,W=1200,H=675,fov=55,pitch=0.0,sun=(240,28),route=None
   f=(W/2)/math.tan(math.radians(fov/2))
   cols=np.arange(W)+.5-W/2; ang=np.arctan(cols/f)
   ds=np.concatenate([np.arange(15,400,2.0),400*np.power(1.0035,np.arange(0,1200))]); ds=ds[ds<28000]
-  th=yaw+ang
+  th=yaw-ang   # columns run left to right, i.e. clockwise
   X=cx+np.cos(th)[:,None]*ds[None,:]; Y=cy+np.sin(th)[:,None]*ds[None,:]
   h,s,a=sample(X,Y)
   dp=ds[None,:]*np.cos(ang)[:,None]                      # perpendicular depth
@@ -69,7 +69,7 @@ def render(cam,target,camz,W=1200,H=675,fov=55,pitch=0.0,sun=(240,28),route=None
       x,y=fw.transform(lo,la); dx,dy=x-cx,y-cy
       fwd=dx*math.cos(yaw)+dy*math.sin(yaw); side=-dx*math.sin(yaw)+dy*math.cos(yaw)
       if fwd<20: pts.append(None);continue
-      u=W/2+f*side/fwd; v=H/2-f*((el+3-camz)/fwd)-f*math.tan(pitch)
+      u=W/2-f*side/fwd; v=H/2-f*((el+3-camz)/fwd)-f*math.tan(pitch)
       ok=0<=u<W and 0<=v<H and depth[int(v),int(u)]>=math.hypot(dx,dy)-60
       pts.append((u,v) if ok else None)
     dr=ImageDraw.Draw(im)
@@ -82,7 +82,7 @@ def render(cam,target,camz,W=1200,H=675,fov=55,pitch=0.0,sun=(240,28),route=None
       x,y=fw.transform(lo,la); dx,dy=x-cx,y-cy
       fwd=dx*math.cos(yaw)+dy*math.sin(yaw); side=-dx*math.sin(yaw)+dy*math.cos(yaw)
       if fwd<=0: continue
-      u=W/2+f*side/fwd; v=H/2-f*((el-camz)/fwd)-f*math.tan(pitch)
+      u=W/2-f*side/fwd; v=H/2-f*((el-camz)/fwd)-f*math.tan(pitch)
       dr.ellipse([u-7,v-7,u+7,v+7],fill=(255,255,255),outline=(30,30,30),width=3)
   im.save(out); return im
 if __name__=='__main__':
