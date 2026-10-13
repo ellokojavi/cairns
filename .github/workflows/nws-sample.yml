@@ -1,0 +1,36 @@
+# Saves real National Weather Service responses for a route's trailhead and top
+# (tools/nws-samples/<route>/), so the planner's NWS code can be tested in the build
+# environment, which cannot reach api.weather.gov. Runs when a request file changes.
+name: nws sample
+on:
+  push:
+    branches-ignore: [main]
+    paths: ['tools/nws-requests/*.json']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch NWS responses
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          H = {'User-Agent': 'Cairns hike planner (github.com/ellokojavi/cairns)', 'Accept': 'application/geo+json'}
+          get = lambda u: json.load(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=30))
+          for f in os.listdir('tools/nws-requests'):
+              r = f[:-5]; out = f'tools/nws-samples/{r}'; os.makedirs(out, exist_ok=True)
+              for lat, lon, name in json.load(open(f'tools/nws-requests/{f}'))['points']:
+                  p = get(f'https://api.weather.gov/points/{lat},{lon}')
+                  json.dump(p, open(f'{out}/{name}-points.json', 'w'))
+                  for k in ('forecastHourly', 'forecast', 'forecastGridData'):
+                      json.dump(get(p['properties'][k]), open(f'{out}/{name}-{k}.json', 'w'))
+                  json.dump(get(f'https://api.weather.gov/alerts/active?point={lat},{lon}'), open(f'{out}/{name}-alerts.json', 'w'))
+          PY
+      - name: Commit samples
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add tools/nws-samples
+          git diff --cached --quiet || git commit -m "NWS sample responses" && git push
