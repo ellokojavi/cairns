@@ -65,9 +65,10 @@ button{cursor:pointer}
 .big{display:block;width:100%;border:0;border-radius:8px;padding:11px;font:700 17px var(--body);background:var(--bg);color:var(--ink)}
 .big.armed{background:var(--gate);color:#fff}
 .big:disabled{opacity:.45;cursor:default}
-#planrow{display:flex;align-items:center;gap:8px;font-size:14px;flex:none}
-.deprow{display:flex;align-items:stretch;gap:10px}
-.deprow .big{flex:1 1 auto;width:auto;min-width:0}
+#planrow{display:flex;align-items:center;gap:8px;font-size:14px;flex:1 1 100%}
+#planrow input{flex:1 1 0;min-width:0}
+.deprow{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px}
+.deprow .big{flex:1 1 100%;width:auto;min-width:0}
 #planrow input{padding:6px 8px;border:0;border-radius:6px;font-size:16px;background:var(--bg);color:var(--ink)}
 #undo,.linkbtn{background:none;border:0;padding:0;margin-top:6px;color:inherit;opacity:.8;text-decoration:underline;font-size:14px;display:block}
 .linkbtn:disabled{opacity:.4}
@@ -278,7 +279,7 @@ details.fold>div{padding:0 14px 12px}
 <div id="bar" aria-live="polite">
   <div class="hrow"><div class="h" id="bh"></div><button class="barfix" id="barfix" type="button">Locate me</button></div>
   <div class="d" id="bd"></div>
-  <div class="deprow"><div id="planrow"><input type="time" id="dep" value="07:00" aria-label="Planned departure"></div>
+  <div class="deprow"><div id="planrow"><input type="date" id="pdate" aria-label="Hike date"><input type="time" id="dep" value="07:00" aria-label="Planned departure"></div>
   <button class="big" id="bigbtn" type="button"></button></div>
   <button class="big" id="resumebtn" type="button" hidden></button>
   <button id="manualci" class="linkbtn" type="button" hidden></button>
@@ -286,9 +287,8 @@ details.fold>div{padding:0 14px 12px}
 </div>
 
 <div class="panel" id="planbox">
-  <label class="wide">Hike date<input type="date" id="pdate"></label>
   <label class="wide" id="gaterow" hidden>Parking gate closes (posted time)<input type="time" id="pgate"></label>
-  <p>Sun times, cutoffs and temperatures follow the date and the forecast. On the day, starting the hike sets the date to today.</p>
+  <p>Cutoffs count back from the gate, not from dark.</p>
 </div>
 
 <details class="panel fold" id="daybox" open><summary id="daysum">Your day</summary><div id="daybody"></div></details>
@@ -566,7 +566,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 21:00';
+const BUILD='2026-10-13 21:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1058,7 +1058,7 @@ function whyNoPos(P,now){
 function update(){
   if(state.ci[0]!=null&&state.date!==isoToday()){state.date=isoToday();sunFor();$('pdate').value=state.date}
   const P=project(),now=nowRel(),L=lastIdx();
-  $('planbox').hidden=P.started;
+  $('planbox').hidden=P.started||R.deadline?.kind!=='gate';
   renderDay(P);
   sunLine();
   STOPS.forEach((s,i)=>{
