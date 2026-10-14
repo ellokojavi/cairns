@@ -352,7 +352,7 @@ const SI=R.si;                                  // stop index into TRK
 
 const STOPS=R.stops;
 const N=STOPS.length, GAP=3, ARM_MS=3000;
-let SUNRISE=420, SUNSET=1140, DARK_AM=390, DARK_PM=1170, DEADLINE=1170;   // set from the plan date by sunFor()
+let SUNRISE=420, SUNSET=1140, DARK_AM=390, DARK_PM=1170, DEADLINE=1170, OPEN_AT=450;   // set from the plan date by sunFor()
 const NEAR=120, OFFROUTE=200, OFF_STREAK=2, AUTOSTART_M=200;
 // walking away from the trailhead starts the hike: up to the first stop, or the first km if that stop is close
 const AUTOSTART_TO=Math.min(Math.max(TRK.cd[SI[1]],1000),TRK.cd[SI[Math.min(2,N-1)]]-NEAR);
@@ -475,10 +475,12 @@ function sunFor(){
   SUNRISE=Math.round(s.rise);SUNSET=Math.round(s.set);DARK_AM=Math.round(s.dawn);DARK_PM=Math.round(s.dusk);
   DEADLINE=DARK_PM;
   if(R.deadline?.kind==='gate')DEADLINE=Math.min(DARK_PM,toMin(state.gate)??Math.floor((DARK_PM+(R.deadline.dusk??-60))/5)*5);
+  // deadline.open: a posted time ('08:00') or minutes after dawn (default 60, the DNR gates)
+  const o=R.deadline?.open;OPEN_AT=typeof o==='string'?toMin(o):Math.ceil((DARK_AM+(o??60))/5)*5;
   climate();
 }
 function sunLine(){
-  const g=R.deadline?.kind==='gate'?` The ${R.deadline.label} opens about ${fmt(Math.ceil((DARK_AM+60)/5)*5)} and closes about ${fmt(DEADLINE)}: check the sign.`:'';
+  const g=R.deadline?.kind==='gate'?` The ${R.deadline.label} opens about ${fmt(OPEN_AT)} and closes about ${fmt(DEADLINE)}: check the sign.`:'';
   $('when').textContent=(R.who?R.who+'. ':'')+dayName(state.date);
   $('sun').textContent=`Sunrise ${fmt(SUNRISE)}, sunset ${fmt(SUNSET)}, dark by ${fmt(DARK_PM)}.`+g;
 }
@@ -566,7 +568,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-13 21:30';
+const BUILD='2026-10-14 15:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -654,13 +656,16 @@ function snap(lat,lon,hint){
   let runs=[],cur=null;
   c.forEach(x=>{if(x[0]<=best+25){if(!cur||x[0]<cur[0])cur=x}else if(cur){runs.push(cur);cur=null}});
   if(cur)runs.push(cur);
-  // never a pass behind the last milestone logged: once the summit is checked in, you are coming down
-  const L=lastIdx(),floor=L>0?TRK.cd[SI[L]]-150:-Infinity;
+  // never a pass behind the last milestone logged: once the summit is checked in, you are coming down.
+  // On an out-and-back, only from the turnaround on: below it a fix on the next switchback up can log
+  // a stop a little early, and the floor would then rule out where you really are (the hint covers the way up)
+  const L=lastIdx(),floor=L>0&&(TURN==null||L>=TURN)?TRK.cd[SI[L]]-150:-Infinity;
   if(runs.some(x=>x[1]>=floor))runs=runs.filter(x=>x[1]>=floor);
   let pick=runs.reduce((a,b)=>b[0]<a[0]?b:a);
   if(hint!=null){
-    // another pass far along the track (not a neighbouring switchback): take the one nearest where we expect to be
-    const all=runs.filter(x=>Math.abs(x[1]-pick[1])>1500).concat([pick]);
+    // another pass far along the track (not a neighbouring switchback), or one just as near (the same trail
+    // walked the other way, near the turnaround): take the one nearest where we expect to be
+    const all=runs.filter(x=>Math.abs(x[1]-pick[1])>1500||x[0]<=pick[0]+5).concat([pick]);
     pick=all.reduce((a,b)=>Math.abs(b[1]-hint)<Math.abs(a[1]-hint)?b:a);
   }
   return{m:pick[1],off:pick[0],el:pick[2]};
@@ -1103,6 +1108,7 @@ function update(){
   else if(P.fin<=SUNSET){m.textContent=`${dur(SUNSET-P.fin)} of daylight to spare before sunset.`+gw;m.className=SUNSET-P.fin<30?'':'early'}
   else if(P.fin<=DARK_PM){m.textContent=`Finishes ${Math.round(P.fin-SUNSET)} min after sunset, in twilight.${R.text?.twilight?' '+R.text.twilight:' Headlamps out.'}`+gw;m.className='late'}
   else{m.textContent=`Finishes ${dur(P.fin-SUNSET)} after sunset, in the dark. Check the turnaround times.`;m.className='late'}
+  if(R.deadline?.kind==='gate'&&!P.started&&P.dep<OPEN_AT){m.textContent=`The ${R.deadline.label} opens about ${fmt(OPEN_AT)}: a ${fmt(P.dep)} start is too early. `+m.textContent;m.className='late'}
   const pct=Math.round((P.f-1)*100);
   $('paceinfo').textContent=(P.src!=='plan')
     ?`Pace so far, from ${P.src}: ${pct===0?'on plan':pct>0?pct+'% slower than plan':(-pct)+'% faster than plan'}. The rest is projected at that pace.`
@@ -1429,11 +1435,11 @@ let NWS=null,nwsBusy=false,nwsTried={};
 function nwsLoad(){NWS=null;try{const c=JSON.parse(localStorage.getItem(NWSKEY())||'null');if(c&&c.date===state.date)NWS=c}catch(e){}}
 const nwsGet=u=>fetch(u,{cache:'no-store',headers:{Accept:'application/geo+json'}}).then(r=>r.ok?r.json():Promise.reject(r.status));
 // minutes after local midnight of the plan date, in the route's time zone
-function localMin(iso){const p=new Intl.DateTimeFormat('en-CA',{timeZone:R.tz||undefined,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+function nwsLocal(iso){const p=new Intl.DateTimeFormat('en-CA',{timeZone:R.tz||undefined,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
   .formatToParts(new Date(iso)).reduce((o,x)=>(o[x.type]=x.value,o),{});return{date:`${p.year}-${p.month}-${p.day}`,m:+p.hour*60+ +p.minute}}
 function nwsHourly(j,date){
   const o={e:j.properties?.elevation?.value??null,t:Array(24).fill(null),pp:Array(24).fill(null),ws:Array(24).fill(null)};
-  for(const p of j.properties.periods){const L=localMin(p.startTime);if(L.date!==date)continue;const h=Math.floor(L.m/60);
+  for(const p of j.properties.periods){const L=nwsLocal(p.startTime);if(L.date!==date)continue;const h=Math.floor(L.m/60);
     o.t[h]=p.temperature;o.pp[h]=p.probabilityOfPrecipitation?.value??0;
     const w=String(p.windSpeed||'').match(/\d+/g);o.ws[h]=w?Math.max(...w.map(Number)):null}
   return o}
@@ -1449,7 +1455,7 @@ function nwsFetch(){
     nwsGet('https://api.weather.gov/alerts/active?point='+pt(kTop)).catch(()=>({features:[]}))])
   ).then(([h0,h1,txt,al])=>{
     if(want!==state.date)return;
-    const text=txt.properties.periods.filter(p=>localMin(p.startTime).date===want).map(p=>({n:p.name,d:p.detailedForecast}));
+    const text=txt.properties.periods.filter(p=>nwsLocal(p.startTime).date===want).map(p=>({n:p.name,d:p.detailedForecast}));
     const alerts=(al.features||[]).map(f=>f.properties).map(p=>({ev:p.event,hd:p.headline,sev:p.severity,from:p.onset||p.effective,to:p.ends||p.expires,desc:p.description,ins:p.instruction}));
     NWS={date:want,at:Date.now(),th:nwsHourly(h0,want),top:nwsHourly(h1,want),text,alerts};
     try{localStorage.setItem(NWSKEY(),JSON.stringify(NWS))}catch(e){}
@@ -1459,7 +1465,7 @@ function nwsFetch(){
 // alerts that touch the hours you are out, on the plan date
 function nwsAlerts(dep,fin){
   if(!NWS)return[];
-  return NWS.alerts.filter(a=>{const s=a.from?localMin(a.from):null,e=a.to?localMin(a.to):null;
+  return NWS.alerts.filter(a=>{const s=a.from?nwsLocal(a.from):null,e=a.to?nwsLocal(a.to):null;
     const sm=!s?-1:s.date<state.date?-1:s.date>state.date?1e4:s.m, em=!e?1e4:e.date>state.date?1e4:e.date<state.date?-1:e.m;
     return sm<=fin&&em>=dep})}
 // a forecast value at minutes-after-midnight t, between the hourly steps
@@ -1513,7 +1519,7 @@ function dayBrief(P){
   if(feelsTop>12)leave.push(['A heavy insulated jacket',`Mild at the top (${tTopV} °C).`]);
   if((fc||nw)&&!icy&&pp<50)leave.push(['Heavy boots','Trail runners with good grip are enough on a dry trail.']);
   bring.push(['Phone charged, this page saved offline','It works with no signal; the GPS works without coverage.']);
-  if(R.deadline?.kind==='gate')note.push(`The ${R.deadline.label} closes around ${fmt(DEADLINE)}: plan to be back well before.`);
+  if(R.deadline?.kind==='gate')note.push(`The ${R.deadline.label} opens about ${fmt(OPEN_AT)} and closes around ${fmt(DEADLINE)}: plan to be back well before.`);
   const wd=new Date(state.date+'T12:00').getDay();
   note.push(wd===0||wd===6?'Weekend: the lot can fill early. Arrive before 8:00 or have a plan B.':'Weekday: parking is usually easy, and the trail quieter.');
   const al=nwsAlerts(dep,fin);

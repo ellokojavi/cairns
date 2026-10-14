@@ -30,6 +30,27 @@ self.HIKES=[
   blurb:'A long, easy-graded climb out of the I-90 valley, then a steep, rocky kilometre up the ridge to Rainier and the lakes basin.',
   assets:['routes/little-bandera/route.js','routes/little-bandera/map.webp','routes/little-bandera/cover-photo.webp','routes/little-bandera/cover-3d.webp','routes/little-bandera/little-bandera.gpx']
     .concat(['bandera-from-pratt','kaleetan-from-trail','from-little-bandera','chair-peak','lakes-below','bandera-winter'].map(n=>'routes/little-bandera/photos/'+n+'.webp'))},
+ {id:'west-tiger-3', go:[47.5296,-121.9956,'High Point trailhead (West Tiger 3)'], file:'routes/west-tiger-3/route.js', peak:'West Tiger 3', title:'West Tiger 3', variant:'West Tiger 3 Trail', size:'Medium',
+  place:'Tiger Mountain State Forest, Issaquah, WA', type:'Out and back',
+  km:8.8, up:607, hi:769, moving:185, breaks:45, cover:'routes/west-tiger-3/cover-photo.webp',
+  coverCredit:['Mount Rainier from Tiger Mountain. Thales, CC BY 2.0','https://commons.wikimedia.org/wiki/File:View_of_Mt_Rainier_from_Tiger_Mt.jpg'],
+  blurb:'The closest real climb to Seattle: a wide, steady trail up from I-90 to an open summit over Issaquah, the Sound and Rainier.',
+  assets:['routes/west-tiger-3/route.js','routes/west-tiger-3/map.webp','routes/west-tiger-3/cover-photo.webp','routes/west-tiger-3/cover-3d.webp','routes/west-tiger-3/west-tiger-3.gpx']
+    .concat(['talus-rocks','squak-from-trail','tiger-in-mist','view-from-summit','rainier-from-tiger'].map(n=>'routes/west-tiger-3/photos/'+n+'.webp'))},
+ {id:'teneriffe-falls', go:[47.4867,-121.7099,'Mount Teneriffe trailhead'], file:'routes/teneriffe-falls/route.js', peak:'Teneriffe Falls', title:'Teneriffe Falls', variant:'Mount Teneriffe trailhead', size:'Medium',
+  place:'Mount Si NRCA, North Bend, WA', type:'Out and back',
+  km:9.3, up:521, hi:740, moving:170, breaks:45, cover:'routes/teneriffe-falls/cover-photo.webp',
+  coverCredit:['Mount Teneriffe from Rattlesnake Lake. Ron Clausen, CC BY-SA 4.0','https://commons.wikimedia.org/wiki/File:Mount_Teneriffe_Rattlesnake_Lake_tree_stumps.jpg'],
+  blurb:'An old road through the forest, then rocky switchbacks up a talus gully to a tall, tiered waterfall under Mount Teneriffe.',
+  assets:['routes/teneriffe-falls/route.js','routes/teneriffe-falls/map.webp','routes/teneriffe-falls/cover-photo.webp','routes/teneriffe-falls/cover-3d.webp','routes/teneriffe-falls/teneriffe-falls.gpx']
+    .concat(['si-and-teneriffe','teneriffe-from-trail'].map(n=>'routes/teneriffe-falls/photos/'+n+'.webp'))},
+ {id:'wallace-falls', go:[47.8670,-121.6781,'Wallace Falls State Park trailhead'], file:'routes/wallace-falls/route.js', peak:'Wallace Falls', title:'Wallace Falls', variant:'Woody Trail to the Upper Falls', size:'Medium',
+  place:'Wallace Falls State Park, Gold Bar, WA', type:'Out and back',
+  km:8.2, up:445, hi:507, moving:155, breaks:40, cover:'routes/wallace-falls/cover-photo.webp',
+  coverCredit:['Middle Wallace Falls. Kash Goudarzi, CC0','https://commons.wikimedia.org/wiki/File:Frothy_waterfall_in_the_woods_(Unsplash).jpg'],
+  blurb:'Along the Wallace River, then up the canyon past the Lower, Middle and Upper Falls. The park opens at 8:00 from October.',
+  assets:['routes/wallace-falls/route.js','routes/wallace-falls/map.webp','routes/wallace-falls/cover-photo.webp','routes/wallace-falls/cover-3d.webp','routes/wallace-falls/wallace-falls.gpx']
+    .concat(['under-the-wires','wallace-river','lower-falls','middle-falls','middle-falls-rainbow','upper-falls','upper-falls-close','woody-trail-fog'].map(n=>'routes/wallace-falls/photos/'+n+'.webp'))},
  {id:'enchantments', go:[47.52777,-120.82083,'Stuart Lake trailhead (start)'], goEnd:[47.54415,-120.70969,'Snow Lakes trailhead (finish)'], file:'routes/enchantments/route.js', peak:'Enchantments', title:'Enchantments traverse', variant:'Stuart Lake to Snow Lakes', size:'Long',
   place:'Alpine Lakes Wilderness, near Leavenworth, WA', type:'Point to point', done:'Walked Sept 22, 2026',
   km:29.8, up:1957, hi:2387, moving:645, breaks:110, cover:'routes/enchantments/photos/05.webp',

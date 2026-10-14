@@ -15,8 +15,8 @@ Every new route must have, before it ships:
 The day brief (forecast, what to bring) needs nothing per route: it uses the trailhead,
 the high point and the schedule.
 
-Shared helpers live in `tools/routekit.py`; `build_mailbox.py` and `build_mount_si.py`
-are worked examples. `render_map.py` takes a JSON config (bounds, parking, labels):
+Shared helpers live in `tools/routekit.py` (track, timing, photos with credits, writing the
+route and GPX); `build_west_tiger_3.py` is the shortest worked example. `render_map.py` takes a JSON config (bounds, parking, labels):
 see `map-config-mount-si.json`.
 
 The Mailbox Peak routes were made with these scripts (Python 3; `pip install pyarrow
@@ -26,13 +26,13 @@ folder; only `build_mailbox.py` writes into the repo.
 | Step | Script | Source |
 |---|---|---|
 | Trails, streams, peaks in a bounding box | `fetch_overture.py transportation segment seg.parquet` (also `base water`, `base land`) | Overture Maps on AWS S3 (OpenStreetMap data, ODbL) |
-| Trail network graph | `trail_graph.py` | the segments above |
-| Trailhead → summit tracks, with elevation | `route_tracks.py` | graph + `dem2m.tif` |
-| 1 m lidar terrain, resampled to 2 m | `fetch_lidar.py` | USGS 3DEP, King County 2021 (public domain) |
-| Wider 10 m terrain for the cover's horizon | `fetch_dem_wide.py` | USGS 3DEP 1/3 arc-second |
+| 1 m lidar terrain for a lon/lat box, resampled to 2 m | `fetch_lidar_area.py <project> <lon0> <lat0> <lon1> <lat1>` (project `13` = the ~10 m DEM, where there is no lidar) | USGS 3DEP (public domain) |
+| Trailhead → goal track, with elevation | `route_track.py <name> <start lon> <lat> <end lon> <lat> "<Trail A>,<Trail B>"` (prefers the named trails; prints the junctions' names) | `seg.parquet` + `dem2m.tif` |
+| Older, route-specific versions of the two steps above | `trail_graph.py`, `route_tracks.py`, `fetch_lidar.py` (Mailbox), `route_track_mount_si.py`, `fetch_lidar_mount_si.py` | |
+| Wider 10 m terrain for the cover's horizon | `fetch_dem_wide.py [<tiles, e.g. n48w122,n48w123> <west E> <north N>]` | USGS 3DEP 1/3 arc-second |
 | Topo map: relief, contours, trails, labels | `render_map.py` | the above |
-| Cover: perspective view with the route on it | `render_cover.py <new\|old> <cam lon> <cam lat> <cam m> <aim offset m> <pitch°>` | the above |
-| Route files, GPX, leg times | `build_mailbox.py <scratch dir> routes/mailbox`, `build_mount_si.py <scratch dir> routes/mount-si <photo candidates>`, `build_little_bandera.py <scratch dir> routes/little-bandera <photo candidates>` | the above |
+| Cover: perspective view with the route on it | `render_cover.py <name> <cam lon> <cam lat> <cam m> <aim offset m> <pitch°> [<goal lon> <goal lat>]` (positive pitch tilts the view down) | the above |
+| Route files, GPX, leg times | `build_mailbox.py <scratch dir> routes/mailbox`, `build_mount_si.py <scratch dir> routes/mount-si <photo candidates>`, `build_little_bandera.py`, `build_west_tiger_3.py`, `build_teneriffe_falls.py`, `build_wallace_falls.py` (all `<scratch dir> routes/<id> <photo candidates>`) | the above |
 
 Leg times use the model the group's Enchantments plan fits: 5 km/h on the flat,
 +700 m/h climbing, and descents at 3000 / 1500 / 900 m/h for grades under 15%,
