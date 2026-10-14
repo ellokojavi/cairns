@@ -16,7 +16,7 @@ import pyarrow.fs as pfs, pyarrow.dataset as ds, pyarrow.compute as pc, shapely.
 from PIL import Image, ImageDraw
 os.environ.update(GDAL_HTTP_PROXY=os.environ['HTTPS_PROXY'], CURL_CA_BUNDLE='/root/.ccr/ca-bundle.crt', GDAL_DISABLE_READDIR_ON_OPEN='EMPTY_DIR')
 OV = dict(w=-122.50, e=-120.55, s=47.33, n=47.99)
-W = 1800; H = round(W * (OV['n'] - OV['s']) / ((OV['e'] - OV['w']) * math.cos(math.radians((OV['n'] + OV['s']) / 2))))
+W = int(os.environ.get("OV_W", 3600)); H = round(W * (OV['n'] - OV['s']) / ((OV['e'] - OV['w']) * math.cos(math.radians((OV['n'] + OV['s']) / 2))))
 T = Affine((OV['e'] - OV['w']) / W, 0, OV['w'], 0, -(OV['n'] - OV['s']) / H, OV['n'])
 z = np.full((H, W), np.nan, 'f4')
 for t in ['n48w123', 'n48w122', 'n48w121']:
@@ -53,12 +53,13 @@ for r in wt.to_pylist():
             if gg.area < 2e-6: continue
             dr.polygon([px(*c) for c in gg.exterior.coords], fill=(168, 200, 222))
         elif r['class'] == 'river':
-            dr.line([px(*c) for c in gg.coords], fill=(120, 168, 205), width=2)
+            dr.line([px(*c) for c in gg.coords], fill=(120, 168, 205), width=round(2 * W / 1800))
 rd = ds.dataset(f'{REL}/theme=transportation/type=segment/', filesystem=fs, format='parquet').to_table(
     filter=box & pc.field('class').isin(['motorway', 'trunk']), columns=['class', 'geometry'])
 print('roads', rd.num_rows)
 segs = [(r['class'], [px(*c) for c in wkb.loads(r['geometry']).coords]) for r in rd.to_pylist()]
+f = W / 1800   # line widths were tuned on an 1800 px map
 for wdt, col in [(6, (150, 120, 96)), (3, (250, 236, 200))]:
-    for c, pts in segs: dr.line(pts, fill=col, width=wdt if c == 'motorway' else wdt - 1, joint='curve')
+    for c, pts in segs: dr.line(pts, fill=col, width=round((wdt if c == 'motorway' else wdt - 1) * f), joint='curve')
 im.save(sys.argv[1], quality=80, method=6)
 print(json.dumps(dict(OV, W=W, H=H)))

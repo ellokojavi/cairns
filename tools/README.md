@@ -35,7 +35,9 @@ folder; only `build_mailbox.py` writes into the repo.
 | Route files, GPX, leg times | `build_mailbox.py <scratch dir> routes/mailbox`, `build_mount_si.py <scratch dir> routes/mount-si <photo candidates>`, `build_little_bandera.py`, `build_west_tiger_3.py`, `build_teneriffe_falls.py`, `build_wallace_falls.py` (all `<scratch dir> routes/<id> <photo candidates>`) | the above |
 
 The picker's overview map (`routes/overview.webp`) comes from `render_overview.py`: USGS 10 m
-relief, Overture water and highways for the box in `OVERVIEW` (`routes/catalog.js`). A route
+relief at ~40 m per pixel (3600 px wide, so it holds up when zoomed in), Overture water and highways
+for the box in `OVERVIEW` (`routes/catalog.js`). Each route's catalog entry also needs `pass`
+(`discover` or `nwfp`) and `hl` (highlights: `summit`, `waterfall`, `lakes`) for the picker's filters. A route
 inside that box needs nothing; one outside it means widening the box in both places and re-rendering.
 
 Leg times use the model the group's Enchantments plan fits: 5 km/h on the flat,

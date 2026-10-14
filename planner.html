@@ -329,7 +329,7 @@ details.fold>div{padding:0 14px 12px}
   <p id="gpshint"><b>Keep GPS on</b> only where an off-route warning is worth the battery.</p>
   <p class="fine">Distances and elevations come from the route GPX. A watch will read a few km high, which is normal. Leg times are modelled from each leg's climb and descent. <a id="gpxlink" download>Milestone GPX</a> for a map app with offline maps.</p>
   <p class="fine" id="mapcred"></p>
-  <p class="fine" id="simlink"><b>Rehearse the hike:</b> <a id="simhref">test mode</a> simulates the GPS and the clock, walking the route at the planned pace. Its check-ins are kept apart from real ones.</p>
+  <p class="fine" id="simlink"><a id="simhref"><b>Simulate the hike</b></a>: a simulated GPS and clock walk the route at the planned pace. Its check-ins are kept apart from real ones.</p>
   <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
   <footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
 </section>
@@ -568,7 +568,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-14 16:30';
+const BUILD='2026-10-14 17:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};

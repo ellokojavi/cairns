@@ -44,7 +44,7 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cv .t b{display:block;font:600 24px/1.05 var(--cond)}
 .cv .t span{font:600 15px/1.2 var(--cond);opacity:.92}
 .chip{position:absolute;top:10px;left:10px;border-radius:14px;padding:3px 10px;font:700 12px var(--body);letter-spacing:.03em;text-transform:uppercase;color:#fff;background:rgba(12,18,20,.7)}
-.chip.Long{background:#3F4E75}.chip.Short{background:#B0432A}.chip.Medium{background:#3C7A4E}
+.chip.easy{background:#3C7A4E}.chip.medium{background:#B07A12}.chip.hard{background:#B0432A}
 .done{position:absolute;top:10px;right:10px;border-radius:14px;padding:3px 10px;font:600 12px var(--body);color:#fff;background:rgba(60,122,78,.9)}
 .st{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 12px 2px}
 .st b{display:block;font:600 18px/1.1 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -57,32 +57,53 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ov{background:var(--panel);border:1px solid var(--rule);border-radius:12px;margin:10px 0 4px;overflow:hidden}
 .ov summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 12px;cursor:pointer;list-style:none;font:600 19px/1.1 var(--cond)}
 .ov summary::-webkit-details-marker{display:none}
-.ov summary::after{content:'Show';font:14px var(--body);color:var(--muted)}
-.ov[open] summary::after{content:'Hide'}
+.ov summary::after{content:'Hide';font:14px var(--body);color:var(--muted)}
+.ov:not([open]) summary::after{content:'Show'}
 .ov summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.ovmap{overflow:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);overscroll-behavior:contain}
-.ovin{position:relative;width:100%}
-.ov.big .ovin{width:260%}
-.ov.big .ovmap{max-height:62vh}
-.ovin img{display:block;width:100%;height:auto}
+/* filters: one row of pills per characteristic; pills in a row are OR, rows are AND */
+.flt{display:flex;flex-direction:column;gap:6px;padding:0 12px 10px}
+.frow{display:grid;grid-template-columns:74px 1fr;align-items:start;gap:6px;padding:1px}
+.frow>div{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.frow>span{padding-top:7px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pill{flex:0 0 auto;font:600 13px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap}
+.pill small{font-weight:400;color:var(--muted);margin-left:4px}
+.pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.pill[aria-pressed="true"] small{color:inherit;opacity:.75}
+.pill:disabled{opacity:.4;cursor:default}
+.pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fsum{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.fsum button{background:none;border:0;padding:2px 0;font:600 13px var(--body);color:var(--accent);cursor:pointer}
+/* the map: drag to pan, pinch / wheel / double-tap to zoom; drawn with one transform */
+.ovmap{position:relative;overflow:hidden;aspect-ratio:16/9;max-width:100%;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:#A8C8DE;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.ovmap.drag{cursor:grabbing}
+.ovin{position:absolute;left:0;top:0;width:100%;transform-origin:0 0;will-change:transform}
+.ovin img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none}
 :root[data-theme="dark"] .ovin img{filter:brightness(.72) saturate(.85)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ovin img{filter:brightness(.72) saturate(.85)}}
-.ovin svg{position:absolute;inset:0;width:100%;height:100%}
-.ovpl{font:600 13px var(--body);fill:var(--ink);stroke:var(--panel);stroke-width:3.5px;paint-order:stroke;pointer-events:none}
+.ovin svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ovctl{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
+.ovctl button{width:36px;height:36px;border-radius:8px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font:600 20px/1 var(--body);cursor:pointer;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.ovctl button:disabled{opacity:.45;cursor:default}
+.ovctl button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ovctl #ovreset{font-size:11px;font-weight:700;letter-spacing:.02em}
+.ovpl{font:600 13px var(--body);fill:var(--ink);stroke:var(--panel);paint-order:stroke;pointer-events:none}
 .ovdot{cursor:pointer}
-.ovdot circle{stroke:#fff;stroke-width:2.5px}
-.ovdot.Long circle{fill:#3F4E75}.ovdot.Short circle{fill:#B0432A}.ovdot.Medium circle{fill:#3C7A4E}.ovdot.Mixed circle{fill:#1C2A2E}
-.ovdot.sel circle{stroke:var(--accent);stroke-width:4px}
-.ovdot text{font:700 12px var(--body);fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.ovdot .nm{font:600 13px var(--cond);fill:var(--ink);stroke:var(--panel);stroke-width:3.5px;paint-order:stroke;text-anchor:start}
-.ovdot:focus-visible circle{stroke:var(--accent)}
-.ovbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;font-size:13px;color:var(--muted)}
+.ovdot circle{stroke:#fff}
+.ovdot.easy circle{fill:#3C7A4E}.ovdot.medium circle{fill:#B07A12}.ovdot.hard circle{fill:#B0432A}.ovdot.mixed circle{fill:#1C2A2E}
+.ovdot.sel circle{stroke:var(--ink)}
+.ovdot text{font-family:var(--body);font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.ovdot .nm{font-family:var(--cond);font-weight:600;fill:var(--ink);stroke:var(--panel);paint-order:stroke;text-anchor:start}
+.ovbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px 12px;padding:8px 12px;font-size:13px;color:var(--muted)}
+.lgd{display:flex;gap:10px}
+.lgd i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0}
+.lgd .easy{background:#3C7A4E}.lgd .medium{background:#B07A12}.lgd .hard{background:#B0432A}
 .ovpick{display:flex;gap:10px;overflow-x:auto;padding:0 12px 12px}
 .ovc{flex:0 0 220px;display:block;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
 .ovc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ovc img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:50% 30%;background:#1C2A2E}
 .ovc b{display:block;font:600 17px/1.1 var(--cond);padding:7px 9px 0}
 .ovc span{display:block;font-size:12.5px;color:var(--muted);padding:2px 9px 8px;font-variant-numeric:tabular-nums}
+.none{background:var(--panel);border:1px dashed var(--rule);border-radius:12px;padding:18px 14px;margin-top:16px;color:var(--muted);text-align:center}
 .credit{margin-top:24px;padding-top:12px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;text-align:center}
 .credit a{color:inherit}
 /* the logo in light ink on dark backgrounds */
@@ -101,8 +122,10 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <p class="sub">Pick a route. Set the date, start time and forecast, and it times every stop, the turnaround and the finish. Works with no signal once opened.</p>
 <div id="off">Checking offline copy…</div>
 <details class="ov" id="ov" open><summary>Find your next hike</summary>
-  <div class="ovmap" id="ovmap"><div class="ovin"><img id="ovimg" alt="Relief map of the region from Puget Sound to Leavenworth, with a dot at each trailhead"><svg id="ovsvg" role="group" aria-label="Trailheads"></svg></div></div>
-  <div class="ovbar"><span id="ovhint">Tap a dot to see the hikes that start there.</span><button class="ghost" id="ovzoom" type="button">Enlarge</button></div>
+  <div class="flt" id="flt" role="group" aria-label="Filter the hikes"></div>
+  <div class="ovmap" id="ovmap"><div class="ovin" id="ovin"><img id="ovimg" alt="Relief map of the region from Puget Sound to Leavenworth, with a dot at each trailhead" draggable="false"><svg id="ovsvg" role="group" aria-label="Trailheads"></svg></div>
+    <div class="ovctl"><button id="ovplus" type="button" aria-label="Zoom in">+</button><button id="ovminus" type="button" aria-label="Zoom out">−</button><button id="ovreset" type="button" aria-label="Reset the view">ALL</button></div></div>
+  <div class="ovbar"><span id="ovhint">Tap a dot for the hikes that start there. Pinch or double-tap to zoom.</span><span class="lgd"><span><i class="easy"></i>Easy</span><span><i class="medium"></i>Medium</span><span><i class="hard"></i>Hard</span></span></div>
   <div class="ovpick" id="ovpick" hidden></div>
 </details>
 <div id="list"></div>
@@ -117,75 +140,169 @@ const n=v=>v.toLocaleString('en-US');
 const gmaps=g=>'https://www.google.com/maps/dir/?api=1&destination='+g[0]+','+g[1]+'&travelmode=driving';
 function card(h,multi){
   return `<a class="card" href="planner.html?r=${h.id}">
-    <div class="cv"><img src="${h.cover}" alt="" loading="lazy"><span class="chip ${h.size}">${h.size}</span>${h.done?`<span class="done">${h.done}</span>`:''}
+    <div class="cv"><img src="${h.cover}" alt="" loading="lazy"><span class="chip ${DIFF(h)}">${DIFF_NAME[DIFF(h)]}</span>${h.done?`<span class="done">${h.done}</span>`:''}
       <div class="t"><b>${multi?h.title+': '+h.variant:h.title}</b><span>${multi?h.type:h.variant+' · '+h.type}</span></div></div>
     <div class="st"><div><b>${h.km} km</b><span>distance</span></div><div><b>+${n(h.up)} m</b><span>climb</span></div>
       <div><b>${n(h.hi)} m</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
     <p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
-    <p class="try">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Rehearse it in test mode</a></p>`;
+    <p class="try">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Simulate the hike</a></p>`;
 }
-// routes on the same peak sit together
-const groups=[];HIKES.forEach(h=>{let g=groups.find(g=>g.peak===h.peak);if(!g)groups.push(g={peak:h.peak,list:[]});g.list.push(h)});
-$('list').innerHTML=groups.map(g=>{
-  let s=`<h2>${g.peak}</h2><p class="peak">${g.list[0].place}</p>`;
-  return s+g.list.map(h=>card(h,g.list.length>1)).join('');
-}).join('');
+// routes on the same peak sit together; the filters above hide what does not match
+function renderList(){
+  const groups=[];HIKES.filter(h=>passes(h)).forEach(h=>{let g=groups.find(g=>g.peak===h.peak);if(!g)groups.push(g={peak:h.peak,list:[]});g.list.push(h)});
+  $('list').innerHTML=groups.length?groups.map(g=>{
+    const multi=HIKES.filter(h=>h.peak===g.peak).length>1;
+    return `<h2>${g.peak}</h2><p class="peak">${g.list[0].place}</p>`+g.list.map(h=>card(h,multi)).join('');
+  }).join(''):'<p class="none">No hike matches all the filters. Clear one to see more.</p>';
+}
+
+// ---------- filters: pills in a row are alternatives (OR), rows narrow each other (AND) ----------
+// Difficulty from effort: km + climb/100 (a kilometre on the flat ≈ 100 m of climb). Under 13 easy, under 19 medium.
+function DIFF(h){const e=h.km+h.up/100;return e<13?'easy':e<19?'medium':'hard'}
+const DIFF_NAME={easy:'Easy',medium:'Medium',hard:'Hard'};
+const FILTERS=[
+  {id:'dist',name:'Distance',opts:[['short','Short',h=>h.km<8,'under 8 km'],['medium','Medium',h=>h.km>=8&&h.km<12,'8–12 km'],['long','Long',h=>h.km>=12&&h.km<20,'12–20 km'],['vlong','Very long',h=>h.km>=20,'20 km +']]},
+  {id:'diff',name:'Difficulty',opts:[['easy','Easy',h=>DIFF(h)==='easy'],['medium','Medium',h=>DIFF(h)==='medium'],['hard','Hard',h=>DIFF(h)==='hard']]},
+  {id:'time',name:'Time',opts:[['t4','Under 4 h',h=>h.moving+h.breaks<240],['t6','4–6 h',h=>h.moving+h.breaks>=240&&h.moving+h.breaks<360],['t9','6 h +',h=>h.moving+h.breaks>=360]]},
+  {id:'pass',name:'Pass',opts:[['discover','Discover Pass',h=>h.pass==='discover'],['nwfp','NW Forest Pass',h=>h.pass==='nwfp']]},
+  {id:'hl',name:'Highlight',opts:[['summit','Summit',h=>(h.hl||[]).includes('summit')],['waterfall','Waterfall',h=>(h.hl||[]).includes('waterfall')],['lakes','Lakes',h=>(h.hl||[]).includes('lakes')]]},
+];
+let FSEL={};try{FSEL=JSON.parse(localStorage.getItem('cairns-filters')||'{}')||{}}catch(e){}
+const passes=(h,skip)=>FILTERS.every(f=>f.id===skip||!(FSEL[f.id]||[]).length||f.opts.some(o=>FSEL[f.id].includes(o[0])&&o[2](h)));
+function drawFilters(){
+  const shown=HIKES.filter(h=>passes(h)),any=FILTERS.some(f=>(FSEL[f.id]||[]).length);
+  $('flt').innerHTML=FILTERS.map(f=>`<div class="frow"><span>${f.name}</span><div>${f.opts.map(o=>{
+      const on=(FSEL[f.id]||[]).includes(o[0]),cnt=HIKES.filter(h=>passes(h,f.id)&&o[2](h)).length;   // how many it would show
+      return `<button class="pill" type="button" data-f="${f.id}" data-o="${o[0]}" aria-pressed="${on}"${!on&&!cnt?' disabled':''}${o[3]?` title="${o[3]}"`:''}>${o[1]}<small>${cnt}</small></button>`}).join('')}</div></div>`).join('')
+    +`<div class="fsum"><span>${any?`${shown.length} of ${HIKES.length} hikes match`:`${HIKES.length} hikes`}</span>${any?'<button type="button" id="fclear">Clear filters</button>':''}</div>`;
+}
+function applyFilters(){
+  try{localStorage.setItem('cairns-filters',JSON.stringify(FSEL))}catch(e){}
+  drawFilters();renderList();
+  if(ovSel&&!ovSel.split(',').some(id=>passes(HIKES.find(h=>h.id===id))))ovSel=null;
+  ovDraw();
+}
+$('flt').addEventListener('click',e=>{
+  if(e.target.id==='fclear'){FSEL={};applyFilters();return}
+  const b=e.target.closest('.pill');if(!b||b.disabled)return;
+  const l=FSEL[b.dataset.f]=FSEL[b.dataset.f]||[],i=l.indexOf(b.dataset.o);i<0?l.push(b.dataset.o):l.splice(i,1);applyFilters();
+});
 
 // ---------- overview map: a dot per trailhead; dots too close to tell apart on screen merge ----------
-// Filter layers (length, climb, time…) go in OV_FILTERS: each is h=>true|false, and the map shows
-// only the hikes that pass all of them.
-const OV=OVERVIEW,OV_FILTERS=[];
-const ovShown=()=>HIKES.filter(h=>h.go&&OV_FILTERS.every(f=>f(h)));
+const OV=OVERVIEW,OVM=$('ovmap'),OVI=$('ovin');
 const ovXY=(lon,lat)=>[(lon-OV.w)/(OV.e-OV.w)*OV.W,(OV.n-lat)/(OV.n-OV.s)*OV.H];
 let ovSel=null;
+const VIEW={z:1,x:0,y:0},ZMAX=14;   // zoom (1 = the map's width fits the box) and pan offset in screen px
+// the box is taller than the map is wide: the least zoom fills it, and the home view centres on the hikes
+const zMin=()=>Math.max(1,OVM.clientHeight/(OVM.clientWidth*OV.H/OV.W));
+function ovHome(){const z=zMin(),w=OVM.clientWidth,xs=HIKES.filter(h=>h.go).map(h=>ovXY(h.go[1],h.go[0])).concat([ovXY(OV.places[0][1],OV.places[0][2])]);   // the hikes and Seattle
+  const cx=(Math.min(...xs.map(p=>p[0]))+Math.max(...xs.map(p=>p[0])))/2,cy=(Math.min(...xs.map(p=>p[1]))+Math.max(...xs.map(p=>p[1])))/2,k=w*z/OV.W;
+  return[z,w/2-cx*k,OVM.clientHeight/2-cy*k]}
 function ovCard(h){return `<a class="ovc" href="planner.html?r=${h.id}"><img src="${h.cover}" alt="" loading="lazy"><b>${h.title}</b>
-  <span>${h.variant} · ${h.km} km · +${n(h.up)} m · ${dur(h.moving)} moving</span></a>`}
+  <span>${h.variant} · ${h.km} km · +${n(h.up)} m · ${dur(h.moving)} moving · ${DIFF_NAME[DIFF(h)]}</span></a>`}
 function ovDraw(){
-  const svg=$('ovsvg'),k=svg.getBoundingClientRect().width/OV.W||.3;   // screen px per map px
+  const svg=$('ovsvg'),k=OVM.clientWidth*VIEW.z/OV.W||.1;   // screen px per map px
   svg.setAttribute('viewBox',`0 0 ${OV.W} ${OV.H}`);
   const u=v=>(v/k).toFixed(1);   // a size in screen px, in map units
-  // one point per trailhead, then merge points closer than ~26 px on screen
-  const pts=[];ovShown().forEach(h=>{const[x,y]=ovXY(h.go[1],h.go[0]);let p=pts.find(p=>Math.hypot(p.x-x,p.y-y)<1);if(!p)pts.push(p={x,y,hs:[]});p.hs.push(h)});
+  // one point per trailhead, then merge the closest pair while any two are under ~26 px apart on screen
+  const pts=[];HIKES.filter(h=>h.go&&passes(h)).forEach(h=>{const[x,y]=ovXY(h.go[1],h.go[0]);let p=pts.find(p=>Math.hypot(p.x-x,p.y-y)<1);if(!p)pts.push(p={x,y,hs:[]});p.hs.push(h)});
   const cl=pts.map(p=>({x:p.x,y:p.y,hs:p.hs.slice()}));
-  for(;;){let best=null;   // merge the closest pair first, so a trailhead joins its true neighbour
+  for(;;){let best=null;
     for(let i=0;i<cl.length;i++)for(let j=i+1;j<cl.length;j++){const d=Math.hypot(cl[i].x-cl[j].x,cl[i].y-cl[j].y)*k;if(d<26&&(!best||d<best[0]))best=[d,i,j]}
     if(!best)break;const[,i,j]=best,a=cl[i],c=cl[j],nn=a.hs.length+c.hs.length;
     a.x=(a.x*a.hs.length+c.x*c.hs.length)/nn;a.y=(a.y*a.hs.length+c.y*c.hs.length)/nn;a.hs.push(...c.hs);cl.splice(j,1)}
-  // towns: the small ones only on the enlarged map; a name that would sit on a dot moves below it
-  const places=OV.places.filter(p=>!p[3]||k>.5).map(([t,lo,la])=>{const[x,y]=ovXY(lo,la);
-    const tw=t.length*3.5,near=cl.some(c=>{const nw=k>.5?c.hs[0].peak.length*7+90:0;   // the dot, and its name to the right when enlarged
-      return (x-c.x)*k<12+nw+tw&&(c.x-x)*k<12+tw&&Math.abs(c.y-y)*k<16}),yy=near?y+22/k:y;
-    const anchor=x*k<t.length*3.5+4?'start':(OV.W-x)*k<t.length*3.5+4?'end':'middle';
-    return `<text class="ovpl" x="${x}" y="${yy}" style="font-size:${u(12)}px;stroke-width:${u(3.5)}px" text-anchor="${anchor}">${t}</text>`}).join('');
-  const dots=cl.map((c,i)=>{const sizes=[...new Set(c.hs.map(h=>h.size))],cls=sizes.length>1?'Mixed':sizes[0];
-    const key=c.hs.map(h=>h.id).join(','),r=c.hs.length>1?11:8;
-    const pk=[...new Set(c.hs.map(h=>h.peak))],name=pk.length>2?`${pk[0]} +${pk.length-1} more`:pk.join(', ');
-    return `<g class="ovdot ${cls}${ovSel===key?' sel':''}" data-k="${key}" tabindex="0" role="button" aria-label="${name}: ${c.hs.length} hike${c.hs.length>1?'s':''}">
-      <circle cx="${c.x}" cy="${c.y}" r="${u(r)}" style="stroke-width:${u(ovSel===key?4:2.5)}px"></circle>${c.hs.length>1?`<text x="${c.x}" y="${c.y}" style="font-size:${u(12)}px">${c.hs.length}</text>`:''}
-      ${k>.5?`<text class="nm" x="${c.x+(r+5)/k}" y="${c.y}" style="font-size:${u(13)}px;stroke-width:${u(3.5)}px">${name}</text>`:''}</g>`}).join('');
+  const named=k>.12;
+  cl.forEach(c=>{const pk=[...new Set(c.hs.map(h=>h.peak))];c.name=pk.length>2?`${pk[0]} +${pk.length-1} more`:pk.join(', ')});
+  // towns: the small ones only when zoomed in; a name that would sit on a dot or its label moves below it
+  const places=OV.places.filter(p=>!p[3]||k>.12).map(([t,lo,la])=>{const[x,y]=ovXY(lo,la),tw=t.length*3.5;
+    const near=cl.some(c=>{const nw=named?c.name.length*7+12:0;return (x-c.x)*k<12+nw+tw&&(c.x-x)*k<12+tw&&Math.abs(c.y-y)*k<16}),yy=near?y+22/k:y;
+    return `<text class="ovpl" x="${x}" y="${yy}" style="font-size:${u(12)}px;stroke-width:${u(3.5)}px" text-anchor="middle">${t}</text>`}).join('');
+  const dots=cl.map(c=>{const ds=[...new Set(c.hs.map(DIFF))],cls=ds.length>1?'mixed':ds[0];
+    const key=c.hs.map(h=>h.id).join(','),r=c.hs.length>1?11:8,sel=ovSel===key;
+    return `<g class="ovdot ${cls}${sel?' sel':''}" data-k="${key}" tabindex="0" role="button" aria-label="${c.name}: ${c.hs.length} hike${c.hs.length>1?'s':''}">
+      <circle cx="${c.x}" cy="${c.y}" r="${u(r+(sel?2:0))}" style="stroke-width:${u(sel?3.5:2.5)}px"></circle>${c.hs.length>1?`<text x="${c.x}" y="${c.y}" style="font-size:${u(12)}px">${c.hs.length}</text>`:''}
+      ${named?(()=>{const sx=c.x*k+VIEW.x,left=sx+r+5+c.name.length*7>OVM.clientWidth-50;   // near the right edge (and the buttons): name on the left
+        return `<text class="nm" x="${c.x+(left?-(r+5):r+5)/k}" y="${c.y}" style="font-size:${u(13)}px;stroke-width:${u(3.5)}px${left?';text-anchor:end':''}">${c.name}</text>`})():''}</g>`}).join('');
   svg.innerHTML=places+dots;
-  // the picked dot may have merged or split after a zoom: keep showing its hikes if they are still on the map
+  // the picked dot may have merged or split after a zoom: keep showing its hikes if any are still on the map
   if(ovSel){const g=[...svg.querySelectorAll('.ovdot')].find(g=>g.dataset.k.split(',').some(id=>ovSel.split(',').includes(id)));
-    if(g){ovSel=g.dataset.k;g.classList.add('sel');ovPick(ovSel)}else ovPick(null)}
+    if(g){ovSel=g.dataset.k;ovPick(ovSel)}else ovPick(null)}else ovPick(null);
 }
 function ovPick(key){
   ovSel=key;const box=$('ovpick');
-  if(!key){box.hidden=true;$('ovhint').textContent='Tap a dot to see the hikes that start there.';return}
+  if(!key){box.hidden=true;$('ovhint').textContent='Tap a dot for the hikes that start there. Pinch or double-tap to zoom.';return}
   const hs=key.split(',').map(id=>HIKES.find(h=>h.id===id));
   box.innerHTML=hs.map(ovCard).join('');box.hidden=false;
-  $('ovhint').textContent=hs.length>1?`${hs.length} hikes here. Tap one to plan it.`:'Tap the card to plan it.';
+  $('ovhint').textContent=hs.length>1?`${hs.length} hikes here. Tap one to plan it, or zoom in to split them.`:'Tap the card to plan it.';
 }
-$('ovsvg').addEventListener('click',e=>{const g=e.target.closest('.ovdot');const k=g?g.dataset.k:null;ovPick(k===ovSel?null:k);ovDraw()});
-$('ovsvg').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('.ovdot')){e.preventDefault();e.target.closest('.ovdot').dispatchEvent(new MouseEvent('click',{bubbles:true}))}});
-$('ovzoom').addEventListener('click',()=>{const big=$('ov').classList.toggle('big');$('ovzoom').textContent=big?'Fit':'Enlarge';
-  requestAnimationFrame(()=>{ovDraw();const m=$('ovmap');
-    // centre the enlarged map on the picked dot, or on the cluster of hikes east of Seattle
-    const g=m.querySelector('.ovdot.sel circle'),[cx,cy]=g?[+g.getAttribute('cx'),+g.getAttribute('cy')]:ovXY(-121.75,47.55),k=m.scrollWidth/OV.W;
-    m.scrollLeft=cx*k-m.clientWidth/2;m.scrollTop=cy*k-m.clientHeight/2})});
-$('ov').addEventListener('toggle',()=>{try{localStorage.setItem('cairns-map',$('ov').open?'open':'closed')}catch(e){}if($('ov').open)ovDraw()});
+// pan and zoom: one transform on the image and its overlay; dots are redrawn so they keep their size on screen
+let ovRaf=0;
+function ovApply(redraw=true){
+  const w=OVM.clientWidth,h=OVM.clientHeight;
+  VIEW.z=Math.max(zMin(),Math.min(ZMAX,VIEW.z));
+  VIEW.x=Math.min(0,Math.max(w-w*VIEW.z,VIEW.x));VIEW.y=Math.min(0,Math.max(h-w*VIEW.z*OV.H/OV.W,VIEW.y));
+  OVI.style.transform=`translate(${VIEW.x}px,${VIEW.y}px) scale(${VIEW.z})`;
+  const zm=zMin();
+  $('ovminus').disabled=VIEW.z<=zm*1.001;$('ovplus').disabled=VIEW.z>=ZMAX-.001;
+  if(redraw&&!ovRaf)ovRaf=requestAnimationFrame(()=>{ovRaf=0;ovDraw()});
+}
+function ovZoomAt(f,cx,cy){   // zoom by f about a point in the map box (screen px)
+  const z0=VIEW.z,z1=Math.max(zMin(),Math.min(ZMAX,z0*f));
+  VIEW.x=cx-(cx-VIEW.x)*z1/z0;VIEW.y=cy-(cy-VIEW.y)*z1/z0;VIEW.z=z1;ovApply();
+}
+function ovAnimate(z1,x1,y1){
+  const z0=VIEW.z,x0=VIEW.x,y0=VIEW.y,t0=performance.now(),T=matchMedia('(prefers-reduced-motion: reduce)').matches?0:260;
+  const step=t=>{const p=T?Math.min(1,(t-t0)/T):1,e=1-Math.pow(1-p,3);
+    // interpolate in log zoom so the motion feels even
+    VIEW.z=Math.exp(Math.log(z0)+(Math.log(z1)-Math.log(z0))*e);VIEW.x=x0+(x1-x0)*e;VIEW.y=y0+(y1-y0)*e;ovApply();if(p<1)requestAnimationFrame(step)};
+  requestAnimationFrame(step);
+}
+function ovZoomBy(f,cx=OVM.clientWidth/2,cy=OVM.clientHeight/2){const z1=Math.max(zMin(),Math.min(ZMAX,VIEW.z*f));ovAnimate(z1,cx-(cx-VIEW.x)*z1/VIEW.z,cy-(cy-VIEW.y)*z1/VIEW.z)}
+$('ovplus').addEventListener('click',()=>ovZoomBy(2));
+$('ovminus').addEventListener('click',()=>ovZoomBy(.5));
+$('ovreset').addEventListener('click',()=>ovAnimate(...ovHome()));
+// pointers: one finger drags, two pinch; a quick second tap zooms in; a tap without movement stays a click
+const PT=new Map();let gest=null,moved=false,lastTap=null;
+const rel=e=>{const r=OVM.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+OVM.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.ovctl'))return;
+  PT.set(e.pointerId,rel(e));if(PT.size===1)moved=false;
+  try{OVM.setPointerCapture(e.pointerId)}catch(err){}
+  gest=null;
+});
+OVM.addEventListener('pointermove',e=>{
+  if(!PT.has(e.pointerId))return;
+  const prev=PT.get(e.pointerId),cur=rel(e);PT.set(e.pointerId,cur);
+  if(PT.size===1){
+    if(!moved&&Math.hypot(cur[0]-(gest?.sx??prev[0]),cur[1]-(gest?.sy??prev[1]))<1)return;
+    if(!gest)gest={sx:prev[0],sy:prev[1]};
+    if(Math.hypot(cur[0]-gest.sx,cur[1]-gest.sy)>6)moved=true;
+    if(moved){OVM.classList.add('drag');VIEW.x+=cur[0]-prev[0];VIEW.y+=cur[1]-prev[1];ovApply(false)}
+  }else if(PT.size===2){
+    const[a,b]=[...PT.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+    if(!gest||!gest.d){gest={d,m};moved=true;return}
+    VIEW.x+=m[0]-gest.m[0];VIEW.y+=m[1]-gest.m[1];gest.m=m;
+    ovZoomAt(d/gest.d,m[0],m[1]);gest.d=d;
+  }
+});
+const ptEnd=e=>{
+  if(!PT.has(e.pointerId))return;const p=PT.get(e.pointerId);PT.delete(e.pointerId);
+  if(!PT.size){OVM.classList.remove('drag');gest=null;ovApply();
+    if(!moved&&e.type==='pointerup'&&!e.target.closest('.ovdot')){   // double tap on the map: zoom in there
+      const now=Date.now();if(lastTap&&now-lastTap.t<320&&Math.hypot(p[0]-lastTap.p[0],p[1]-lastTap.p[1])<30){ovZoomBy(2,p[0],p[1]);lastTap=null}else lastTap={t:now,p}}
+  }else gest=null;
+};
+OVM.addEventListener('pointerup',ptEnd);OVM.addEventListener('pointercancel',ptEnd);
+OVM.addEventListener('wheel',e=>{e.preventDefault();const[cx,cy]=rel(e);ovZoomAt(Math.exp(-e.deltaY*(e.deltaMode?0.05:0.0022)),cx,cy)},{passive:false});
+OVM.addEventListener('dblclick',e=>e.preventDefault());
+$('ovsvg').addEventListener('click',e=>{if(moved)return;const g=e.target.closest('.ovdot');if(!g){if(ovSel){ovPick(null);ovDraw()}return}
+  const k=g.dataset.k;ovPick(k===ovSel?null:k);ovDraw()});
+$('ovsvg').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('.ovdot')){e.preventDefault();moved=false;e.target.closest('.ovdot').dispatchEvent(new MouseEvent('click',{bubbles:true}))}});
+$('ov').addEventListener('toggle',()=>{try{localStorage.setItem('cairns-map',$('ov').open?'open':'closed')}catch(e){}if($('ov').open){if(VIEW.z<zMin())[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovApply()}});
 try{if(localStorage.getItem('cairns-map')==='closed')$('ov').open=false}catch(e){}
-$('ovimg').addEventListener('load',ovDraw);$('ovimg').src=OV.src;
-addEventListener('resize',ovDraw);
+$('ovimg').addEventListener('load',()=>{[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovApply()});$('ovimg').src=OV.src;
+addEventListener('resize',()=>ovApply());
+drawFilters();renderList();
 
 const r=document.documentElement;
 try{const th=localStorage.getItem('ench-theme');if(th)r.dataset.theme=th}catch(e){}
