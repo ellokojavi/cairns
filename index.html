@@ -148,10 +148,10 @@ const gmaps=g=>'https://www.google.com/maps/dir/?api=1&destination='+g[0]+','+g[
 function card(h,multi){
   return `<a class="card" href="planner.html?r=${h.id}">
     <div class="cv"><img src="${h.cover}" alt="" loading="lazy"><span class="chip ${DIFF(h)}">${DIFF_NAME[DIFF(h)]}</span>${h.done?`<span class="done">${h.done}</span>`:''}
-      <div class="t"><b>${multi?h.variant:h.title}</b><span>${multi?h.type:h.variant+' · '+h.type}</span></div></div>
+      <div class="t"><b>${multi?h.title+' — '+h.variant:h.title}</b><span>${multi?h.type:h.variant+' · '+h.type}</span></div></div>
     <div class="st"><div><b>${h.km} km</b><span>distance</span></div><div><b>+${n(h.up)} m</b><span>climb</span></div>
       <div><b>${n(h.hi)} m</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
-    ${multi?'':`<p class="pl">${h.place}</p>`}<p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
+    <p class="pl">${h.place}</p><p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
     <p class="try">${h.at?`<a href="https://www.alltrails.com/${h.at}" target="_blank" rel="noopener">Open in AllTrails</a>`:''}<span class="r">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Rehearse the hike</a></span></p>`;
 }
 // routes on the same peak sit together; the filters above hide what does not match
@@ -159,8 +159,8 @@ function renderList(){
   const groups=[];HIKES.filter(h=>passes(h)).forEach(h=>{let g=groups.find(g=>g.peak===h.peak);if(!g)groups.push(g={peak:h.peak,list:[]});g.list.push(h)});
   $('list').innerHTML=groups.length?groups.map(g=>{
     const multi=HIKES.filter(h=>h.peak===g.peak).length>1;
-    // a peak with several routes gets a heading and its place once; a single route carries both on its card
-    return (multi?`<h2>${g.peak}</h2><p class="peak">${g.list[0].place}</p>`:'')+g.list.map(h=>card(h,multi)).join('');
+    // no headings: each card names its hike ("Mailbox Peak — New Trail" where a peak has several routes) and its place
+    return g.list.map(h=>card(h,multi)).join('');
   }).join(''):'<p class="none">No hike matches all the filters. Clear one to see more.</p>';
 }
 
