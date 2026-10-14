@@ -30,7 +30,7 @@ keeps working because position comes from satellites, not the network.
 **Before the hike**
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
   parking, and a link to rehearse the route in test mode.
-- **Where the hikes are:** a collapsible relief map of the region with a dot at every
+- **Find your next hike:** a collapsible relief map of the region with a dot at every
   trailhead (coloured by size; dots too close to tell apart merge into a numbered one).
   Tap a dot for the hikes that start there; enlarge it to pull the North Bend cluster apart.
   Works offline. Filters (length, climb, time) can plug into `OV_FILTERS` in `index.html`.
