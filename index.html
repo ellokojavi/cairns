@@ -36,7 +36,11 @@ h2{font:600 21px/1.15 var(--cond);margin:22px 0 4px}
 .peak{color:var(--muted);font-size:14px;margin:0 0 10px}
 .ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
 a.card{display:block;color:inherit;text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:4px}
-.try{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;margin:0 0 14px;font-size:12.5px;color:var(--muted)}.try a{color:var(--ink);font-weight:600}
+.try{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;margin:0 0 14px;font-size:12.5px;color:var(--muted)}
+/* a subtle rule closes each hike (its card and links), except the last one */
+#list .try{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid color-mix(in srgb,var(--rule) 60%,transparent)}
+#list .try:last-child{border-bottom:0;padding-bottom:0}
+#list .try+h2{margin-top:0}.try a{color:var(--ink);font-weight:600}
 .try .r{margin-left:auto;text-align:right}
 a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cv{position:relative;aspect-ratio:16/8;background:#1C2A2E}
