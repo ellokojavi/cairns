@@ -67,7 +67,7 @@ body.sim #bar{outline:3px dashed #E8B931;outline-offset:2px}`;
     document.body.classList.add('sim');
     const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
     const d=document.createElement('div');d.id='simbar';
-    d.innerHTML=`<div class="r"><b class="tag">SIMULATION</b><span class="clk" id="sclk"></span>
+    d.innerHTML=`<div class="r"><b class="tag">REHEARSAL</b><span class="clk" id="sclk"></span>
         <button id="splay" type="button">▶ Walk</button>
         <select id="srate" aria-label="Speed"><option value="1">1×</option><option value="10">10×</option><option value="60" selected>60×</option><option value="300">300×</option></select>
         <button class="min" id="smin" type="button">Hide</button></div>
@@ -76,7 +76,7 @@ body.sim #bar{outline:3px dashed #E8B931;outline-offset:2px}`;
       <div class="r more"><span>Go to</span><span class="chips" id="schips">${ST.map((s,i)=>`<button type="button" data-i="${i}" title="${s.n}">${i+1}</button>`).join('')}</span></div>
       <div class="r more"><label>Pace <select id="space"><option value="0.8">faster than plan</option><option value="1" selected>as planned</option><option value="1.25">25% slower</option><option value="1.5">50% slower</option></select></label>
         <label>Off trail <select id="soff"><option value="0">on it</option><option value="60">60 m</option><option value="250">250 m</option><option value="1500">1.5 km</option></select></label>
-        <button id="sreset" type="button">Restart</button><a href="${location.pathname}?r=${encodeURIComponent(R.id)}">Exit simulation</a></div>`;
+        <button id="sreset" type="button">Restart</button><a href="${location.pathname}?r=${encodeURIComponent(R.id)}">Exit rehearsal</a></div>`;
     document.body.appendChild(d);
     const $=id=>document.getElementById(id);
     const fmt=t=>{const x=new Date(t);return String(x.getHours()).padStart(2,'0')+':'+String(x.getMinutes()).padStart(2,'0')};

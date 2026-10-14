@@ -29,7 +29,7 @@ keeps working because position comes from satellites, not the network.
 
 **Before the hike**
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
-  parking, a link to simulate the hike, and one to the hike's AllTrails page (reviews and
+  parking, a link to rehearse the hike (simulated GPS and clock), and one to the hike's AllTrails page (reviews and
   recent conditions, while you still have signal).
 - **Find your next hike:** filter pills (distance, difficulty, time, pass, highlight; pills in a
   row are alternatives, rows narrow each other, each shows how many hikes it would leave) above a
@@ -60,7 +60,7 @@ keeps working because position comes from satellites, not the network.
   and tell them apart on GPS even though the trail is the same.
 - Milestone photos (Creative Commons, credited), intake reminders, notes per stop.
 
-**Simulate the hike** (test mode)
+**Rehearse the hike** (test mode)
 - `planner.html?r=<route>&sim=1` (linked from each card): a simulated GPS walker and a
   clock that runs up to 300×. Jump to any stop, change the pace, step off the trail.
   Its check-ins are kept apart from real ones.

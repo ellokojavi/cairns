@@ -146,7 +146,7 @@ function card(h,multi){
     <div class="st"><div><b>${h.km} km</b><span>distance</span></div><div><b>+${n(h.up)} m</b><span>climb</span></div>
       <div><b>${n(h.hi)} m</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
     <p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
-    <p class="try">${h.at?`<a href="https://www.alltrails.com/${h.at}" target="_blank" rel="noopener">Open in AllTrails</a>`:''}<span class="r">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Simulate the hike</a></span></p>`;
+    <p class="try">${h.at?`<a href="https://www.alltrails.com/${h.at}" target="_blank" rel="noopener">Open in AllTrails</a>`:''}<span class="r">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Rehearse the hike</a></span></p>`;
 }
 // routes on the same peak sit together; the filters above hide what does not match
 function renderList(){
