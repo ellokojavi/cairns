@@ -81,7 +81,7 @@ for txt,lon,lat,rot in CFG.get('water_labels',[('Middle Fork Snoqualmie River',-
 # scale bar
 sx,sy=W-40-500/MPP,H-30
 ax.plot([sx,sx+500/MPP],[sy,sy],color='#222',lw=5); ax.text(sx+250/MPP,sy-12,'500 m',ha='center',fontsize=19,weight='bold',path_effects=halo)
-ax.text(10,H-10,'Terrain: USGS 3DEP 1 m lidar · Trails: © OpenStreetMap contributors (Overture Maps)',fontsize=13,color='#333',path_effects=halo)
+ax.text(10,H-10,CFG.get('credit','Terrain: USGS 3DEP 1 m lidar · Trails: © OpenStreetMap contributors (Overture Maps)'),fontsize=13,color='#333',path_effects=halo)
 ax.annotate('N',xy=(W-40,22),xytext=(W-40,90),ha='center',fontsize=22,weight='bold',arrowprops=dict(arrowstyle='-|>',color='#222',lw=2),path_effects=halo)
 fig.savefig('map.png',dpi=100)
 json.dump({'X0':X0,'Y0':Y0,'X1':X1,'Y1':Y1,'MPP':MPP,'W':W,'H':H},open('frame.json','w'))

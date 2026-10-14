@@ -37,6 +37,7 @@ Open, and enough to build a route:
 |---|---|---|
 | Trail geometry, names, roads, streams, peaks | **Overture Maps** (OpenStreetMap data, ODbL), bucket `overturemaps-us-west-2`, region us-west-2. Releases listed at `https://overturemaps-us-west-2.s3.amazonaws.com/?list-type=2&prefix=release/&delimiter=/` (use the newest) | `tools/fetch_overture.py <theme> <type> out.parquet` with pyarrow S3FileSystem (anonymous, `proxy_options` from `$HTTPS_PROXY`), bbox filter on `bbox.xmin/xmax/ymin/ymax`. Themes: `transportation/segment` (trails: class path/footway/track, `names.primary`), `base/water` (streams), `base/land` (class `peak` with names). ~10 s per query. DuckDB does NOT work (its httpfs extension download is blocked) |
 | Elevation, US, best | **USGS 3DEP 1 m lidar**, bucket `prd-tnm` (`https://prd-tnm.s3.amazonaws.com`). Projects under `StagedProducts/Elevation/1m/Projects/`, e.g. `WA_KingCounty_2021_B21`, `WA_EasternCascades_2019_B19`, `WA_CentralWildfire_D22`. Tiles `USGS_1M_<utmzone>_x<E/10000>y<N/10000>_<project>.tif` (the name is the tile's top-left corner) | rasterio over `/vsicurl/` with `GDAL_HTTP_PROXY=$HTTPS_PROXY`, `CURL_CA_BUNDLE=/root/.ccr/ca-bundle.crt`, `GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR`. COGs with overviews: windowed reads take seconds. See `tools/fetch_lidar.py` |
+| Lidar outside King County | `WA_Western_North_2016` (tiles `USGS_one_meter_x..y.._WA_Western_North_2016.tif`) lists tiles around Gold Bar, but they are all nodata at Wallace Falls. Each project's `0_file_download_links.txt` lists its tiles | `tools/fetch_lidar_area.py 13 ...` falls back to the 10 m DEM on the same 2 m grid; smooth the track's elevations (`roundtrip(..., smooth_m=40)`) or the climb reads ~10% high |
 | Elevation, US, everywhere (~10 m) | **USGS 3DEP 1/3 arc-second**: `StagedProducts/Elevation/13/TIFF/current/n<lat>w<lon>/USGS_13_n<lat>w<lon>.tif` (named by the NW corner, e.g. n48w122 covers 47–48 N, 121–122 W) | WarpedVRT to UTM. See `tools/fetch_dem_wide.py`. Also used for the far terrain in covers |
 | Elevation, worldwide fallback | Mapzen/Tilezen terrarium tiles: `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png` (height = R*256 + G + B/256 − 32768) | Not used yet |
 | Satellite imagery (10 m) | Sentinel-2 COGs, bucket `sentinel-cogs` (us-west-2) | Not used yet: could add a true-colour backdrop. NAIP (`naip-visualization`) is 403 |
@@ -58,3 +59,10 @@ Open, and enough to build a route:
 - Parking with a gate (common on WA DNR land): use `deadline:{kind:'gate'}` so the
   cutoffs count back from the gate, not from dark.
 - Python reading downloaded data: run with `python3 -I`, from a scratch folder.
+- `planner.html` is one classic script: two `function` declarations with the same name do not
+  error, the later one silently wins. That broke every sun time and cutoff (NaN) when the NWS code
+  added a second `localMin`. Grep for a name before adding a function.
+- GPS walk test: drive `applyFix()` from `page.evaluate` in test mode (`?sim=1`, set the clock with
+  `__SIM.set()`), ±25 m noise, several seeds. A wrong pass shows as a fix more than ~1 km off;
+  300–500 m misses are the next switchback and harmless. Also check the dot stays inside
+  `MINI_VB[next stop]` (`pixAtM(m)`) along the whole track.

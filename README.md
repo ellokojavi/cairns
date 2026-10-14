@@ -6,7 +6,7 @@ Live at **https://ellokojavi.github.io/cairns/**
 
 Pick a route, set the date, start time and forecast, and Cairns times every stop, the
 turnaround cutoffs and the finish against sunset (or a parking gate that closes before
-dark). On the trail it checks you in from GPS and re-times the rest from your real pace.
+dark, and warns when the plan starts before it opens). On the trail it checks you in from GPS and re-times the rest from your real pace.
 It works with no signal: the pages, maps and photos are stored on the phone, and GPS
 keeps working because position comes from satellites, not the network.
 
@@ -18,6 +18,9 @@ keeps working because position comes from satellites, not the network.
 | Mailbox Peak: Old Trail | Out and back | 7.5 km | +1,207 m | 4:30 |
 | Mount Si (main trail) | Out and back | 12.2 km | +989 m | 4:30 |
 | Little Bandera Mountain | Out and back | 10.6 km | +919 m | 4:05 |
+| West Tiger 3 | Out and back | 8.8 km | +607 m | 3:05 |
+| Teneriffe Falls | Out and back | 9.3 km | +521 m | 2:50 |
+| Wallace Falls (to the Upper Falls) | Out and back | 8.2 km | +445 m | 2:35 |
 | Enchantments traverse | Point to point | 29.8 km | +1,957 m | 10:45 |
 
 \* At the pace the group walked the Enchantments; on the day it re-times from your real pace.
@@ -82,7 +85,8 @@ is saved.
 
 See `tools/README.md` for the steps and what every route must include, and `CLAUDE.md`
 for the data sources that work from the build environment. In short: trails from
-OpenStreetMap (Overture Maps), elevation from USGS 3DEP 1 m lidar, a rendered topo map
+OpenStreetMap (Overture Maps), elevation from USGS 3DEP 1 m lidar (the ~10 m DEM where
+there is none, as at Wallace Falls), a rendered topo map
 and 3D view, Creative Commons photos, hikers' comments, and the GPS walk tests.
 
 ## Publishing
