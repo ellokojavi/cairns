@@ -51,9 +51,10 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* pills on the cover: difficulty in its colour, then distance, time and highlights as quieter glass pills */
 .chips{position:absolute;top:10px;left:10px;right:10px;display:flex;flex-wrap:wrap;gap:5px;pointer-events:none}
 .chip{border-radius:14px;padding:3px 9px;font:600 12px/1.25 var(--body);color:#fff;background:rgba(12,18,20,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);white-space:nowrap}
-.chip.easy,.chip.medium,.chip.hard{font-weight:700;letter-spacing:.03em;text-transform:uppercase;border-color:transparent}
-.chip.easy{background:#3C7A4E}.chip.medium{background:#B07A12}.chip.hard{background:#B0432A}
-.chip.done{background:rgba(60,122,78,.9);border-color:transparent;margin-left:auto}
+/* difficulty: same pill as the others, its colour only in a small dot (the map's dot colours) */
+.chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.chip i.easy{background:#4E9A63}.chip i.medium{background:#D49A22}.chip i.hard{background:#D2563A}
+.chip.done{margin-left:auto}
 .st{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 12px 2px}
 .st b{display:block;font:600 18px/1.1 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap}
 .st span{font-size:11.5px;color:var(--muted)}
@@ -152,12 +153,12 @@ const gmaps=g=>'https://www.google.com/maps/dir/?api=1&destination='+g[0]+','+g[
 function coverPills(h){
   const pick=id=>FILTERS.find(f=>f.id===id).opts.filter(o=>o[2](h));
   const d=DIFF(h),dist=pick('dist')[0],time=pick('time')[0];
-  const DIST_ON_COVER={medium:'Medium length'};   // "Medium" alone would read as the difficulty
-  return [`<span class="chip ${d}">${DIFF_NAME[d]}</span>`,
+  const DIST_ON_COVER={medium:'Mid-length'};   // "Medium" alone would read as the difficulty
+  return [`<span class="chip"><i class="${d}"></i>${DIFF_NAME[d]}</span>`,
     dist&&`<span class="chip">${DIST_ON_COVER[dist[0]]||dist[1]}</span>`,
     time&&`<span class="chip">${time[1]}</span>`,
     ...pick('hl').map(o=>`<span class="chip">${o[1]}</span>`),
-    h.done&&`<span class="chip done">${h.done}</span>`].filter(Boolean).join('');
+    h.done&&`<span class="chip done">✓ ${h.done}</span>`].filter(Boolean).join('');
 }
 function card(h,multi){
   return `<a class="card" href="planner.html?r=${h.id}">
