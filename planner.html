@@ -8,7 +8,9 @@
 <link rel="apple-touch-icon" href="./cairns-apple-180.png">
 <link rel="icon" type="image/png" href="./favicon.png">
 <title>Cairns</title>
+<script src="units.js"></script>
 <script src="routes/catalog.js"></script>
+<script src="tags.js"></script>
 <script>
 // which route: ?r=<id>, else the last one opened. Its data file sets window.ROUTE.
 (function(){
@@ -215,13 +217,22 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .hero .ht{position:absolute;inset:auto 0 0 0;padding:28px 14px 10px;color:#fff;background:linear-gradient(transparent,rgba(10,16,18,.82))}
 .hero h1{color:#fff;margin:0}
 .hero .var{font:600 16px/1.2 var(--cond);opacity:.92;margin:2px 0 0}
+.hero .chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.hero .chip{border-radius:14px;padding:3px 9px;font:600 12px/1.25 var(--body);color:#fff;background:rgba(12,18,20,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);white-space:nowrap}
+.hero .chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.hero .chip i.easy{background:#4E9A63}.hero .chip i.medium{background:#D49A22}.hero .chip i.hard{background:#D2563A}
 .hero .back img{width:30.25px;height:30.25px;margin:-4.125px;object-fit:contain}
 .hero .back{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .hero .back{position:absolute;top:10px;left:10px;background:rgba(12,18,20,.62);color:#fff;text-decoration:none;border-radius:16px;padding:4px 11px;font-size:13px;font-weight:600}
 .drive{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .drive a{display:inline-block;border:1px solid var(--ink);border-radius:8px;padding:7px 12px;font-weight:600;font-size:14px;color:var(--ink);text-decoration:none}
 .covercred{display:block;margin:-6px 0 8px;font-size:11px;color:var(--muted);text-align:right;text-decoration:none}
-.hero .ghost{position:absolute;top:10px;right:10px;background:rgba(12,18,20,.62);color:#fff;border:0}
+.hero .hctl{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:6px}
+.hero .ghost{background:rgba(12,18,20,.62);color:#fff;border:0}
+.hero .units{display:inline-flex;border-radius:16px;overflow:hidden;background:rgba(12,18,20,.62)}
+.hero .units button{background:none;border:0;padding:4px 10px;font:600 13px var(--body);color:rgba(255,255,255,.75);cursor:pointer}
+.hero .units button[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#12191B}
+.hero .units button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px}
 .stats div{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:6px 8px}
 .stats b{display:block;font:600 18px/1.1 var(--cond);white-space:nowrap}
@@ -268,8 +279,8 @@ details.fold>div{padding:0 14px 12px}
 </head>
 <body>
 <main>
-<div class="hero"><img id="cover" alt=""><a class="back" href="./"><img src="logo-dark.png" alt="">‹ All routes</a><button class="ghost" id="theme" type="button">Dark</button>
-  <div class="ht"><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
+<div class="hero"><img id="cover" alt=""><a class="back" href="./"><img src="logo-dark.png" alt="">‹ All routes</a><div class="hctl" id="hctl"><button class="ghost" id="theme" type="button">Dark</button></div>
+  <div class="ht"><div class="chips" id="chips"></div><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
 <a class="covercred" id="covercred" target="_blank" rel="noopener" hidden></a>
 <div class="stats num" id="stats"></div>
 <p class="drive" id="drive" hidden></p>
@@ -327,9 +338,9 @@ details.fold>div{padding:0 14px 12px}
   <p><b>Check-ins happen by themselves</b> when GPS puts you at a milestone, or past it. Opening the phone takes a fresh fix, so a glance at each stop is enough. Everything after re-times from your real pace. If GPS is off or not allowed, the check-in buttons come back; you can always mark a stop by hand with two taps.</p>
   <p><b>Turnarounds</b> are the latest you can leave and still finish in time. They move earlier if you slow down.</p>
   <p id="gpshint"><b>Keep GPS on</b> only where an off-route warning is worth the battery.</p>
-  <p class="fine">Distances and elevations come from the route GPX. A watch will read a few km high, which is normal. Leg times are modelled from each leg's climb and descent. <a id="gpxlink" download>Milestone GPX</a> for a map app with offline maps.</p>
+  <p class="fine">Distances and elevations come from the route GPX. A watch will read a little more distance, which is normal. Leg times are modelled from each leg's climb and descent. <a id="gpxlink" download>Milestone GPX</a> for a map app with offline maps.</p>
   <p class="fine" id="mapcred"></p>
-  <p class="fine" id="simlink"><b>Rehearse the hike:</b> <a id="simhref">test mode</a> simulates the GPS and the clock, walking the route at the planned pace. Its check-ins are kept apart from real ones.</p>
+  <p class="fine" id="simlink"><a id="simhref"><b>Rehearse the hike</b></a>: a simulated GPS and clock walk the route at the planned pace. Its check-ins are kept apart from real ones.</p>
   <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
   <footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
 </section>
@@ -374,7 +385,7 @@ const PROF=R.prof||Array.from({length:160},(_,j)=>{const m=TRK.cd[TRK.n-1]*j/159
   return Math.round(TRK.el[k]+(TRK.el[k+1]-TRK.el[k])*f)});
 const PLO=Math.floor((Math.min(...TRK.el)-60)/50)*50, PHI=Math.ceil((Math.max(...TRK.el)+(Math.max(...TRK.el)-Math.min(...TRK.el))*.1)/10)*10;
 const PL_STOP=R.profLabel?.stop??HI_STOP;
-const PL_TEXT=R.profLabel?.text??`${STOPS[PL_STOP].n.split(',')[0]} ${STOPS[PL_STOP].m.toLocaleString('en-US')} m`;
+const PL_TEXT=R.profLabel?.text??`${STOPS[PL_STOP].n.split(',')[0]} ${U.elev(STOPS[PL_STOP].m)}`;
 // map marks: stops that sit on the same spot (start and finish of an out and back, the
 // same junction up and down) share one mark, labelled with every number
 const MARKS=[];
@@ -402,7 +413,7 @@ function labelLayout(){
   const placed=[];
   LABELS=MARKS.map((g,gi)=>{
     const p=PTS[STOP_AT[g[0]]],name=markName(g);
-    const t2=g.length>1?g.map(()=>'↑ 00:00').join('  '):`km ${STOPS[g[0]].km.toFixed(1)} · 00:00`;
+    const t2=g.length>1?g.map(()=>'↑ 00:00').join('  '):`${U.at(STOPS[g[0]].km*1000,1)} · 00:00`;
     const w=Math.max(name.length*F1*.62,t2.length*F2*.58)*K,h=H*K,mw=MARK_W(g)*K,gap=8*K,r=19*K;
     // candidate spots: right, left, above, below, then the corners
     const C=[[mw+gap,-h/2,'start'],[-mw-gap,-h/2,'end'],[0,-r-gap-h,'middle'],[0,r+gap,'middle'],
@@ -426,7 +437,7 @@ function mapLabels(P,L){
   const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
   return labelLayout().map(l=>{
     const cls=l.g.some(i=>st(i)==='next')?'next':l.g.every(i=>st(i)==='done')?'done':'';
-    const t=l.g.map(i=>(TURN!=null&&l.g.length>1?(i<=TURN?'↑ ':'↓ '):'')+fmt(P.t[i])).join('  '),t2=l.g.length>1?t:`km ${STOPS[l.g[0]].km.toFixed(1)} · ${t}`;
+    const t=l.g.map(i=>(TURN!=null&&l.g.length>1?(i<=TURN?'↑ ':'↓ '):'')+fmt(P.t[i])).join('  '),t2=l.g.length>1?t:`${U.at(STOPS[l.g[0]].km*1000,1)} · ${t}`;
     return `<g class="mlab ${cls}" transform="translate(${l.x.toFixed(1)},${l.y.toFixed(1)}) scale(${K.toFixed(3)})" text-anchor="${l.an}">`
       +`<text y="20">${l.name}</text><text class="t2" y="42">${t2}</text></g>`;
   }).join('');
@@ -529,8 +540,7 @@ function mapBadge(){
   if(!fix)return'';
   const far=fix.off>ON_ROUTE, stale=fixAge()>FIX_OLD;
   if(!far&&!stale)return'';
-  const d=fix.off>=10000?(fix.off/1000).toFixed(0)+' km'
-         :fix.off>=1000?(fix.off/1000).toFixed(1)+' km':Math.round(fix.off)+' m';
+  const d=U.loose(fix.off);
   const t1=far?'Out of map':'Position not shown';
   const t2=far?`${d} from the route`:`fix ${Math.round(fixAge()/60)} min old`;
   const x=40,y=184,w=620,h=116;
@@ -568,7 +578,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-14 15:30';
+const BUILD='2026-10-14 19:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -593,7 +603,7 @@ function resumeFrom(m){
   const now=nowRel(),md=modelAt(m);
   state.ci[0]=Math.round((now-md.mv-md.br)*10)/10;
   for(let i=1;i<N;i++){if(TRK.cd[SI[i]]<=m-NEAR){const mdi=modelAt(TRK.cd[SI[i]]);state.ci[i]=Math.round((state.ci[0]+mdi.mv+mdi.br)*10)/10}}
-  resumeAt=null;note(`Resumed at km ${(m/1000).toFixed(2)}. Start estimated at ${fmt(state.ci[0])}.`);update();
+  resumeAt=null;note(`Resumed at ${U.at(m)}. Start estimated at ${fmt(state.ci[0])}.`);update();
 }
 
 function nowRel(){const d=new Date();let m=d.getHours()*60+d.getMinutes()+d.getSeconds()/60;const s=state.ci[0];if(s!=null&&m<s-600)m+=1440;return m}
@@ -764,7 +774,7 @@ function autoLogic(){
     if(fix.m>AUTOSTART_M&&fix.m<AUTOSTART_TO){
       const md=modelAt(fix.m);
       state.ci[0]=Math.round((now-md.mv-md.br)*10)/10;
-      note(`Started automatically, ${fmt(state.ci[0])}, from your position at km ${(fix.m/1000).toFixed(2)}.`);
+      note(`Started automatically, ${fmt(state.ci[0])}, from your position at ${U.at(fix.m)}.`);
     }else{
       resumeAt=fix.m>=TRK.cd[SI[1]]?fix.m:null;   // show a resume offer instead
       return;
@@ -807,12 +817,12 @@ function gpsText(P){
   const nx=gpsNext();
   const togo=Math.max(0,TRK.cd[SI[nx]]-fix.m);
   const up=climbBetween(fix.m,TRK.cd[SI[nx]]);
-  let s=`<b>km ${km.toFixed(2)}</b> of ${(TOT/1000).toFixed(1)}, ${pct}% · <b>${Math.round(fix.el)} m</b> · `;
-  s+=`${STOPS[nx].n} in <b>${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'}</b>${up>25?` and <b>+${up} m</b>`:''}`;
-  s+=` · ±${Math.round(fix.acc)} m`;
+  let s=`<b>${U.at(fix.m)}</b> of ${U.num(TOT)}, ${pct}% · <b>${U.elev(fix.el)}</b> · `;
+  s+=`${STOPS[nx].n} in <b>${U.near(togo)}</b>${up>25?` and <b>+${U.elev(up)}</b>`:''}`;
+  s+=` · ±${U.loose(fix.acc)}`;
   if(fixAge()>FIX_OLD)s+=` · <span class="bad">${Math.round(fixAge()/60)} min old</span>`;
-  if(fix.off>ON_ROUTE)return `<b>You are ${fix.off>=1000?(fix.off/1000).toFixed(1)+' km':Math.round(fix.off)+' m'} from the route.</b> No position is shown on the map until you are on it. Nearest point of the line is km ${km.toFixed(1)}.`;
-  if(fix.off>OFFROUTE&&offStreak>=OFF_STREAK)s+=` · <span class="bad">${Math.round(fix.off)} m off route — stop and find the line</span>`;
+  if(fix.off>ON_ROUTE)return `<b>You are ${U.loose(fix.off)} from the route.</b> No position is shown on the map until you are on it. Nearest point of the line is ${U.at(fix.m,1)}.`;
+  if(fix.off>OFFROUTE&&offStreak>=OFF_STREAK)s+=` · <span class="bad">${U.loose(fix.off)} off route — stop and find the line</span>`;
   return s;
 }
 
@@ -885,9 +895,12 @@ function intakeTags(s){
 }
 // a round altitude step that gives at most `want` gridlines over `range` metres
 function gridStep(range,want){
-  for(const s of [10,20,25,50,100,200,250,500,1000])if(range/s<=want)return s;
-  return 1000;
+  for(const s of [10,20,25,50,100,200,250,500,1000,2000])if(range/s<=want)return s;
+  return 2000;
 }
+// gridlines on round heights in the chosen unit: [metres, label]
+function elevGrid(lo,hi,want){const f=U.us?3.28084:1,st=gridStep((hi-lo)*f,want),out=[];
+  for(let v=Math.ceil(lo*f/st)*st;v<=hi*f;v+=st)out.push([v/f,v.toLocaleString('en-US')]);return out}
 // elevation profile of the leg into a stop, straight from the track
 function legProfile(i){
   const W=300,H=74,PL=30,PR=6,PT=8,PB=14;
@@ -906,11 +919,11 @@ function legProfile(i){
   let s=`<svg class="legsvg" id="lp${i}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevation of the leg into ${STOPS[i].n}">`;
   s+=`<path class="lgarea" d="${d}L${X(m1).toFixed(1)},${base}L${X(m0).toFixed(1)},${base}Z"/>`;
   // faint altitude graduation, on round metre values
-  const st=gridStep(hi-lo,i===0?5:4),gy=[];
-  for(let e=Math.ceil(lo/st)*st;e<=hi;e+=st){
+  const gy=[];
+  for(const[e,v]of elevGrid(lo,hi,i===0?5:4)){
     const y=Y(e);gy.push(y);
     s+=`<line class="pgrid" x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}"/>`;
-    s+=`<text class="pax" x="${PL-4}" y="${(y+3.2).toFixed(1)}">${e}</text>`;
+    s+=`<text class="pax" x="${PL-4}" y="${(y+3.2).toFixed(1)}">${v}</text>`;
   }
   s+=`<path class="lgline" d="${d}"/>`;
   // gridline at the arrival elevation
@@ -923,10 +936,10 @@ function legProfile(i){
     s+=`<circle class="lgfrom" cx="${X(m0).toFixed(1)}" cy="${Y(TRK.el[a]).toFixed(1)}" r="3.6"/>`;
     s+=`<circle class="lgto" cx="${X(m1).toFixed(1)}" cy="${Y(TRK.el[b]).toFixed(1)}" r="4.6"/>`;
     s+=`<text class="lgax" x="${PL}" y="${H-3}">${STOPS[i-1].n.length>18?STOPS[i-1].n.slice(0,17)+'…':STOPS[i-1].n}</text>`;
-    s+=`<text class="lgax end" x="${W-PR}" y="${H-3}">${(STOPS[i].km-STOPS[i-1].km).toFixed(2)} km</text>`;
+    s+=`<text class="lgax end" x="${W-PR}" y="${H-3}">${U.dist((STOPS[i].km-STOPS[i-1].km)*1000,2)}</text>`;
   }else{
     STOPS.forEach((st,j)=>{s+=`<circle class="lgfrom" cx="${X(TRK.cd[SI[j]]).toFixed(1)}" cy="${Y(st.m).toFixed(1)}" r="2.6"/>`});
-    s+=`<text class="lgax" x="${PL}" y="${H-3}">whole route</text><text class="lgax end" x="${W-PR}" y="${H-3}">${(TOT/1000).toFixed(2)} km</text>`;
+    s+=`<text class="lgax" x="${PL}" y="${H-3}">whole route</text><text class="lgax end" x="${W-PR}" y="${H-3}">${U.dist(TOT,2)}</text>`;
   }
   s+=`<circle class="lgme" id="lm${i}" r="4.5" style="display:none"/>`;
   s+=`<text class="lgmel" id="lml${i}" style="display:none"></text></svg>`;
@@ -959,7 +972,7 @@ function legMarker(P,now){
     const t2=document.getElementById('lml'+i);if(!t2)return;
     const sl=elAtM(m+150)-elAtM(m-150);
     let right=sl<0; if(cx>W-PR-54)right=false; if(cx<PL+54)right=true;
-    const lab=Math.round(el).toLocaleString('en-US')+' m '+(isGps?'GPS':'est');
+    const lab=U.elev(el)+' '+(isGps?'GPS':'est');
     const lw=lab.length*4.9, mpp=span/(W-PL-PR);
     const rise=Math.max(0,elAtM(m+(right?lw:-lw)*mpp)-el)/(hi-lo)*(H-PT-PB);
     const ly=cy>19?Math.max(9,cy-9-Math.min(rise,26)):cy+13;
@@ -1012,14 +1025,14 @@ function build(){
   STOPS.forEach((s,i)=>{
     if(TURN!=null&&(i===0||i===TURN+1)){const h=document.createElement('li');h.className='phase'+(i?' down':'');
       const km=i?(TOT-TURN_M)/1000:TURN_M/1000,up=i?null:STOPS.slice(1,TURN+1).reduce((a,x)=>a+x.up,0),dn=i?STOPS.slice(TURN+1).reduce((a,x)=>a+x.dn,0):null;
-      h.innerHTML=i?`Way down<span>${km.toFixed(1)} km, −${dn.toLocaleString('en-US')} m, from ${STOPS[TURN].n.split(',')[0]}</span>`
-                   :`Way up<span>${km.toFixed(1)} km, +${up.toLocaleString('en-US')} m, to ${STOPS[TURN].n.split(',')[0]}</span>`;
+      h.innerHTML=i?`Way down<span>${U.dist(km*1000)}, −${U.elev(dn)}, from ${STOPS[TURN].n.split(',')[0]}</span>`
+                   :`Way up<span>${U.dist(km*1000)}, +${U.elev(up)}, to ${STOPS[TURN].n.split(',')[0]}</span>`;
       ol.appendChild(h)}
     const li=document.createElement('li');li.className='stop';li.id='s'+i;
     li.innerHTML=`<div class="clock num" id="c${i}"><span></span><small></small></div>
     <div><p class="name"><span class="badge">${i+1}</span>${s.n}</p>
     <div class="meta num" id="m${i}"></div>
-    ${i>0?`<p class="leg num">Leg ${s.legkm.toFixed(2)} km, +${s.up} m, −${s.dn} m, ${dur(s.mv)} moving${s.grade>=8?` · ${s.grade}% average climb`:''}</p>`:''}
+    ${i>0?`<p class="leg num">Leg ${U.dist(s.legkm*1000,2)}, +${U.elev(s.up)}, −${U.elev(s.dn)}, ${dur(s.mv)} moving${s.grade>=8?` · ${s.grade}% average climb`:''}</p>`:''}
     <div class="row" id="r${i}"></div>
     <p class="note">${s.note}</p>${photoBox(i)}${mini(i)}${legProfile(i)}<div id="g${i}"></div>
     <div class="ci"><button type="button" data-i="${i}" id="b${i}"></button><span id="x${i}"></span></div></div>`;
@@ -1043,7 +1056,7 @@ function elAtM(m){
   }
   return TRK.el[TRK.n-1];
 }
-function distTxt(d){return d>=10000?(d/1000).toFixed(0)+' km':d>=1000?(d/1000).toFixed(1)+' km':Math.round(d)+' m'}
+function distTxt(d){return U.loose(d)}
 // where we are right now: a trusted GPS fix if there is one, otherwise the schedule
 function herePos(P,now){
   if(onRoute())return{m:fix.m,el:fix.el,gps:true};
@@ -1072,7 +1085,7 @@ function update(){
     c.firstElementChild.textContent=fmt(t);
     c.lastElementChild.textContent=i===N-1?`T+${dur(t-P.dep)}`:`T+${dur(t-P.dep)}\n${dur(P.fin-t)} to go`;
     const tc=tempAt(s.m,t);
-    $('m'+i).textContent=`km ${s.km.toFixed(2)}, ${s.m.toLocaleString('en-US')} m, about ${tc} °C${s.wind?`, feels ${tc-4} °C in wind`:''}`;
+    $('m'+i).textContent=`${U.at(s.km*1000)}, ${U.elev(s.m)}, about ${U.temp(tc)}${s.wind?`, feels ${U.temp(tc-4)} in wind`:''}`;
     const tags=intakeTags(s);
     if(s.b)tags.push(`<span class="tag">${s.b} min stop</span>`);
     if(t<DARK_AM||t>DARK_PM)tags.push(`<span class="tag nite">Dark: headlamp</span>`);
@@ -1112,7 +1125,7 @@ function update(){
   const pct=Math.round((P.f-1)*100);
   $('paceinfo').textContent=(P.src!=='plan')
     ?`Pace so far, from ${P.src}: ${pct===0?'on plan':pct>0?pct+'% slower than plan':(-pct)+'% faster than plan'}. The rest is projected at that pace.`
-    :`Plan: ${(TOT/1000).toFixed(1)} km, moving ${dur(PLAN_MV)}, breaks ${dur(PLAN_BR)}, total ${dur(P.fin-P.dep)}.`;
+    :`Plan: ${U.dist(TOT)}, moving ${dur(PLAN_MV)}, breaks ${dur(PLAN_BR)}, total ${dur(P.fin-P.dep)}.`;
 
   const fb=$('fixbtn'),fa=$('fixage');
   fb.disabled=busy||LOCAL;
@@ -1145,7 +1158,7 @@ function update(){
   const rb=$('resumebtn');
   rb.hidden=!(resumeAt!=null&&!P.started&&onRoute());
   if(!rb.hidden){rb.classList.toggle('armed',resumeArmed);
-    rb.textContent=resumeArmed?'Tap again to confirm':`Already hiking? Resume from km ${(resumeAt/1000).toFixed(1)}`}
+    rb.textContent=resumeArmed?'Tap again to confirm':`Already hiking? Resume from ${U.at(resumeAt,1)}`}
   if(!P.started){
     const toGo=P.dep-now;
     $('bh').textContent=`Departure ${fmt(P.dep)}`;
@@ -1157,15 +1170,15 @@ function update(){
   }else if(nx<N){
     const s=STOPS[nx],it=intakeTags(s).map(h=>h.replace(/<[^>]+>/g,'')).join('; '),t=P.t[nx],d=t-now;
     $('bh').textContent=`Next: ${s.n}, ${fmt(t)}`;
-    let line=`${d>=0?'In '+dur(d):dur(-d)+' behind projection'}, km ${s.km.toFixed(1)}`;
+    let line=`${d>=0?'In '+dur(d):dur(-d)+' behind projection'}, ${U.at(s.km*1000,1)}`;
     if(onRoute()){const gn=gpsNext(),togo=Math.max(0,TRK.cd[SI[gn]]-fix.m);
-      line+=gn===nx?` · ${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'} away by GPS`
-        :` · GPS puts you past it, ${togo<950?Math.round(togo)+' m':(togo/1000).toFixed(2)+' km'} short of ${STOPS[gn].n}`}
+      line+=gn===nx?` · ${U.near(togo)} away by GPS`
+        :` · GPS puts you past it, ${U.near(togo)} short of ${STOPS[gn].n}`}
     $('bd').textContent=line+(it?' · Take: '+it:'');
     big.hidden=false;
   }else{
     $('bh').textContent=`Finished at ${fmt(state.ci[N-1])}`;
-    $('bd').textContent=`Total ${dur(state.ci[N-1]-P.dep)} for ${(TOT/1000).toFixed(1)} km and ${UP_TOT.toLocaleString('en-US')} m of climb. Well done.`;
+    $('bd').textContent=`Total ${dur(state.ci[N-1]-P.dep)} for ${U.dist(TOT)} and ${U.elev(UP_TOT)} of climb. Well done.`;
     big.hidden=true;
   }
   // on the trail with GPS doing the work, the bar shows the next stop and keeps check-in as a small link
@@ -1190,11 +1203,10 @@ function profile(P,now){
   let d='';PROF.forEach((e,j)=>{const x=X(TOT*j/(PROF.length-1));d+=(j?'L':'M')+x.toFixed(1)+','+Y(e).toFixed(1)});
   let h=`<path class="area" d="${d}L${X(TOT).toFixed(1)},118L${PLL},118Z"/>`;
   // faint altitude graduation on round values
-  const gs=gridStep(PHI-PLO,5);
-  for(let e=Math.ceil(PLO/gs)*gs;e<=PHI;e+=gs){const y=Y(e).toFixed(1);
+  for(const[e,v]of elevGrid(PLO,PHI,5)){const y=Y(e).toFixed(1);
     h+=`<line class="pgrid" x1="${PLL}" y1="${y}" x2="328" y2="${y}"/>`
-      +`<text class="pax" x="${PLL-4}" y="${(+y+3.2).toFixed(1)}">${e}</text>`}
-  h+=`<text class="pax" x="${PLL-4}" y="14">m</text>`;
+      +`<text class="pax" x="${PLL-4}" y="${(+y+3.2).toFixed(1)}">${v}</text>`}
+  h+=`<text class="pax" x="${PLL-4}" y="14">${U.eU()}</text>`;
   // the turnaround splits the profile: the way down sits on a tinted band
   if(TURN!=null){const xt=X(TURN_M);
     h+=`<rect class="downband" x="${xt.toFixed(1)}" y="10" width="${(328-xt).toFixed(1)}" height="108"/>`
@@ -1211,10 +1223,10 @@ function profile(P,now){
   }
   {const hs=STOPS[PL_STOP],lx=X(hs.km*1000),end=lx>244;
    h+=`<text class="lbl${end?' end':''}" x="${(end?lx+6:lx-22).toFixed(0)}" y="${(Y(hs.m)-6).toFixed(0)}">${PL_TEXT}</text>`;}
-  h+=`<text class="lbl" x="${PLL}" y="132">0 km</text><text class="lbl end" x="328" y="132">${(TOT/1000).toFixed(1)} km</text>`;
+  h+=`<text class="lbl" x="${PLL}" y="132">0 ${U.dU()}</text><text class="lbl end" x="328" y="132">${U.dist(TOT)}</text>`;
   if(here){
     // current altitude, beside the dot; flip sides near the right edge
-    const cx=X(here.m),cy=Y(here.el),txt=Math.round(here.el).toLocaleString('en-US')+' m '+(here.gps?'GPS':'est');
+    const cx=X(here.m),cy=Y(here.el),txt=U.elev(here.el)+' '+(here.gps?'GPS':'est');
     // sit in the open sky above the dot, on the downhill side where nothing is drawn
     const sl=elAtM(here.m+150)-elAtM(here.m-150);
     let right=sl<0; if(cx>244)right=false; if(cx<PLL+72)right=true;
@@ -1320,6 +1332,8 @@ $('mapov').addEventListener('click',e=>{const g=e.target.closest('[data-go]');if
 $('zoom').addEventListener('click',()=>{const w=$('mapwrap'),z=w.classList.toggle('zoom');
   $('zoom').textContent=z?'Fit map':'Enlarge map';
   if(z)requestAnimationFrame(()=>{const sc=w.scrollWidth/MW;w.scrollLeft=mapFocus[0]*sc-w.clientWidth/2;w.scrollTop=mapFocus[1]*sc-w.clientHeight/2})});
+// km / mi: every label is built from units.js; reload so all of them redraw (plans and check-ins are saved)
+$('hctl').prepend(U.control(()=>location.reload()));
 $('theme').addEventListener('click',()=>{
   const r=document.documentElement,dark=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);
   r.dataset.theme=dark?'light':'dark';$('theme').textContent=dark?'Dark':'Light';
@@ -1371,7 +1385,8 @@ function setupPage(){
   const tt=R.title+(R.variant?' — '+R.variant:'');
   document.title=tt;
   $('title').textContent=R.title;
-  $('variant').textContent=[R.variant,R.size&&R.size[0].toUpperCase()+R.size.slice(1),ROUTE_META?.type].filter(Boolean).join(' · ');
+  $('variant').textContent=[...new Set([R.variant,ROUTE_META?.type].filter(Boolean))].join(' · ');
+  if(ROUTE_META)$('chips').innerHTML=coverPills(ROUTE_META);   // the same labels as the route's card in the list (tags.js)
   const cov=ROUTE_META?.cover||R.cover;
   if(cov)$('cover').src=cov;else $('cover').parentNode.classList.add('nocover');
   $('cover').alt=tt;
@@ -1380,8 +1395,8 @@ function setupPage(){
     d.innerHTML=`<a href="${gm(ROUTE_META.go)}" target="_blank" rel="noopener">➜ Directions: ${ROUTE_META.go[2]}</a>`
       +(ROUTE_META.goEnd?`<a href="${gm(ROUTE_META.goEnd)}" target="_blank" rel="noopener">➜ ${ROUTE_META.goEnd[2]}</a>`:'')}
   if(ROUTE_META?.coverCredit){const c=$('covercred');c.textContent=ROUTE_META.coverCredit[0];c.href=ROUTE_META.coverCredit[1];c.hidden=false}
-  const st=[[(TOT/1000).toFixed(1)+' km','distance'],['+'+UP_TOT.toLocaleString('en-US')+' m','climb'],
-    [STOPS[HI_STOP].m.toLocaleString('en-US')+' m','high point'],[dur(PLAN_MV),'moving']];
+  const st=[[U.dist(TOT),'distance'],['+'+U.elev(UP_TOT),'climb'],
+    [U.elev(STOPS[HI_STOP].m),'high point'],[dur(PLAN_MV),'moving']];
   $('stats').innerHTML=st.map(([b,s])=>`<div><b>${b}</b><span>${s}</span></div>`).join('');
   $('summary').textContent=R.summary||'';
   const img=$('mapimg');img.setAttribute('width',MW);img.setAttribute('height',MH);img.setAttribute('href',R.map.src);
@@ -1489,7 +1504,7 @@ function dayBrief(P){
   // the official NWS forecast, when there is one: the kit list follows whichever source is harsher
   const nw=NWS&&NWS.date===state.date?NWS:null,nTop=nw&&fcAt(nw.top.t,tTop)!=null?fcAt(nw.top.t,tTop)+(nw.top.e!=null?(nw.top.e-top.m)*0.0065:0):null,nPP=nw?Math.round(Math.max(span(nw.th.pp)??0,span(nw.top.pp)??0)):null;
   const diff=[];
-  if(nTop!=null){nTopR=Math.round(nTop);if(fc&&Math.abs(nTopR-tTopV)>=4)diff.push(`top ${tTopV} vs ${nTopR} °C`);if(!fc)feelsTop=nTopR-(top.wind?4:0);else if(nTopR<feelsTop)feelsTop=nTopR}
+  if(nTop!=null){nTopR=Math.round(nTop);if(fc&&Math.abs(nTopR-tTopV)>=4)diff.push(`top ${U.t(tTopV)} vs ${U.temp(nTopR)}`);if(!fc)feelsTop=nTopR-(top.wind?4:0);else if(nTopR<feelsTop)feelsTop=nTopR}
   if(nPP!=null){if(pp!=null&&Math.abs(nPP-pp)>=30)diff.push(`rain ${pp}% vs ${nPP}%`);pp=Math.max(pp??0,nPP)}
   const icy=fc?(snow>0||(fl!=null&&fl<top.m+300)||feelsTop<=0):nw?feelsTop<=0:null;
   const dark=dep<SUNRISE+20||fin>SUNSET-30;
@@ -1499,24 +1514,24 @@ function dayBrief(P){
   bring.push(['Food: about '+Math.round(PLAN_MV/60*250/50)*50+' kcal each','~250 kcal per moving hour, plus lunch at the top.']);
   bring.push(dark?['Headlamp, with spare batteries',`You start at ${fmt(dep)}${dep<SUNRISE?`, before sunrise (${fmt(SUNRISE)})`:''}${fin>SUNSET-30?`, and finish near sunset (${fmt(SUNSET)})`:''}.`]
                  :['Headlamp','Not planned, but a slow day or a twisted ankle ends in the dark.']);
-  if(feelsTop<=5)bring.push(['Warm layer, beanie and gloves',`About ${tTopV} °C at the top around ${fmt(tTop)}, feels like ${feelsTop} °C${gust!=null&&gust>=30?` with gusts to ${gust} km/h`:''}.`]);
-  else if(feelsTop<=12)bring.push(['A light warm layer',`About ${tTopV} °C at the top around ${fmt(tTop)}${fc?`, feels like ${feelsTop} °C`:''}. You cool down fast once you stop.`]);
+  if(feelsTop<=5)bring.push(['Warm layer, beanie and gloves',`About ${U.temp(tTopV)} at the top around ${fmt(tTop)}, feels like ${U.temp(feelsTop)}${gust!=null&&gust>=30?` with gusts to ${U.speed(gust)}`:''}.`]);
+  else if(feelsTop<=12)bring.push(['A light warm layer',`About ${U.temp(tTopV)} at the top around ${fmt(tTop)}${fc?`, feels like ${U.temp(feelsTop)}`:''}. You cool down fast once you stop.`]);
   if(fc||nw){
     if(pp>=50||rain>=2)bring.push(['Rain jacket and pack cover; phone in a bag',`Rain chance up to ${pp}%${rain>=0.5?`, about ${Math.round(rain)} mm over the day`:''}. Roots and rock get slick.`]);
     else if(pp>=20)bring.push(['A light rain shell',`Rain chance up to ${pp}%.`]);
     else leave.push(['Rain pants and umbrella',`Rain chance ${pp}% at most.`]);
-    if(icy)bring.push(['Microspikes; trail runners will slip on ice',snow>0?`Snow forecast at the top (${snow.toFixed(1)} cm).`:fl!=null&&fl<top.m+300?`Freezing level near ${fl.toLocaleString('en-US')} m, at or below the top.`:`Below freezing at the top (${feelsTop} °C).`]);
-    else if(fl!=null)leave.push(['Microspikes and gaiters',`Freezing level around ${fl.toLocaleString('en-US')} m, far above the top (${top.m.toLocaleString('en-US')} m).`]);
-    if(gust!=null&&gust>=40)bring.push(['Windproof shell',`Gusts to ${gust} km/h at the top. Stay off exposed rock in strong gusts.`]);
+    if(icy)bring.push(['Microspikes; trail runners will slip on ice',snow>0?`Snow forecast at the top (${U.snow(snow)}).`:fl!=null&&fl<top.m+300?`Freezing level near ${U.elev(fl)}, at or below the top.`:`Below freezing at the top (${U.temp(feelsTop)}).`]);
+    else if(fl!=null)leave.push(['Microspikes and gaiters',`Freezing level around ${U.elev(fl)}, far above the top (${U.elev(top.m)}).`]);
+    if(gust!=null&&gust>=40)bring.push(['Windproof shell',`Gusts to ${U.speed(gust)} at the top. Stay off exposed rock in strong gusts.`]);
     if(!icy&&pp<50)note.push('Dry trail expected: trail runners are fine.');
   }else{
     const mo=+state.date.slice(5,7);
     if(mo>=11||mo<=4)bring.push(['Microspikes','Winter months: the upper trail is often icy. Check recent trip reports.']);
     bring.push(['A rain shell','No forecast yet for this date; the Cascades can rain any month.']);
   }
-  if(maxT>=22)bring.push(['Sun hat, sunscreen, sunglasses',`Up to ${maxT} °C in the afternoon.`]);
-  if(descent>=700)bring.push(['Poles',`${descent.toLocaleString('en-US')} m of descent: they save your knees on the way down.`]);
-  if(feelsTop>12)leave.push(['A heavy insulated jacket',`Mild at the top (${tTopV} °C).`]);
+  if(maxT>=22)bring.push(['Sun hat, sunscreen, sunglasses',`Up to ${U.temp(maxT)} in the afternoon.`]);
+  if(descent>=700)bring.push(['Poles',`${U.elev(descent)} of descent: they save your knees on the way down.`]);
+  if(feelsTop>12)leave.push(['A heavy insulated jacket',`Mild at the top (${U.temp(tTopV)}).`]);
   if((fc||nw)&&!icy&&pp<50)leave.push(['Heavy boots','Trail runners with good grip are enough on a dry trail.']);
   bring.push(['Phone charged, this page saved offline','It works with no signal; the GPS works without coverage.']);
   if(R.deadline?.kind==='gate')note.push(`The ${R.deadline.label} opens about ${fmt(OPEN_AT)} and closes around ${fmt(DEADLINE)}: plan to be back well before.`);
@@ -1533,10 +1548,10 @@ function renderDay(P){
   const b=dayBrief(P),ahead=daysAhead();
   $('daysum').textContent='Your day: '+dayName(state.date);
   const li=a=>a.map(([t,w])=>`<li>${t}<span>${w}</span></li>`).join('');
-  const chips=[`Start ${fmt(P.dep)} · ${b.tStart} °C`,`Top ${fmt(b.tTop)} · ${b.tTopV} °C${b.fc?`, feels ${b.feelsTop}`:''}`,`Back ${fmt(P.fin)} · ${b.tFin} °C`];
-  if(b.nTopR!=null)chips.push(`NWS top ${b.nTopR} °C`);
+  const chips=[`Start ${fmt(P.dep)} · ${U.temp(b.tStart)}`,`Top ${fmt(b.tTop)} · ${U.temp(b.tTopV)}${b.fc?`, feels ${U.t(b.feelsTop)}`:''}`,`Back ${fmt(P.fin)} · ${U.temp(b.tFin)}`];
+  if(b.nTopR!=null)chips.push(`NWS top ${U.temp(b.nTopR)}`);
   if(b.fc||b.nw){chips.push(`Rain ${b.pp}%`)}
-  if(b.fc){if(b.gust!=null)chips.push(`Gusts ${b.gust} km/h at top`);if(b.fl!=null)chips.push(`Freezing level ${b.fl.toLocaleString('en-US')} m`)}
+  if(b.fc){if(b.gust!=null)chips.push(`Gusts ${U.speed(b.gust)} at top`);if(b.fl!=null)chips.push(`Freezing level ${U.elev(b.fl)}`)}
   const src=b.fc?`Forecast: Open-Meteo, for the trailhead and the top at their own heights, updated ${new Date(b.fc.at).toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'})}. <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> (CC BY 4.0).`
     :ahead>15?`No forecast yet: the date is ${ahead} days away (forecasts reach 16 days). Temperatures are typical for this route in season.`
     :ahead<0?'This date has passed. Temperatures are typical for this route in season.'

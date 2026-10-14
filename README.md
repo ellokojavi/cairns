@@ -28,8 +28,18 @@ keeps working because position comes from satellites, not the network.
 ## What it does
 
 **Before the hike**
+- **km | mi** switch next to Light/Dark, on every page: metric (km, m, °C, km/h) or US
+  (miles, feet, °F, mph) for everything shown. Route data and the maths stay metric (`units.js`).
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
-  parking, and a link to rehearse the route in test mode.
+  parking, a link to rehearse the hike (simulated GPS and clock), and one to the hike's AllTrails page (reviews and
+  recent conditions, while you still have signal).
+- **Find your next hike:** filter pills (distance, difficulty, time, pass, highlight; pills in a
+  row are alternatives, rows narrow each other, each shows how many hikes it would leave) above a
+  collapsible relief map of the region with a dot at every trailhead, coloured by difficulty.
+  Drag to pan; pinch, double-tap, the mouse wheel or + / − to zoom; ALL resets the view. Dots too
+  close to tell apart merge into a numbered one and split as you zoom in. Tap a dot for the hikes
+  that start there. The filters also narrow the list below. Works offline.
+  Difficulty is effort = km + climb/100: under 13 easy, under 19 medium, else hard.
 - Plan by date: sunrise, sunset and dusk computed for the trailhead on that day.
 - **Your day:** with a connection, an hourly forecast (Open-Meteo, up to 16 days) for the
   trailhead and the high point at their own heights, plus, within 7 days, the official
@@ -52,7 +62,7 @@ keeps working because position comes from satellites, not the network.
   and tell them apart on GPS even though the trail is the same.
 - Milestone photos (Creative Commons, credited), intake reminders, notes per stop.
 
-**Test mode**
+**Rehearse the hike** (test mode)
 - `planner.html?r=<route>&sim=1` (linked from each card): a simulated GPS walker and a
   clock that runs up to 300×. Jump to any stop, change the pace, step off the trail.
   Its check-ins are kept apart from real ones.
@@ -70,10 +80,13 @@ is saved.
 
 | File | Purpose |
 |---|---|
-| `index.html` | Route picker: covers, key numbers, directions, test-mode links, offline status |
+| `index.html` | Route picker: overview map, covers, key numbers, directions, test-mode links, offline status |
 | `planner.html` | The planner: schedule, map, profiles, day brief, cutoffs, GPS check-ins |
+| `tags.js` | The labels every hike gets (difficulty, distance, time, highlights): the filters, the cover pills and the planner's header all use it |
+| `units.js` | Shows every distance, height, temperature and speed in the chosen units (km or mi) |
 | `sim.js` | Test mode: simulated clock and GPS |
-| `routes/catalog.js` | The list of routes, parking coordinates, and every file each needs offline |
+| `routes/catalog.js` | The list of routes, parking coordinates, and every file each needs offline; the overview map's bounds and town labels |
+| `routes/overview.webp` | Overview map image, from `tools/render_overview.py` |
 | `routes/<area>/` | Each route's data file, map, covers, photos and milestone GPX |
 | `sw.js` | Service worker: stores every route for offline use |
 | `manifest.webmanifest`, `cairns-*.png`, `logo.png`, `logo-dark.png` (same-size stones with a soft, muted grey-green glow for dark mode), `favicon.png` | App name, home-screen icons (regular, Android adaptive, iPhone) and logo |

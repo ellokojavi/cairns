@@ -7,6 +7,9 @@ picker, the planner and the offline cache all pick it up.
 Every new route must have, before it ships:
 - `go` in its catalog entry: `[lat, lon, label]` of the **parking**, for one-tap Google
   Maps directions (point-to-point routes also get `goEnd` for the finish).
+- `at`: the hike's AllTrails page (the path after `alltrails.com/`; find it with WebSearch
+  limited to alltrails.com), linked as "Open in AllTrails" under its card. Also `pass` and `hl`
+  for the picker's filters.
 - `reviews` in its route data: 4–6 points summarised (paraphrased, never copied) from
   WTA trip reports and review sites, plus their links in `sources`.
 - Photos and a photo cover with credits (see CLAUDE.md), and a 3D view at the trailhead.
@@ -33,6 +36,12 @@ folder; only `build_mailbox.py` writes into the repo.
 | Topo map: relief, contours, trails, labels | `render_map.py` | the above |
 | Cover: perspective view with the route on it | `render_cover.py <name> <cam lon> <cam lat> <cam m> <aim offset m> <pitch°> [<goal lon> <goal lat>]` (positive pitch tilts the view down) | the above |
 | Route files, GPX, leg times | `build_mailbox.py <scratch dir> routes/mailbox`, `build_mount_si.py <scratch dir> routes/mount-si <photo candidates>`, `build_little_bandera.py`, `build_west_tiger_3.py`, `build_teneriffe_falls.py`, `build_wallace_falls.py` (all `<scratch dir> routes/<id> <photo candidates>`) | the above |
+
+The picker's overview map (`routes/overview.webp`) comes from `render_overview.py`: USGS 10 m
+relief at ~40 m per pixel (3600 px wide, so it holds up when zoomed in), Overture water and highways
+for the box in `OVERVIEW` (`routes/catalog.js`). Each route's catalog entry also needs `pass`
+(`discover` or `nwfp`) and `hl` (highlights: `summit`, `waterfall`, `lakes`) for the picker's filters. A route
+inside that box needs nothing; one outside it means widening the box in both places and re-rendering.
 
 Leg times use the model the group's Enchantments plan fits: 5 km/h on the flat,
 +700 m/h climbing, and descents at 3000 / 1500 / 900 m/h for grades under 15%,
