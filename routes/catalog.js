@@ -3,6 +3,11 @@
 const MAILBOX_PHOTOS=['from-the-road','boulder-field-snow','fire-academy-below','summit-mailbox','rainier-from-summit','mailbox-sunset','from-salal-point']
   .map(n=>'routes/mailbox/photos/'+n+'.webp');
 // go / goEnd: [lat, lon, label] of the parking, for one-tap directions in Google Maps
+// the picker's overview map: relief image from tools/render_overview.py and its lon/lat bounds
+self.OVERVIEW={src:'routes/overview.webp',w:-122.50,e:-120.55,s:47.33,n:47.99,W:1800,H:905,
+  // [name, lon, lat, 1 = only on the enlarged map]
+  places:[['Seattle',-122.335,47.608],['Bellevue',-122.20,47.61,1],['Issaquah',-122.035,47.53,1],['North Bend',-121.787,47.495],
+    ['Gold Bar',-121.697,47.857,1],['Snoqualmie Pass',-121.413,47.424],['Skykomish',-121.36,47.71,1],['Stevens Pass',-121.089,47.746],['Leavenworth',-120.661,47.596]]};
 self.HIKES=[
  {id:'mailbox-new', go:[47.4668,-121.6731,'Mailbox Peak trailhead'], file:'routes/mailbox/new.js', peak:'Mailbox Peak', title:'Mailbox Peak', variant:'New Trail', size:'Long',
   place:'Middle Fork Snoqualmie, near North Bend, WA', type:'Out and back',

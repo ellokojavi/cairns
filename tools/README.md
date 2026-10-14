@@ -34,6 +34,10 @@ folder; only `build_mailbox.py` writes into the repo.
 | Cover: perspective view with the route on it | `render_cover.py <name> <cam lon> <cam lat> <cam m> <aim offset m> <pitch°> [<goal lon> <goal lat>]` (positive pitch tilts the view down) | the above |
 | Route files, GPX, leg times | `build_mailbox.py <scratch dir> routes/mailbox`, `build_mount_si.py <scratch dir> routes/mount-si <photo candidates>`, `build_little_bandera.py`, `build_west_tiger_3.py`, `build_teneriffe_falls.py`, `build_wallace_falls.py` (all `<scratch dir> routes/<id> <photo candidates>`) | the above |
 
+The picker's overview map (`routes/overview.webp`) comes from `render_overview.py`: USGS 10 m
+relief, Overture water and highways for the box in `OVERVIEW` (`routes/catalog.js`). A route
+inside that box needs nothing; one outside it means widening the box in both places and re-rendering.
+
 Leg times use the model the group's Enchantments plan fits: 5 km/h on the flat,
 +700 m/h climbing, and descents at 3000 / 1500 / 900 m/h for grades under 15%,
 15–30% and over 30%.

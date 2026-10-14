@@ -30,6 +30,10 @@ keeps working because position comes from satellites, not the network.
 **Before the hike**
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
   parking, and a link to rehearse the route in test mode.
+- **Where the hikes are:** a collapsible relief map of the region with a dot at every
+  trailhead (coloured by size; dots too close to tell apart merge into a numbered one).
+  Tap a dot for the hikes that start there; enlarge it to pull the North Bend cluster apart.
+  Works offline. Filters (length, climb, time) can plug into `OV_FILTERS` in `index.html`.
 - Plan by date: sunrise, sunset and dusk computed for the trailhead on that day.
 - **Your day:** with a connection, an hourly forecast (Open-Meteo, up to 16 days) for the
   trailhead and the high point at their own heights, plus, within 7 days, the official
@@ -70,10 +74,11 @@ is saved.
 
 | File | Purpose |
 |---|---|
-| `index.html` | Route picker: covers, key numbers, directions, test-mode links, offline status |
+| `index.html` | Route picker: overview map, covers, key numbers, directions, test-mode links, offline status |
 | `planner.html` | The planner: schedule, map, profiles, day brief, cutoffs, GPS check-ins |
 | `sim.js` | Test mode: simulated clock and GPS |
-| `routes/catalog.js` | The list of routes, parking coordinates, and every file each needs offline |
+| `routes/catalog.js` | The list of routes, parking coordinates, and every file each needs offline; the overview map's bounds and town labels |
+| `routes/overview.webp` | Overview map image, from `tools/render_overview.py` |
 | `routes/<area>/` | Each route's data file, map, covers, photos and milestone GPX |
 | `sw.js` | Service worker: stores every route for offline use |
 | `manifest.webmanifest`, `cairns-*.png`, `logo.png`, `logo-dark.png` (same-size stones with a soft, muted grey-green glow for dark mode), `favicon.png` | App name, home-screen icons (regular, Android adaptive, iPhone) and logo |
