@@ -7,6 +7,9 @@ picker, the planner and the offline cache all pick it up.
 Every new route must have, before it ships:
 - `go` in its catalog entry: `[lat, lon, label]` of the **parking**, for one-tap Google
   Maps directions (point-to-point routes also get `goEnd` for the finish).
+- `at`: the hike's AllTrails page (the path after `alltrails.com/`; find it with WebSearch
+  limited to alltrails.com), linked as "Open in AllTrails" under its card. Also `pass` and `hl`
+  for the picker's filters.
 - `reviews` in its route data: 4–6 points summarised (paraphrased, never copied) from
   WTA trip reports and review sites, plus their links in `sources`.
 - Photos and a photo cover with credits (see CLAUDE.md), and a 3D view at the trailhead.

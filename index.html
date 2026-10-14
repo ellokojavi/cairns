@@ -36,7 +36,8 @@ h2{font:600 21px/1.15 var(--cond);margin:22px 0 4px}
 .peak{color:var(--muted);font-size:14px;margin:0 0 10px}
 .ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
 a.card{display:block;color:inherit;text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:4px}
-.try{margin:0 0 14px;font-size:13px;color:var(--muted);text-align:right}.try a{color:var(--ink);font-weight:600}
+.try{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;margin:0 0 14px;font-size:12.5px;color:var(--muted)}.try a{color:var(--ink);font-weight:600}
+.try .r{margin-left:auto;text-align:right}
 a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cv{position:relative;aspect-ratio:16/8;background:#1C2A2E}
 .cv img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
@@ -145,7 +146,7 @@ function card(h,multi){
     <div class="st"><div><b>${h.km} km</b><span>distance</span></div><div><b>+${n(h.up)} m</b><span>climb</span></div>
       <div><b>${n(h.hi)} m</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
     <p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
-    <p class="try">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Simulate the hike</a></p>`;
+    <p class="try">${h.at?`<a href="https://www.alltrails.com/${h.at}" target="_blank" rel="noopener">Open in AllTrails</a>`:''}<span class="r">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Simulate the hike</a></span></p>`;
 }
 // routes on the same peak sit together; the filters above hide what does not match
 function renderList(){

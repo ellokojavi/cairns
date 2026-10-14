@@ -29,7 +29,8 @@ keeps working because position comes from satellites, not the network.
 
 **Before the hike**
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
-  parking, and a link to simulate the hike.
+  parking, a link to simulate the hike, and one to the hike's AllTrails page (reviews and
+  recent conditions, while you still have signal).
 - **Find your next hike:** filter pills (distance, difficulty, time, pass, highlight; pills in a
   row are alternatives, rows narrow each other, each shows how many hikes it would leave) above a
   collapsible relief map of the region with a dot at every trailhead, coloured by difficulty.
