@@ -12,6 +12,7 @@
 // links from the Enchantments-only version carried the plan in the hash: send them to that route
 if(/(^|[#&])(d|c0)=/.test(location.hash))location.replace('planner.html?r=enchantments'+location.hash);
 </script>
+<script src="units.js"></script>
 <script src="routes/catalog.js"></script>
 <style>
 :root{
@@ -34,6 +35,11 @@ h1{font:600 30px/1.05 var(--cond);margin:4px 0 2px}
 .sub{color:var(--muted);margin:0 0 16px;font-size:14px}
 h2{font:600 21px/1.15 var(--cond);margin:22px 0 4px}
 .peak{color:var(--muted);font-size:14px;margin:0 0 10px}
+.units{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.units button{background:none;border:0;padding:5px 9px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
+.units button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
+.units button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.hctl{display:flex;align-items:center;gap:8px}
 .ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
 a.card{display:block;color:inherit;text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:4px}
 .try{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;margin:0 0 14px;font-size:12.5px;color:var(--muted)}
@@ -128,7 +134,7 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 <main>
 <header>
   <div class="brand"><img class="logo lg-light" src="logo.png" alt="" width="56" height="56"><img class="logo lg-dark" src="logo-dark.png" alt="" width="56" height="56"><div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div></div>
-  <button class="ghost" id="theme" type="button">Dark</button>
+  <div class="hctl" id="hctl"><button class="ghost" id="theme" type="button">Dark</button></div>
 </header>
 <p class="sub">Pick a route. Set the date, start time and forecast, and it times every stop, the turnaround and the finish. Works offline once opened.</p>
 <div id="off">Checking offline copy…</div>
@@ -164,8 +170,8 @@ function card(h,multi){
   return `<a class="card" href="planner.html?r=${h.id}">
     <div class="cv"><img src="${h.cover}" alt="" loading="lazy"><div class="chips">${coverPills(h)}</div>
       <div class="t"><b>${multi?h.title+' — '+h.variant:h.title}</b><span>${multi?h.type:h.variant+' · '+h.type}</span></div></div>
-    <div class="st"><div><b>${h.km} km</b><span>distance</span></div><div><b>+${n(h.up)} m</b><span>climb</span></div>
-      <div><b>${n(h.hi)} m</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
+    <div class="st"><div><b>${U.dist(h.km*1000)}</b><span>distance</span></div><div><b>+${U.elev(h.up)}</b><span>climb</span></div>
+      <div><b>${U.elev(h.hi)}</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
     <p class="pl">${h.place}</p><p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
     <p class="try">${h.at?`<a href="https://www.alltrails.com/${h.at}" target="_blank" rel="noopener">Open in AllTrails</a>`:''}<span class="r">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Rehearse the hike</a></span></p>`;
 }
@@ -184,7 +190,7 @@ function renderList(){
 function DIFF(h){const e=h.km+h.up/100;return e<13?'easy':e<19?'medium':'hard'}
 const DIFF_NAME={easy:'Easy',medium:'Medium',hard:'Hard'};
 const FILTERS=[
-  {id:'dist',name:'Distance',opts:[['short','Short',h=>h.km<8,'under 8 km'],['medium','Medium',h=>h.km>=8&&h.km<12,'8–12 km'],['long','Long',h=>h.km>=12&&h.km<20,'12–20 km'],['vlong','Very long',h=>h.km>=20,'20 km +']]},
+  {id:'dist',name:'Distance',opts:[['short','Short',h=>h.km<8,()=>'under '+U.dist(8000)],['medium','Medium',h=>h.km>=8&&h.km<12,()=>U.num(8000)+'–'+U.dist(12000)],['long','Long',h=>h.km>=12&&h.km<20,()=>U.num(12000)+'–'+U.dist(20000)],['vlong','Very long',h=>h.km>=20,()=>U.dist(20000)+' +']]},
   {id:'diff',name:'Difficulty',opts:[['easy','Easy',h=>DIFF(h)==='easy'],['medium','Medium',h=>DIFF(h)==='medium'],['hard','Hard',h=>DIFF(h)==='hard']]},
   {id:'time',name:'Time',opts:[['t4','Under 4 h',h=>h.moving+h.breaks<240],['t6','4–6 h',h=>h.moving+h.breaks>=240&&h.moving+h.breaks<360],['t9','6 h +',h=>h.moving+h.breaks>=360]]},
   {id:'pass',name:'Pass',opts:[['discover','Discover Pass',h=>h.pass==='discover'],['nwfp','NW Forest Pass',h=>h.pass==='nwfp']]},
@@ -196,7 +202,7 @@ function drawFilters(){
   const shown=HIKES.filter(h=>passes(h)),any=FILTERS.some(f=>(FSEL[f.id]||[]).length);
   $('flt').innerHTML=FILTERS.map(f=>`<div class="frow"><span>${f.name}</span><div>${f.opts.map(o=>{
       const on=(FSEL[f.id]||[]).includes(o[0]),cnt=HIKES.filter(h=>passes(h,f.id)&&o[2](h)).length;   // how many it would show
-      return `<button class="pill" type="button" data-f="${f.id}" data-o="${o[0]}" aria-pressed="${on}"${!on&&!cnt?' disabled':''}${o[3]?` title="${o[3]}"`:''}>${o[1]}<small>${cnt}</small></button>`}).join('')}</div></div>`).join('')
+      return `<button class="pill" type="button" data-f="${f.id}" data-o="${o[0]}" aria-pressed="${on}"${!on&&!cnt?' disabled':''}${o[3]?` title="${o[3]()}"`:''}>${o[1]}<small>${cnt}</small></button>`}).join('')}</div></div>`).join('')
     +`<div class="fsum"><span>${any?`${shown.length} of ${HIKES.length} hikes match`:`${HIKES.length} hikes`}</span>${any?'<button type="button" id="fclear">Clear filters</button>':''}</div>`;
 }
 function applyFilters(){
@@ -222,7 +228,7 @@ function ovHome(){const z=zMin(),w=OVM.clientWidth,xs=HIKES.filter(h=>h.go).map(
   const cx=(Math.min(...xs.map(p=>p[0]))+Math.max(...xs.map(p=>p[0])))/2,cy=(Math.min(...xs.map(p=>p[1]))+Math.max(...xs.map(p=>p[1])))/2,k=w*z/OV.W;
   return[z,w/2-cx*k,OVM.clientHeight/2-cy*k]}
 function ovCard(h){return `<a class="ovc" href="planner.html?r=${h.id}"><img src="${h.cover}" alt="" loading="lazy"><b>${h.title}</b>
-  <span>${h.variant} · ${h.km} km · +${n(h.up)} m · ${dur(h.moving)} moving · ${DIFF_NAME[DIFF(h)]}</span></a>`}
+  <span>${h.variant} · ${U.dist(h.km*1000)} · +${U.elev(h.up)} · ${dur(h.moving)} moving · ${DIFF_NAME[DIFF(h)]}</span></a>`}
 function ovDraw(){
   const svg=$('ovsvg'),k=OVM.clientWidth*VIEW.z/OV.W||.1;   // screen px per map px
   svg.setAttribute('viewBox',`0 0 ${OV.W} ${OV.H}`);
@@ -327,6 +333,8 @@ $('ovimg').addEventListener('load',()=>{[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovApply(
 addEventListener('resize',()=>ovApply());
 drawFilters();renderList();
 
+$('hctl').prepend(U.control(()=>{drawFilters();renderList();ovDraw()}));
+
 const r=document.documentElement;
 try{const th=localStorage.getItem('ench-theme');if(th)r.dataset.theme=th}catch(e){}
 const isDark=()=>r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);
@@ -340,7 +348,7 @@ if(!window.isSecureContext||!('serviceWorker' in navigator))off('no','<b>This co
 else navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(()=>{
   // every file each route needs offline. The service worker stores them on install, but a download
   // that fails there is not retried; so the page checks, and fetches whatever is still missing itself.
-  const NEED=[...new Set(['./planner.html','./sim.js',OVERVIEW.src].concat(HIKES.flatMap(h=>h.assets.concat([h.cover,h.file]))).map(u=>u.startsWith('./')?u:'./'+u))];
+  const NEED=[...new Set(['./planner.html','./sim.js','./units.js',OVERVIEW.src].concat(HIKES.flatMap(h=>h.assets.concat([h.cover,h.file]))).map(u=>u.startsWith('./')?u:'./'+u))];
   let tries=0;
   const check=async()=>{
     const have=await Promise.all(NEED.map(u=>caches.match(u,{ignoreSearch:true}).then(Boolean)));

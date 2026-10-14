@@ -28,6 +28,8 @@ keeps working because position comes from satellites, not the network.
 ## What it does
 
 **Before the hike**
+- **km | mi** switch next to Light/Dark, on every page: metric (km, m, °C, km/h) or US
+  (miles, feet, °F, mph) for everything shown. Route data and the maths stay metric (`units.js`).
 - Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
   parking, a link to rehearse the hike (simulated GPS and clock), and one to the hike's AllTrails page (reviews and
   recent conditions, while you still have signal).
@@ -80,6 +82,7 @@ is saved.
 |---|---|
 | `index.html` | Route picker: overview map, covers, key numbers, directions, test-mode links, offline status |
 | `planner.html` | The planner: schedule, map, profiles, day brief, cutoffs, GPS check-ins |
+| `units.js` | Shows every distance, height, temperature and speed in the chosen units (km or mi) |
 | `sim.js` | Test mode: simulated clock and GPS |
 | `routes/catalog.js` | The list of routes, parking coordinates, and every file each needs offline; the overview map's bounds and town labels |
 | `routes/overview.webp` | Overview map image, from `tools/render_overview.py` |

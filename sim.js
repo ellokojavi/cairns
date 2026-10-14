@@ -75,7 +75,7 @@ body.sim #bar{outline:3px dashed #E8B931;outline-offset:2px}`;
         <span class="pos" id="spos"></span></div>
       <div class="r more"><span>Go to</span><span class="chips" id="schips">${ST.map((s,i)=>`<button type="button" data-i="${i}" title="${s.n}">${i+1}</button>`).join('')}</span></div>
       <div class="r more"><label>Pace <select id="space"><option value="0.8">faster than plan</option><option value="1" selected>as planned</option><option value="1.25">25% slower</option><option value="1.5">50% slower</option></select></label>
-        <label>Off trail <select id="soff"><option value="0">on it</option><option value="60">60 m</option><option value="250">250 m</option><option value="1500">1.5 km</option></select></label>
+        <label>Off trail <select id="soff"><option value="0">on it</option><option value="60">${U.loose(60)}</option><option value="250">${U.loose(250)}</option><option value="1500">${U.loose(1500)}</option></select></label>
         <button id="sreset" type="button">Restart</button><a href="${location.pathname}?r=${encodeURIComponent(R.id)}">Exit rehearsal</a></div>`;
     document.body.appendChild(d);
     const $=id=>document.getElementById(id);
@@ -102,9 +102,9 @@ body.sim #bar{outline:3px dashed #E8B931;outline-offset:2px}`;
       $('sclk').textContent=fmt(SIM.now());
       $('skm').value=Math.round(SIM.m);
       const si=stopAt(SIM.m),leg=legOf(SIM.m);
-      $('spos').textContent=`Simulated position: km ${(SIM.m/1000).toFixed(2)} of ${(TOTAL/1000).toFixed(1)}, ${Math.round(elAt(SIM.m))} m`
+      $('spos').textContent=`Simulated position: ${U.at(SIM.m)} of ${U.num(TOTAL)}, ${U.elev(elAt(SIM.m))}`
         +(si>=0?` · at stop ${si+1}, ${ST[si].n}`:` · between ${leg} and ${leg+1}`)
-        +(SIM.off?` · ${SIM.off} m off the trail`:'')+(SIM.pause>0?` · resting ${Math.ceil(SIM.pause)} min`:'');
+        +(SIM.off?` · ${U.loose(SIM.off)} off the trail`:'')+(SIM.pause>0?` · resting ${Math.ceil(SIM.pause)} min`:'');
       $('splay').textContent=SIM.playing?'❚❚ Pause':'▶ Walk';$('splay').classList.toggle('on',SIM.playing);
     }
     function moved(){SIM.emit();if(!SIM.watchers.size)fixOnce(true);show();save()}
