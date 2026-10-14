@@ -10,6 +10,7 @@
 <title>Cairns</title>
 <script src="units.js"></script>
 <script src="routes/catalog.js"></script>
+<script src="tags.js"></script>
 <script>
 // which route: ?r=<id>, else the last one opened. Its data file sets window.ROUTE.
 (function(){
@@ -216,6 +217,10 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .hero .ht{position:absolute;inset:auto 0 0 0;padding:28px 14px 10px;color:#fff;background:linear-gradient(transparent,rgba(10,16,18,.82))}
 .hero h1{color:#fff;margin:0}
 .hero .var{font:600 16px/1.2 var(--cond);opacity:.92;margin:2px 0 0}
+.hero .chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.hero .chip{border-radius:14px;padding:3px 9px;font:600 12px/1.25 var(--body);color:#fff;background:rgba(12,18,20,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);white-space:nowrap}
+.hero .chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.hero .chip i.easy{background:#4E9A63}.hero .chip i.medium{background:#D49A22}.hero .chip i.hard{background:#D2563A}
 .hero .back img{width:30.25px;height:30.25px;margin:-4.125px;object-fit:contain}
 .hero .back{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .hero .back{position:absolute;top:10px;left:10px;background:rgba(12,18,20,.62);color:#fff;text-decoration:none;border-radius:16px;padding:4px 11px;font-size:13px;font-weight:600}
@@ -275,7 +280,7 @@ details.fold>div{padding:0 14px 12px}
 <body>
 <main>
 <div class="hero"><img id="cover" alt=""><a class="back" href="./"><img src="logo-dark.png" alt="">‹ All routes</a><div class="hctl" id="hctl"><button class="ghost" id="theme" type="button">Dark</button></div>
-  <div class="ht"><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
+  <div class="ht"><div class="chips" id="chips"></div><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
 <a class="covercred" id="covercred" target="_blank" rel="noopener" hidden></a>
 <div class="stats num" id="stats"></div>
 <p class="drive" id="drive" hidden></p>
@@ -573,7 +578,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-14 19:00';
+const BUILD='2026-10-14 19:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1380,7 +1385,8 @@ function setupPage(){
   const tt=R.title+(R.variant?' — '+R.variant:'');
   document.title=tt;
   $('title').textContent=R.title;
-  $('variant').textContent=[R.variant,R.size&&R.size[0].toUpperCase()+R.size.slice(1),ROUTE_META?.type].filter(Boolean).join(' · ');
+  $('variant').textContent=[...new Set([R.variant,ROUTE_META?.type].filter(Boolean))].join(' · ');
+  if(ROUTE_META)$('chips').innerHTML=coverPills(ROUTE_META);   // the same labels as the route's card in the list (tags.js)
   const cov=ROUTE_META?.cover||R.cover;
   if(cov)$('cover').src=cov;else $('cover').parentNode.classList.add('nocover');
   $('cover').alt=tt;

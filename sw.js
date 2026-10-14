@@ -1,8 +1,8 @@
 // Cairns (hike planner) - offline cache. Every route in routes/catalog.js is stored on install.
-const BUILD='2026-10-14 19:00';
+const BUILD='2026-10-14 19:30';
 const CACHE='hike-'+BUILD;
 importScripts('./routes/catalog.js');
-const CORE=['./','./index.html','./planner.html','./sim.js','./units.js','./manifest.webmanifest','./cairns-icon-192.png','./cairns-icon-512.png','./cairns-maskable-192.png','./cairns-maskable-512.png','./cairns-apple-180.png','./logo.png','./logo-dark.png','./favicon.png','./routes/catalog.js','./routes/overview.webp']
+const CORE=['./','./index.html','./planner.html','./sim.js','./units.js','./tags.js','./manifest.webmanifest','./cairns-icon-192.png','./cairns-icon-512.png','./cairns-maskable-192.png','./cairns-maskable-512.png','./cairns-apple-180.png','./logo.png','./logo-dark.png','./favicon.png','./routes/catalog.js','./routes/overview.webp']
   .concat(self.HIKES.flatMap(h=>h.assets.concat([h.cover,h.file])).map(u=>'./'+u))
   .filter((u,i,a)=>a.indexOf(u)===i);
 self.addEventListener('install',e=>{

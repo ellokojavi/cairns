@@ -82,6 +82,7 @@ is saved.
 |---|---|
 | `index.html` | Route picker: overview map, covers, key numbers, directions, test-mode links, offline status |
 | `planner.html` | The planner: schedule, map, profiles, day brief, cutoffs, GPS check-ins |
+| `tags.js` | The labels every hike gets (difficulty, distance, time, highlights): the filters, the cover pills and the planner's header all use it |
 | `units.js` | Shows every distance, height, temperature and speed in the chosen units (km or mi) |
 | `sim.js` | Test mode: simulated clock and GPS |
 | `routes/catalog.js` | The list of routes, parking coordinates, and every file each needs offline; the overview map's bounds and town labels |
