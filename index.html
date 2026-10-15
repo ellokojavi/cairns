@@ -34,6 +34,8 @@ h1{font:600 30px/1.05 var(--cond);margin:4px 0 2px}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:56px;height:56px;object-fit:contain;}
 .sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+.brand .sub{white-space:nowrap}
+@media (max-width:380px){.brand{gap:9px}.brand .sub{font-size:12.5px}}
 .units{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
 .units button{background:none;border:0;padding:5px 9px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
 .units button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
@@ -143,7 +145,7 @@ header{margin-bottom:14px;padding-top:4px}
 <body>
 <main>
 <header>
-  <div class="brand"><img class="logo lg-light" src="logo.png" alt="" width="56" height="56"><img class="logo lg-dark" src="logo-dark.png" alt="" width="56" height="56"><div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div></div>
+  <div class="brand"><img class="logo lg-light" src="logo.png" alt="" width="56" height="56"><img class="logo lg-dark" src="logo-dark.png" alt="" width="56" height="56"><div><h1>Cairns</h1><p class="sub" style="margin:0">Offline Hike Planner</p></div></div>
   <div class="hctl" id="hctl"><button class="ghost" id="theme" type="button">Dark</button></div>
 </header>
 <div id="off" class="off">Checking offline copy…</div>

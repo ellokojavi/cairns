@@ -619,7 +619,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-15 22:50';
+const BUILD='2026-10-15 23:20';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -668,9 +668,11 @@ function save(){
   try{history.replaceState(null,'',h);lastHash=h}catch(e){CAN_SAVE=false}
 }
 function load(){
+  // storage first: it is written on every save, while the browser may stop updating the address
+  // (history.replaceState is rate-limited) and a stale hash would drop check-ins. The hash is the fallback.
   let h='';
-  try{h=location.hash.slice(1)}catch(e){}
-  if(!h){try{h=localStorage.getItem(LSKEY)||''}catch(e){}}
+  try{h=localStorage.getItem(LSKEY)||''}catch(e){}
+  if(!h){try{h=location.hash.slice(1)}catch(e){}}
   if(!h)return;
   const kv=h.split('&').map(x=>x.split('='));
   const saved=(kv.find(x=>x[0]==='t')||[])[1];
