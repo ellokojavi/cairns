@@ -30,33 +30,40 @@ keeps working because position comes from satellites, not the network.
 **Before the hike**
 - **km | mi** switch next to Light/Dark, on every page: metric (km, m, °C, km/h) or US
   (miles, feet, °F, mph) for everything shown. Route data and the maths stay metric (`units.js`).
-- Route picker with a photo cover, key numbers, one-tap Google Maps directions to the
-  parking, a link to rehearse the hike (simulated GPS and clock), and one to the hike's AllTrails page (reviews and
-  recent conditions, while you still have signal).
-- **Find your next hike:** filter pills (distance, difficulty, time, pass, highlight; pills in a
-  row are alternatives, rows narrow each other, each shows how many hikes it would leave) above a
-  collapsible relief map of the region with a dot at every trailhead, coloured by difficulty.
-  Drag to pan; pinch, double-tap, the mouse wheel or + / − to zoom; ALL resets the view. Dots too
-  close to tell apart merge into a numbered one and split as you zoom in. Tap a dot for the hikes
-  that start there. Under the map, a swipeable row of cards shows every hike that matches the
-  filters (or, after tapping a dot, just that trailhead's, with "Show all"); changing a filter
-  frames its matches on the map. The filters also narrow the list below. Works offline.
-  Difficulty is effort = km + climb/100: under 13 easy, under 19 medium, else hard.
+- **Route list:** the header (logo, Cairns, Offline Hike Planner, km | mi, Light/Dark), an "Every route works offline" chip,
+  then **Find and track your next hike**: four filter chips (Distance, Difficulty, Time, More: pass and
+  highlights). Each opens a sheet with how many hikes every option leaves and "Show N hikes";
+  an active chip shows its choice and clears with ✕. Below, **List or Map** (remembered): one
+  compact row per hike (thumbnail with a difficulty dot, town, distance, climb, total time, tags),
+  or the relief map with a dot per trailhead (drag, pinch, double-tap, + / −, ALL; dots merge and
+  split as you zoom; tapping one narrows the rows to that trailhead). Difficulty is effort =
+  km + climb/100: under 13 easy, under 19 medium, else hard.
+- **A hike's page** opens with a compact header (photo, tags, one line of numbers) and the
+  departure card, then four tabs: **Plan** (finish time, daylight and gate margin, the parking gate
+  time as an estimate you can change to the posted one, the day brief), **Hike** (the stop timeline; one line per stop, tap for its note, photos,
+  close-up map and profile), **Map** (route map and elevation profile) and **Info** (the trail: what
+  it's like, trailhead, parking pass, type, high point, highlights, area, the trailhead note, the
+  route's GPS tip, what hikers say; then Directions, AllTrails, GPX and Rehearse, and one line of
+  credits, offline status and version).
+  On the trail the map tab comes first and opens by itself, and the dark bar pins as one slim
+  block (next stop and time, distance, hand check-in). Route lines and stop markers are drawn thin,
+  so the map underneath stays readable.
 - Plan by date: sunrise, sunset and dusk computed for the trailhead on that day.
 - **Your day:** with a connection, an hourly forecast (Open-Meteo, up to 16 days) for the
   trailhead and the high point at their own heights, plus, within 7 days, the official
   National Weather Service forecast: its active alerts for the hours you are out, its
   temperature and rain chance (the kit list follows whichever source is harsher, and says
   when they disagree), and the forecasters' text for the day; every stop's temperature at the time you pass it;
-  what to bring and what to leave at home, each with its reason (water, food, headlamp,
-  layers, rain gear, microspikes by freezing level, sun, wind, poles). Saved for offline.
+  the first three things to bring, with the full list (what to bring and leave at home, each with
+  its reason: water, food, headlamp, layers, rain gear, microspikes by freezing level, sun, wind,
+  poles) one tap away. Saved for offline.
 - **What hikers say:** a short summary of trip reports and reviews, with links.
 - Download the route's GPX for a watch or a map app.
 
 **On the trail**
 - Schedule for every stop, re-timed from check-ins and GPS; turnaround cutoffs that move
   earlier if you slow down; finish time against sunset or the parking gate.
-- GPS does the check-ins: one cheap fix when you open the phone, or continuous tracking
+- GPS does the check-ins: one cheap fix when you open the phone (or tap **Find me**), or continuous tracking
   where an off-route warning is worth the battery. Manual check-in stays as a fallback.
 - Map with every milestone named and timed; each stop's close-up frames the whole leg
   into it, with your position; elevation profiles for the route and each leg.
@@ -65,7 +72,7 @@ keeps working because position comes from satellites, not the network.
 - Milestone photos (Creative Commons, credited), intake reminders, notes per stop.
 
 **Rehearse the hike** (test mode)
-- `planner.html?r=<route>&sim=1` (linked from each card): a simulated GPS walker and a
+- `planner.html?r=<route>&sim=1` (linked from a hike's Info tab): a simulated GPS walker and a
   clock that runs up to 300×. Jump to any stop, change the pace, step off the trail.
   Its check-ins are kept apart from real ones.
 
