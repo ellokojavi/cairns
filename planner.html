@@ -79,10 +79,8 @@ button{cursor:pointer}
 #gps{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:12px;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);font-size:14px}
 #gps.on{border-color:var(--ok)}
 #gps.off{border-color:var(--gate)}
-#offline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-  border:1px solid var(--rule);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:14px;background:var(--panel)}
-#offline.ready{border-color:var(--ok)} #offline.no{border-color:var(--warn)}
-#offtxt b{color:var(--ink)} #offline.ready #offtxt b{color:var(--ok)} #offline.no #offtxt b{color:var(--warn)}
+/* offline status: a few words in the Info tab's small print */
+#offline.ready{color:var(--ok);font-weight:600} #offline.no{color:var(--warn);font-weight:600}
 #gpsline{flex:1 1 100%;color:var(--muted)}
 #autolab,#autolab2{display:flex;align-items:center;gap:6px;color:var(--muted);cursor:pointer}
 #autolab input,#autolab2 input{width:17px;height:17px;accent-color:var(--ok)}
@@ -252,7 +250,14 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 #stick.live #bar .big{padding:8px;font-size:15px;margin-top:6px}
 /* on the trail the map comes first */
 #stick.live .tabs button[data-tab="map"]{order:-1}
-.about{font-size:15px;margin:0 0 6px}
+.about{font-size:16px;line-height:1.45;margin:0 0 12px}
+/* Info: the trail in facts, then the trailhead note and tips */
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px;font-size:14.5px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-weight:600}
+.tip{font-size:14px;margin:0 0 12px;padding:10px 12px;background:var(--panel);border:1px solid var(--rule);border-radius:10px}
+#tab-info .drive{margin:14px 0}
+#tab-info .fine{font-size:12px;color:var(--muted);margin:6px 0}
 /* stops: one line each; tap the name for the note, photos, map and profile. The next stop opens by itself */
 li.stop .name{cursor:pointer}
 li.stop .name::after{content:'▸';color:var(--muted);font-size:14px;margin-left:6px}
@@ -347,7 +352,6 @@ details.fold>div{padding:0 14px 12px}
   <p>Cutoffs count back from the gate, not from dark.</p>
 </div>
 <details class="panel fold" id="daybox" open><summary id="daysum">Your day</summary><div id="daybody"></div></details>
-<details class="panel fold" id="revbox" hidden><summary>What hikers say</summary><div id="revbody"></div></details>
 </div>
 <!-- Stops: the timeline; on the trail this is the default -->
 <div class="tab" id="tab-stops" role="tabpanel" hidden>
@@ -368,21 +372,16 @@ details.fold>div{padding:0 14px 12px}
 </div>
 <!-- Info: links, the hike in words, offline status, how it works, credits -->
 <div class="tab" id="tab-info" role="tabpanel" hidden>
-<p class="drive" id="drive" hidden></p>
 <p class="about" id="about"></p>
-<p class="sub" id="summary"></p>
-<div id="offline"><span id="offtxt">Checking offline copy…</span></div>
-<section class="help">
-  <p><b>Fix position</b> takes one GPS reading, then switches it off. Cheap on battery. Tap it at each milestone.</p>
-  <p><b>Check-ins happen by themselves</b> when GPS puts you at a milestone, or past it. Opening the phone takes a fresh fix, so a glance at each stop is enough. Everything after re-times from your real pace. If GPS is off or not allowed, the check-in buttons come back; you can always mark a stop by hand with two taps.</p>
-  <p><b>Turnarounds</b> are the latest you can leave and still finish in time. They move earlier if you slow down.</p>
-  <p id="gpshint"><b>Keep GPS on</b> only where an off-route warning is worth the battery.</p>
-  <p class="fine">Distances and elevations come from the route GPX. A watch will read a little more distance, which is normal. Leg times are modelled from each leg's climb and descent. <a id="gpxlink" download>Milestone GPX</a> for a map app with offline maps.</p>
-  <p class="fine" id="mapcred"></p>
-  <p class="fine" id="simlink"><a id="simhref"><b>Rehearse the hike</b></a>: a simulated GPS and clock walk the route at the planned pace. Its check-ins are kept apart from real ones.</p>
-  <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
-  <footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
-</section>
+<dl class="facts" id="facts"></dl>
+<p class="tip" id="thnote" hidden></p>
+<p class="tip" id="gpshint" hidden></p>
+<details class="panel fold" id="revbox" hidden><summary>What hikers say</summary><div id="revbody"></div></details>
+<p class="drive" id="drive" hidden></p>
+<p class="fine" id="mapcred"></p>
+<p class="fine"><span id="offline"><span id="offtxt">Checking offline copy…</span></span> · <span id="buildver"></span> · <span id="netver"></span></p>
+<a id="gpxlink" hidden></a><span id="simlink" hidden><a id="simhref"></a></span>
+<footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
 </div>
 <svg id="defs" aria-hidden="true"><defs><image id="mapimg"/></defs></svg>
 </main>
@@ -620,7 +619,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-15 21:00';
+const BUILD='2026-10-15 21:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1421,11 +1420,11 @@ const offEl=()=>$('offline'),offTxt=()=>$('offtxt');
 function offState(kind,msg){offEl().className=kind;offTxt().innerHTML=msg}
 function initOffline(){
   if(LOCAL){
-    offState('ready','<b>Offline copy.</b> This is the downloaded file: it needs no connection. GPS is not available in it.');
+    offState('ready','Downloaded copy: works offline, no GPS');
     return;
   }
   if(!('serviceWorker'in navigator)){
-    offState('no','<b>This browser cannot store the page offline.</b> Save a copy instead, or keep this tab open.');return;
+    offState('no','This browser cannot save it for offline');return;
   }
   const hadController=!!navigator.serviceWorker.controller;   // false on a first install
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadController)$('newver').hidden=false});
@@ -1443,14 +1442,14 @@ function initOffline(){
       const need=['./planner.html'].concat((ROUTE_META?.assets||[R.map.src]).map(u=>'./'+u));
       Promise.all(need.map(u=>caches.match(u,{ignoreSearch:true}).then(r=>!!r))).then(a=>a.every(Boolean)).catch(()=>false).then(ok=>{
         offState(ok?'ready':'no', ok
-          ? '<b>Works in Airplane mode.</b> This route, its map and photos are on your phone now. GPS still works with no signal, and only checks your position when you ask it to, so it barely touches the battery. Add it to your home screen from the browser menu to reopen it without the link.'
-          : '<b>Not stored yet.</b> Stay on a connection a few more seconds, then pull down to reload.');
+          ? '✓ Saved for offline'
+          : 'Not saved for offline yet: stay on a connection, then reload');
       });
     };
-    if(reg.active)done(); else navigator.serviceWorker.ready.then(done).catch(()=>offState('no','<b>Offline storage failed.</b> Use the downloaded file instead.'));
+    if(reg.active)done(); else navigator.serviceWorker.ready.then(done).catch(()=>offState('no','Offline saving failed'));
     setTimeout(done,2500);
   }).catch(err=>{
-    offState('no','<b>Not stored offline here.</b> '+(String(err.name)==='SecurityError'?'This viewer blocks it. ':'')+'Open the link in Chrome or Safari directly, then check this line again.');
+    offState('no','Not saved for offline here'+(String(err.name)==='SecurityError'?' (this viewer blocks it)':'')+': open the link in Chrome or Safari');
   });
   window.addEventListener('online',()=>offEl().classList.remove('warnoff'));
 }
@@ -1475,11 +1474,16 @@ function setupPage(){
     [U.elev(STOPS[HI_STOP].m),'high point'],[dur(PLAN_MV),'moving']];
   $('stats').innerHTML=st.map(([b,s])=>`<span><b>${b}</b>${s}</span>`).join('');
   if(ROUTE_META?.blurb)$('about').textContent=ROUTE_META.blurb;
-  $('summary').textContent=R.summary||'';
+  // the trail in facts: where to park, which pass, what kind of hike, how high, what you see
+  const M=ROUTE_META||{},PASS={discover:'Discover Pass',nwfp:'Northwest Forest Pass'};
+  const facts=[['Trailhead',M.go?.[2]],['Parking pass',PASS[M.pass]],['Type',M.type],['High point',U.elev(STOPS[HI_STOP].m)],
+    ['Highlights',(M.hl||[]).map(x=>x[0].toUpperCase()+x.slice(1)).join(', ')],['Area',M.place]].filter(f=>f[1]);
+  $('facts').innerHTML=facts.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
+  if(STOPS[0]?.note){$('thnote').innerHTML='<b>At the trailhead.</b> '+STOPS[0].note;$('thnote').hidden=false}
   const img=$('mapimg');img.setAttribute('width',MW);img.setAttribute('height',MH);img.setAttribute('href',R.map.src);
   $('map').setAttribute('viewBox',`0 0 ${MW} ${MH}`);
   if(R.text?.totals){$('totals').innerHTML=R.text.totals;$('totals').hidden=false}
-  if(R.text?.gpsHint)$('gpshint').innerHTML=R.text.gpsHint;
+  if(R.text?.gpsHint){$('gpshint').innerHTML=R.text.gpsHint;$('gpshint').hidden=false}
   if(R.gpx)$('gpxlink').href=R.gpx;else $('gpxlink').hidden=true;
   // the track as a file, next to the directions: for a watch or a map app with offline maps
   if(R.gpx){const d=$('drive'),g=document.createElement('a');g.href=R.gpx;g.download=R.gpx.split('/').pop();

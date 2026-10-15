@@ -39,10 +39,12 @@ keeps working because position comes from satellites, not the network.
   split as you zoom; tapping one narrows the rows to that trailhead). Difficulty is effort =
   km + climb/100: under 13 easy, under 19 medium, else hard.
 - **A hike's page** opens with a compact header (photo, tags, one line of numbers) and the
-  departure card, then four tabs: **Plan** (finish time, daylight and gate margin, the day brief
-  and what hikers say), **Hike** (the stop timeline; one line per stop, tap for its note, photos,
-  close-up map and profile), **Map** (route map and elevation profile) and **Info** (directions,
-  AllTrails, GPX, rehearsal, the hike in words, offline status, how it works, credits).
+  departure card, then four tabs: **Plan** (finish time, daylight and gate margin, the parking gate
+  time as an estimate you can change to the posted one, the day brief), **Hike** (the stop timeline; one line per stop, tap for its note, photos,
+  close-up map and profile), **Map** (route map and elevation profile) and **Info** (the trail: what
+  it's like, trailhead, parking pass, type, high point, highlights, area, the trailhead note, the
+  route's GPS tip, what hikers say; then Directions, AllTrails, GPX and Rehearse, and one line of
+  credits, offline status and version).
   On the trail the map tab comes first and opens by itself, and the dark bar pins as one slim
   block (next stop and time, distance, hand check-in). Route lines and stop markers are drawn thin,
   so the map underneath stays readable.
