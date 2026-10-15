@@ -324,7 +324,7 @@ details.fold>div{padding:0 14px 12px}
 <div id="stick">
 <div id="barhome">
 <div id="bar" aria-live="polite">
-  <div class="hrow"><div class="h" id="bh"></div><button class="barfix" id="barfix" type="button">Locate me</button></div>
+  <div class="hrow"><div class="h" id="bh"></div><button class="barfix" id="barfix" type="button">Find me</button></div>
   <div class="d" id="bd"></div>
   <div class="deprow"><div id="planrow"><input type="date" id="pdate" aria-label="Hike date"><input type="time" id="dep" value="07:00" aria-label="Planned departure"></div>
   <button class="big" id="bigbtn" type="button"></button></div>
@@ -619,7 +619,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-15 23:20';
+const BUILD='2026-10-15 23:45';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1173,7 +1173,8 @@ function update(){
     :`Plan: ${U.dist(TOT)}, moving ${dur(PLAN_MV)}, breaks ${dur(PLAN_BR)}, total ${dur(P.fin-P.dep)}.`;
 
   const fb=$('fixbtn'),fa=$('fixage');
-  fb.disabled=busy||LOCAL;
+  const tracking=watchId!==null;   // Keep GPS on: the position updates by itself, a one-shot fix adds nothing
+  fb.disabled=busy||LOCAL||tracking;fb.title=tracking?'GPS is on: your position updates by itself':'';
   const secs=busy?Math.round((Date.now()-busyAt)/1000):0;
   fb.textContent=busy?`Finding you… ${secs}s`:'Find me';
   if(busy&&secs>12)$('gpsline').innerHTML='<b>Looking for satellites.</b> With no signal there is no assisted GPS, so a first fix can take a minute. Stand still under open sky.';
@@ -1183,10 +1184,10 @@ function update(){
     fa.innerHTML=a<90?`fixed ${a}s ago`
       :`<span class="${a>FIX_OLD?'stale':''}">fixed ${Math.round(a/60)} min ago${a>FIX_OLD?' — take a new one':''}</span>`}
   const bx=$('barfix');
-  bx.hidden=LOCAL;bx.disabled=busy;
+  bx.hidden=LOCAL;bx.disabled=busy||tracking;
   // tap to take a fresh fix; the label says how old the current one is
-  bx.textContent=busy?`Locating… ${secs}s`:!fix?'Locate me':(fixAge()<10?'Updated just now':`Updated ${fixAge()<90?Math.round(fixAge())+'s':Math.round(fixAge()/60)+' min'} ago`);
-  bx.classList.toggle('old',!!fix&&!busy&&fixAge()>FIX_OLD);bx.title='Take a new GPS reading';
+  bx.textContent=busy?`Finding you… ${secs}s`:!fix?(tracking?'GPS on':'Find me'):(fixAge()<10?'Updated just now':`Updated ${fixAge()<90?Math.round(fixAge())+'s':Math.round(fixAge()/60)+' min'} ago`);
+  bx.classList.toggle('old',!!fix&&!busy&&fixAge()>FIX_OLD);bx.title=tracking?'GPS is on: your position updates by itself':'Take a new GPS reading';
   const gl=gpsText(P);if(gl&&!busy)$('gpsline').innerHTML=gl;
   $('maphint').textContent=onRoute()?'Blue line and dot: where GPS puts you.'
     :P.started?'Dashed line and dot: where the schedule says you are. Take a fix for the real one.'
