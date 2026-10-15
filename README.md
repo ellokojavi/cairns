@@ -40,9 +40,12 @@ keeps working because position comes from satellites, not the network.
   km + climb/100: under 13 easy, under 19 medium, else hard.
 - **A hike's page** opens with a compact header (photo, tags, one line of numbers) and the
   departure card, then four tabs: **Plan** (finish time, daylight and gate margin, the day brief
-  and what hikers say), **Stops** (the timeline; one line per stop, tap for its note, photos,
+  and what hikers say), **Hike** (the stop timeline; one line per stop, tap for its note, photos,
   close-up map and profile), **Map** (route map and elevation profile) and **Info** (directions,
   AllTrails, GPX, rehearsal, the hike in words, offline status, how it works, credits).
+  On the trail the map tab comes first and opens by itself, and the dark bar pins as one slim
+  block (next stop and time, distance, hand check-in). Route lines and stop markers are drawn thin,
+  so the map underneath stays readable.
 - Plan by date: sunrise, sunset and dusk computed for the trailhead on that day.
 - **Your day:** with a connection, an hourly forecast (Open-Meteo, up to 16 days) for the
   trailhead and the high point at their own heights, plus, within 7 days, the official

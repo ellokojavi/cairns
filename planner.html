@@ -114,10 +114,10 @@ svg{display:block;width:100%;height:auto;margin:2px 0 10px}
 .mapwrap.zoom svg{width:240%}
 .maptools{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin:6px 0 14px}
 .mk{cursor:pointer}
-.mk rect{fill:#fff;stroke:#1C2A2E;stroke-width:4}
-.mk text{font:700 19px system-ui,sans-serif;fill:#1C2A2E;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.mk rect{fill:#fff;stroke:#1C2A2E;stroke-width:2.5}
+.mk text{font:700 14px system-ui,sans-serif;fill:#1C2A2E;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .mk.done rect{fill:#3C7A4E;stroke:#fff} .mk.done text{fill:#fff}
-.mk.next rect{stroke:#B0432A;stroke-width:7}
+.mk.next rect{stroke:#B0432A;stroke-width:4}
 .mlab{pointer-events:none}
 .mtag{font:700 22px system-ui,-apple-system,sans-serif;fill:#14201B;paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round}
 .mlab rect{fill:#fff;opacity:.82}
@@ -126,10 +126,10 @@ svg{display:block;width:100%;height:auto;margin:2px 0 10px}
 .mlab.done text{fill:#2F6A42} .mlab.next text{fill:#9A3A22}
 .nowdot{fill:#B0432A} .gpsdot{fill:#1669C7}
 .gpshalo{fill:#fff}
-.progcase{fill:none;stroke:#fff;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
-.prog{fill:none;stroke:#1669C7;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.progcase{fill:none;stroke:#fff;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.prog{fill:none;stroke:#1669C7;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
 .prog.done{opacity:.35}
-.prog.est{stroke:#B0432A;stroke-dasharray:14 12;opacity:.85}
+.prog.est{stroke:#B0432A;stroke-dasharray:8 7;opacity:.85}
 .pulse{fill:none;stroke:#1669C7;stroke-width:5;opacity:.7;animation:mpulse 2.2s ease-out infinite}
 .oob rect{fill:#12191B;opacity:.93;stroke:#fff;stroke-width:4}
 .oobdot{fill:#1669C7;stroke:#fff;stroke-width:4}
@@ -242,7 +242,16 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 #stick.live{position:sticky;top:0;z-index:6;background:var(--bg);padding-top:6px;margin-top:-6px}
 #stick.live .tabs{position:static}
-#stick.live #bar{margin-bottom:8px}
+#stick.live #bar{margin-bottom:8px;padding:7px 11px;border-radius:10px}
+/* on the trail the bar is one slim block: next stop and time, how far, and the hand check-in */
+#stick.live #bar .hrow{align-items:center}
+#stick.live #bar .h{font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#stick.live #bar .barfix{font-size:11px;padding:2px 8px;flex:0 0 auto}
+#stick.live #bar .d{font-size:12.5px;margin:1px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stick.live #bar .linkbtn,#stick.live #bar #undo{display:inline-block;margin:3px 14px 0 0;font-size:12.5px}
+#stick.live #bar .big{padding:8px;font-size:15px;margin-top:6px}
+/* on the trail the map comes first */
+#stick.live .tabs button[data-tab="map"]{order:-1}
 .about{font-size:15px;margin:0 0 6px}
 /* stops: one line each; tap the name for the note, photos, map and profile. The next stop opens by itself */
 li.stop .name{cursor:pointer}
@@ -316,7 +325,7 @@ details.fold>div{padding:0 14px 12px}
   <button id="undo" type="button" hidden>Undo last check-in</button>
 </div>
 </div>
-<nav class="tabs" id="tabs" role="tablist"><button type="button" role="tab" data-tab="plan">Plan</button><button type="button" role="tab" data-tab="stops">Stops</button><button type="button" role="tab" data-tab="map">Map</button><button type="button" role="tab" data-tab="info">Info</button></nav>
+<nav class="tabs" id="tabs" role="tablist"><button type="button" role="tab" data-tab="plan">Plan</button><button type="button" role="tab" data-tab="stops">Hike</button><button type="button" role="tab" data-tab="map">Map</button><button type="button" role="tab" data-tab="info">Info</button></nav>
 </div>
 <!-- Plan: when you leave, when you are back, what to bring -->
 <div class="tab" id="tab-plan" role="tabpanel">
@@ -540,7 +549,7 @@ function legPoint(i,r){const a=STOP_AT[i-1],b=STOP_AT[i];const segs=[];let tot=0
    dashed. Marks and labels stay on the trail itself. */
 const TURN=(ROUTE_META?.type==='Out and back'||R.turn!=null)?(R.turn??HI_STOP):null;
 const TURN_M=TURN!=null?TRK.cd[SI[TURN]]:Infinity;
-const OPTS=(()=>{if(TURN==null)return PTS;const o=11*K,kt=STOP_AT[TURN];
+const OPTS=(()=>{if(TURN==null)return PTS;const o=6*K,kt=STOP_AT[TURN];
   return PTS.map((p,k)=>{const a=PTS[Math.max(0,k===kt?k-1:k-1)],b=PTS[Math.min(PTS.length-1,k===kt?k:k+1)];
     let dx=b[0]-a[0],dy=b[1]-a[1];if(k===kt){dx=p[0]-PTS[k-1][0];dy=p[1]-PTS[k-1][1]}
     const L=Math.hypot(dx,dy)||1;return[p[0]-dy/L*o,p[1]+dx/L*o]})})();
@@ -588,13 +597,13 @@ function tracedPath(m){
 function progressSvg(m,isGps,z=1){
   const k=K*z,est=isGps?'':' est';
   if(TURN==null||m<=TURN_M){const d=tracedPath(m),w=TURN==null?1:0.7;
-    return `<path class="progcase" style="stroke-width:${16*k*w}" d="${d}"/><path class="prog${est}" style="stroke-width:${9*k*w}" d="${d}"/>`}
+    return `<path class="progcase" style="stroke-width:${8*k*w}" d="${d}"/><path class="prog${est}" style="stroke-width:${4.5*k*w}" d="${d}"/>`}
   const kt=STOP_AT[TURN],p=traceAt(m);let up='',dn=`M${OPTS[kt][0].toFixed(1)},${OPTS[kt][1].toFixed(1)}`;
   for(let i=0;i<=kt;i++)up+=(i?'L':'M')+OPTS[i][0].toFixed(1)+','+OPTS[i][1].toFixed(1);
   for(let i=kt+1;i<=p.k;i++)dn+=`L${OPTS[i][0].toFixed(1)},${OPTS[i][1].toFixed(1)}`;
   dn+=`L${p.ox.toFixed(1)},${p.oy.toFixed(1)}`;
-  return `<path class="prog done${est}" style="stroke-width:${6*k}" d="${up}"/>`
-    +`<path class="progcase" style="stroke-width:${11*k}" d="${dn}"/><path class="prog${est}" style="stroke-width:${6.5*k}" d="${dn}"/>`;
+  return `<path class="prog done${est}" style="stroke-width:${3*k}" d="${up}"/>`
+    +`<path class="progcase" style="stroke-width:${6*k}" d="${dn}"/><path class="prog${est}" style="stroke-width:${3.5*k}" d="${dn}"/>`;
 }
 
 // modelled moving + break minutes from the trailhead to a distance along the route
@@ -607,7 +616,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-15 20:00';
+const BUILD='2026-10-15 20:30';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1028,11 +1037,11 @@ function mini(i){const p=PTS[STOP_AT[i]],A=440/240,pad=40*K;
   w=Math.round(w);h=Math.round(h);
   const z=w/(440*K);   // marks keep the same size on screen however far the card zooms out
   MINI_VB[i]=[x,y,w,h,z];
-  return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map of the leg into ${STOPS[i].n}"><use href="#mapimg"/>${routeLine(z)}<circle class="ring" cx="${p[0]}" cy="${p[1]}" r="${(22*K*z).toFixed(1)}" style="stroke-width:${(5*K*z).toFixed(1)}"/><g id="mo${i}"></g></svg>`}
+  return `<svg class="mini" viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="Map of the leg into ${STOPS[i].n}"><use href="#mapimg"/>${routeLine(z)}<circle class="ring" cx="${p[0]}" cy="${p[1]}" r="${(14*K*z).toFixed(1)}" style="stroke-width:${(3*K*z).toFixed(1)}"/><g id="mo${i}"></g></svg>`}
 // the planned line, for maps that do not have it printed on them
 function routeLine(z=1){
   if(!R.map.route)return'';
-  const w=6*K*z;
+  const w=3*K*z;   // a thin line: the map does the work
   if(TURN==null)return `<path class="rte" style="stroke-width:${w.toFixed(1)}" d="M${PTS.map(p=>p[0]+','+p[1]).join('L')}"/>`;
   const kt=STOP_AT[TURN];
   return phaseLine('rte',0,kt,w)+phaseLine('rte down',kt,PTS.length-1,w);
@@ -1214,7 +1223,7 @@ function update(){
   // on the trail with GPS doing the work, the bar shows the next stop and keeps check-in as a small link
   const quiet=P.started&&nx<N&&gpsLed()&&armed!==nx;
   if(P.started&&nx<N&&gpsLed()){big.hidden=quiet;const mb=$('manualci'),cc=canCheck(nx);mb.hidden=!quiet;
-    mb.disabled=!cc.ok;mb.textContent=`Reached ${STOPS[nx].n}? Check in by hand`}
+    mb.disabled=!cc.ok;mb.textContent=`Check in at stop ${nx+1} by hand`}   // the bar's heading already names it
   else $('manualci').hidden=true;
   if(!big.hidden){const i=P.started?nx:0,cc=canCheck(i);
     big.disabled=!cc.ok;big.classList.toggle('armed',armed===i);big.dataset.i=i;
@@ -1284,22 +1293,22 @@ function profile(P,now){
   const hereM=here?here.m:null, isGps=!!here&&here.gps;
   if(hereM!=null)o+=progressSvg(hereM,isGps);
   if(R.map.labels!==false)o+=mapLabels(P,L);
-  MARKS.forEach(g=>{const p=PTS[STOP_AT[g[0]]],r=19;
+  MARKS.forEach(g=>{const p=PTS[STOP_AT[g[0]]],r=13;
     const st=i=>state.ci[i]!=null?'done':(P.started&&i===L+1)||(!P.started&&i===0)?'next':'';
     const cls=g.some(i=>st(i)==='next')?'next':g.every(i=>st(i)==='done')?'done':'';
     const go=g.find(i=>state.ci[i]==null)??g[0], lab=g.map(i=>i+1).join('·');
     const w=g.length>1?r*(0.9+lab.length*0.42):r;
-    o+=`<g class="mk ${cls}" data-go="${go}" transform="translate(${p[0]},${p[1]}) scale(${K.toFixed(3)})"><rect x="${(-w).toFixed(1)}" y="-19" width="${(2*w).toFixed(1)}" height="38" rx="19"/><text>${lab}</text></g>`});
+    o+=`<g class="mk ${cls}" data-go="${go}" transform="translate(${p[0]},${p[1]}) scale(${K.toFixed(3)})"><rect x="${(-w).toFixed(1)}" y="${-r}" width="${(2*w).toFixed(1)}" height="${2*r}" rx="${r}"/><text>${lab}</text></g>`});
   if(hereM!=null){const q=pixAtM(hereM);mapFocus=q;
     o+=`<g transform="translate(${q[0].toFixed(1)},${q[1].toFixed(1)}) scale(${K.toFixed(3)})"><circle class="pulse" r="16"/>`
-      +`<circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
+      +`<circle class="gpshalo" r="12"/><circle class="${isGps?'gpsdot':'nowdot'}" r="8"/></g>`;
   }else{const k=P.started?Math.min(N-1,L+1):0;mapFocus=PTS[STOP_AT[k]].slice(0,2)}
   // the same line and dot on every stop's close-up, so the card in hand shows where you are
   const hq=hereM!=null?pixAtM(hereM):null;
   for(let i=0;i<N;i++){const g=document.getElementById('mo'+i);if(!g||!MINI_VB[i])continue;
     const z=MINI_VB[i][4],kz=K*z;let o2='';
     if(hereM!=null)o2=progressSvg(hereM,isGps,z)
-      +`<g transform="translate(${hq[0].toFixed(1)},${hq[1].toFixed(1)}) scale(${kz.toFixed(3)})"><circle class="gpshalo" r="19"/><circle class="${isGps?'gpsdot':'nowdot'}" r="13"/></g>`;
+      +`<g transform="translate(${hq[0].toFixed(1)},${hq[1].toFixed(1)}) scale(${kz.toFixed(3)})"><circle class="gpshalo" r="12"/><circle class="${isGps?'gpsdot':'nowdot'}" r="8"/></g>`;
     // you are outside this close-up: an arrow on its edge points your way, with the distance along the trail
     if(hereM!=null){const[x,y,w,h]=MINI_VB[i],q=hq,pad=26*kz;
       if(q[0]<x||q[0]>x+w||q[1]<y||q[1]>y+h){
@@ -1333,7 +1342,7 @@ $('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-tab
 function liveLayout(){
   const live=state.ci[0]!=null&&state.ci[N-1]==null;
   $('stick').classList.toggle('live',live);
-  if(live!==wasLive){if(wasLive!==null||TAB===null)showTab(live?'stops':(TAB||'plan'));wasLive=live}
+  if(live!==wasLive){if(wasLive!==null||TAB===null)showTab(live?'map':(TAB||'plan'));wasLive=live}   // on the trail the map opens first
 }
 $('list').addEventListener('click',e=>{const n=e.target.closest('li.stop .name');if(!n)return;const li=n.closest('li.stop');
   const shown=li.classList.contains('open')||(li.classList.contains('isnext')&&!li.classList.contains('shut'));
