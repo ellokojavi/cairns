@@ -115,12 +115,21 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .lgd{display:flex;gap:10px}
 .lgd i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:0}
 .lgd .easy{background:#3C7A4E}.lgd .medium{background:#B07A12}.lgd .hard{background:#B0432A}
-.ovpick{display:flex;gap:10px;overflow-x:auto;padding:0 12px 12px}
-.ovc{flex:0 0 220px;display:block;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.ovhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 12px 8px;font-size:13px;color:var(--muted)}
+.ovhead b{color:var(--ink);font-weight:600}
+.ovhead button{background:none;border:0;padding:2px 0;font:600 13px var(--body);color:var(--accent);cursor:pointer;white-space:nowrap}
+.ovpick{display:flex;gap:10px;overflow-x:auto;padding:0 12px 12px;scroll-snap-type:x proximity}
+.ovpick .ovc{scroll-snap-align:start}
+.ovnone{margin:0;color:var(--muted);font-size:13px}
+.ovc{flex:0 0 236px;display:block;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
 .ovc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ovcv{position:relative}
 .ovc img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:50% 30%;background:#1C2A2E}
-.ovc b{display:block;font:600 17px/1.1 var(--cond);padding:7px 9px 0}
-.ovc span{display:block;font-size:12.5px;color:var(--muted);padding:2px 9px 8px;font-variant-numeric:tabular-nums}
+.ovc .chips{top:7px;left:7px;right:7px;gap:4px}
+.ovc .chip{font-size:11px;padding:2px 7px}
+.ovc .chip.done{display:none}
+.ovc>b{display:block;font:600 17px/1.1 var(--cond);padding:7px 9px 0}
+.ovc>span{display:block;font-size:12.5px;color:var(--muted);padding:2px 9px 8px;font-variant-numeric:tabular-nums}
 .none{background:var(--panel);border:1px dashed var(--rule);border-radius:12px;padding:18px 14px;margin-top:16px;color:var(--muted);text-align:center}
 .credit{margin-top:24px;padding-top:12px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;text-align:center}
 .credit a{color:inherit}
@@ -144,7 +153,8 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="ovmap" id="ovmap"><div class="ovin" id="ovin"><img id="ovimg" alt="Relief map of the region from Puget Sound to Leavenworth, with a dot at each trailhead" draggable="false"><svg id="ovsvg" role="group" aria-label="Trailheads"></svg></div>
     <div class="ovctl"><button id="ovplus" type="button" aria-label="Zoom in">+</button><button id="ovminus" type="button" aria-label="Zoom out">−</button><button id="ovreset" type="button" aria-label="Reset the view">ALL</button></div></div>
   <div class="ovbar"><span id="ovhint">Tap a dot for the hikes that start there. Pinch or double-tap to zoom.</span><span class="lgd"><span><i class="easy"></i>Easy</span><span><i class="medium"></i>Medium</span><span><i class="hard"></i>Hard</span></span></div>
-  <div class="ovpick" id="ovpick" hidden></div>
+  <div class="ovhead" id="ovhead" aria-live="polite"></div>
+  <div class="ovpick" id="ovpick"></div>
 </details>
 <div id="list"></div>
 <footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
@@ -156,10 +166,12 @@ const dur=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
 const n=v=>v.toLocaleString('en-US');
 // one tap: Google Maps opens with driving directions to the parking (the app on a phone)
 const gmaps=g=>'https://www.google.com/maps/dir/?api=1&destination='+g[0]+','+g[1]+'&travelmode=driving';
+// a hike's name: "Peak — Route" where a peak has several routes, so every card and list says the same
+const hikeName=h=>HIKES.filter(x=>x.peak===h.peak).length>1?h.title+' — '+h.variant:h.title;
 function card(h,multi){
   return `<a class="card" href="planner.html?r=${h.id}">
     <div class="cv"><img src="${h.cover}" alt="" loading="lazy"><div class="chips">${coverPills(h)}</div>
-      <div class="t"><b>${multi?h.title+' — '+h.variant:h.title}</b><span>${multi?h.type:h.variant+' · '+h.type}</span></div></div>
+      <div class="t"><b>${hikeName(h)}</b><span>${multi?h.type:h.variant+' · '+h.type}</span></div></div>
     <div class="st"><div><b>${U.dist(h.km*1000)}</b><span>distance</span></div><div><b>+${U.elev(h.up)}</b><span>climb</span></div>
       <div><b>${U.elev(h.hi)}</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
     <p class="pl">${h.place}</p><p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
@@ -189,8 +201,7 @@ function drawFilters(){
 function applyFilters(){
   try{localStorage.setItem('cairns-filters',JSON.stringify(FSEL))}catch(e){}
   drawFilters();renderList();
-  if(ovSel&&!ovSel.split(',').some(id=>passes(HIKES.find(h=>h.id===id))))ovSel=null;
-  ovDraw();
+  ovSel=null;ovDraw();ovFit();   // a new filter shows all its matches, framed on the map
 }
 $('flt').addEventListener('click',e=>{
   if(e.target.id==='fclear'){FSEL={};applyFilters();return}
@@ -208,8 +219,8 @@ const zMin=()=>Math.max(1,OVM.clientHeight/(OVM.clientWidth*OV.H/OV.W));
 function ovHome(){const z=zMin(),w=OVM.clientWidth,xs=HIKES.filter(h=>h.go).map(h=>ovXY(h.go[1],h.go[0])).concat([ovXY(OV.places[0][1],OV.places[0][2])]);   // the hikes and Seattle
   const cx=(Math.min(...xs.map(p=>p[0]))+Math.max(...xs.map(p=>p[0])))/2,cy=(Math.min(...xs.map(p=>p[1]))+Math.max(...xs.map(p=>p[1])))/2,k=w*z/OV.W;
   return[z,w/2-cx*k,OVM.clientHeight/2-cy*k]}
-function ovCard(h){return `<a class="ovc" href="planner.html?r=${h.id}"><img src="${h.cover}" alt="" loading="lazy"><b>${h.title}</b>
-  <span>${h.variant} · ${U.dist(h.km*1000)} · +${U.elev(h.up)} · ${dur(h.moving)} moving · ${DIFF_NAME[DIFF(h)]}</span></a>`}
+function ovCard(h){return `<a class="ovc" href="planner.html?r=${h.id}"><div class="ovcv"><img src="${h.cover}" alt="" loading="lazy"><div class="chips">${coverPills(h)}</div></div><b>${hikeName(h)}</b>
+  <span>${U.dist(h.km*1000)} · +${U.elev(h.up)} · ${dur(h.moving)} moving</span></a>`}
 function ovDraw(){
   const svg=$('ovsvg'),k=OVM.clientWidth*VIEW.z/OV.W||.1;   // screen px per map px
   svg.setAttribute('viewBox',`0 0 ${OV.W} ${OV.H}`);
@@ -238,12 +249,28 @@ function ovDraw(){
   if(ovSel){const g=[...svg.querySelectorAll('.ovdot')].find(g=>g.dataset.k.split(',').some(id=>ovSel.split(',').includes(id)));
     if(g){ovSel=g.dataset.k;ovPick(ovSel)}else ovPick(null)}else ovPick(null);
 }
+// the row under the map: every hike that matches the filters, or only the tapped trailhead's
+let ovPickSig='';
 function ovPick(key){
-  ovSel=key;const box=$('ovpick');
-  if(!key){box.hidden=true;$('ovhint').textContent='Tap a dot for the hikes that start there. Pinch or double-tap to zoom.';return}
-  const hs=key.split(',').map(id=>HIKES.find(h=>h.id===id));
-  box.innerHTML=hs.map(ovCard).join('');box.hidden=false;
-  $('ovhint').textContent=hs.length>1?`${hs.length} hikes here. Tap one to plan it, or zoom in to split them.`:'Tap the card to plan it.';
+  ovSel=key;
+  const all=HIKES.filter(h=>passes(h)),hs=key?key.split(',').map(id=>HIKES.find(h=>h.id===id)):all;
+  const any=FILTERS.some(f=>(FSEL[f.id]||[]).length),pl=k=>k===1?'hike':'hikes';
+  const head=key?`<span><b>${hs.length} ${pl(hs.length)} at this trailhead</b></span><button type="button" id="ovall">Show all ${all.length}</button>`
+    :`<span><b>${any?`${all.length} ${all.length===1?'hike matches':'hikes match'}`:`All ${all.length} hikes`}</b>${all.length>1?' · swipe for more':''}</span>`;
+  $('ovhint').textContent=key?'Tap a card to plan it.':'Tap a dot to see only the hikes that start there. Pinch or double-tap to zoom.';
+  const sig=head+hs.map(h=>h.id).join()+U.us;if(sig===ovPickSig)return;ovPickSig=sig;   // redrawn on every zoom step: rebuild only when it changes
+  $('ovhead').innerHTML=head;
+  const box=$('ovpick');box.innerHTML=hs.length?hs.map(ovCard).join(''):'<p class="ovnone">No hike matches all the filters. Clear one to see more.</p>';box.scrollLeft=0;
+}
+$('ovhead').addEventListener('click',e=>{if(e.target.id==='ovall'){ovPick(null);ovDraw()}});
+// after a filter change: frame the hikes that match, so the change shows on the map
+function ovFit(){
+  const hs=HIKES.filter(h=>h.go&&passes(h));
+  if(!hs.length||!FILTERS.some(f=>(FSEL[f.id]||[]).length)){ovAnimate(...ovHome());return}
+  const w=OVM.clientWidth,h=OVM.clientHeight,ps=hs.map(x=>ovXY(x.go[1],x.go[0])),pad=56;
+  const xs=ps.map(p=>p[0]),ys=ps.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const k=Math.min((w-2*pad)/Math.max(1,x1-x0),(h-2*pad)/Math.max(1,y1-y0)),z=Math.max(zMin(),Math.min(5,k*OV.W/w)),kk=w*z/OV.W;
+  ovAnimate(z,w/2-(x0+x1)/2*kk,h/2-(y0+y1)/2*kk);
 }
 // pan and zoom: one transform on the image and its overlay; dots are redrawn so they keep their size on screen
 let ovRaf=0;

@@ -38,7 +38,9 @@ keeps working because position comes from satellites, not the network.
   collapsible relief map of the region with a dot at every trailhead, coloured by difficulty.
   Drag to pan; pinch, double-tap, the mouse wheel or + / − to zoom; ALL resets the view. Dots too
   close to tell apart merge into a numbered one and split as you zoom in. Tap a dot for the hikes
-  that start there. The filters also narrow the list below. Works offline.
+  that start there. Under the map, a swipeable row of cards shows every hike that matches the
+  filters (or, after tapping a dot, just that trailhead's, with "Show all"); changing a filter
+  frames its matches on the map. The filters also narrow the list below. Works offline.
   Difficulty is effort = km + climb/100: under 13 easy, under 19 medium, else hard.
 - Plan by date: sunrise, sunset and dusk computed for the trailhead on that day.
 - **Your day:** with a connection, an hourly forecast (Open-Meteo, up to 16 days) for the
