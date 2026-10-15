@@ -356,7 +356,7 @@ details.fold>div{padding:0 14px 12px}
 <!-- Stops: the timeline; on the trail this is the default -->
 <div class="tab" id="tab-stops" role="tabpanel" hidden>
 <div id="gps">
-  <button class="ghost" id="fixbtn" type="button">Fix position</button>
+  <button class="ghost" id="fixbtn" type="button">Find me</button>
   <span id="fixage"></span>
   <label id="autolab"><input type="checkbox" id="autochk" checked> Check in automatically</label>
   <label id="autolab2"><input type="checkbox" id="watchchk"> Keep GPS on</label>
@@ -619,7 +619,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-15 22:30';
+const BUILD='2026-10-15 22:45';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1173,10 +1173,10 @@ function update(){
   const fb=$('fixbtn'),fa=$('fixage');
   fb.disabled=busy||LOCAL;
   const secs=busy?Math.round((Date.now()-busyAt)/1000):0;
-  fb.textContent=busy?`Getting fix… ${secs}s`:fix?'Update position':'Fix position';
+  fb.textContent=busy?`Finding you… ${secs}s`:fix?'Find me again':'Find me';
   if(busy&&secs>12)$('gpsline').innerHTML='<b>Looking for satellites.</b> With no signal there is no assisted GPS, so a first fix can take a minute. Stand still under open sky.';
   if(LOCAL)fa.textContent='';
-  else if(!fix)fa.textContent=busy?'':'no fix yet';
+  else if(!fix)fa.textContent=busy?'':'not found yet';
   else{const a=Math.round(fixAge());
     fa.innerHTML=a<90?`fixed ${a}s ago`
       :`<span class="${a>FIX_OLD?'stale':''}">fixed ${Math.round(a/60)} min ago${a>FIX_OLD?' — take a new one':''}</span>`}

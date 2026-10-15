@@ -63,7 +63,7 @@ keeps working because position comes from satellites, not the network.
 **On the trail**
 - Schedule for every stop, re-timed from check-ins and GPS; turnaround cutoffs that move
   earlier if you slow down; finish time against sunset or the parking gate.
-- GPS does the check-ins: one cheap fix when you open the phone, or continuous tracking
+- GPS does the check-ins: one cheap fix when you open the phone (or tap **Find me**), or continuous tracking
   where an off-route warning is worth the battery. Manual check-in stays as a fallback.
 - Map with every milestone named and timed; each stop's close-up frames the whole leg
   into it, with your position; elevation profiles for the route and each leg.
