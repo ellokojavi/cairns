@@ -56,7 +56,7 @@ button{cursor:pointer}
 .ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font-size:14px}
 .panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px;margin-bottom:12px}
 
-#bar{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+#bar{position:relative;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:12px}
 #bar .hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 #bar .h{font:600 21px/1.2 var(--cond)}
 .barfix{flex:none;background:none;border:1px solid rgba(255,255,255,.55);color:inherit;
@@ -212,7 +212,7 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .legend{display:inline-flex;gap:10px;align-items:center;font-size:12.5px;color:var(--muted)}
 .legend i{display:inline-block;width:22px;height:0;border-top:3px solid #D2371F;vertical-align:middle}
 .legend i.down{border-top:3px dashed #7A2BB0}
-.hero{position:relative;margin:0 0 10px;border-radius:12px;overflow:hidden;background:#1C2A2E;aspect-ratio:16/8}
+.hero{position:relative;margin:0 0 6px;border-radius:12px;overflow:hidden;background:#1C2A2E;aspect-ratio:16/7}
 .hero img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
 .hero .ht{position:absolute;inset:auto 0 0 0;padding:28px 14px 10px;color:#fff;background:linear-gradient(transparent,rgba(10,16,18,.82))}
 .hero h1{color:#fff;margin:0}
@@ -233,10 +233,29 @@ li.stop.isnext{background:linear-gradient(90deg,transparent,var(--panel) 40%)}
 .hero .units button{background:none;border:0;padding:4px 10px;font:600 13px var(--body);color:rgba(255,255,255,.75);cursor:pointer}
 .hero .units button[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#12191B}
 .hero .units button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px}
-.stats div{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:6px 8px}
-.stats b{display:block;font:600 18px/1.1 var(--cond);white-space:nowrap}
-.stats span{font-size:11.5px;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:2px 14px;margin:0 0 10px;font-size:12.5px;color:var(--muted)}
+.stats b{font:600 17px/1.2 var(--cond);color:var(--ink);margin-right:3px;white-space:nowrap}
+/* tabs: Plan / Stops / Map / Info. The bar above them is the "am I on time" card; on the trail it pins with the tabs */
+.tabs{position:sticky;top:0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:0 0 12px;background:var(--bg);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.tabs button{background:none;border:0;padding:9px 0;font:600 14px var(--body);color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+#stick.live{position:sticky;top:0;z-index:6;background:var(--bg);padding-top:6px;margin-top:-6px}
+#stick.live .tabs{position:static}
+#stick.live #bar{margin-bottom:8px}
+.about{font-size:15px;margin:0 0 6px}
+/* stops: one line each; tap the name for the note, photos, map and profile. The next stop opens by itself */
+li.stop .name{cursor:pointer}
+li.stop .name::after{content:'▸';color:var(--muted);font-size:14px;margin-left:6px}
+li.stop.open .name::after,li.stop.isnext:not(.shut) .name::after{content:'▾'}
+li.stop:not(.open):not(.isnext) :is(.note,details.ph,svg.mini,svg.legsvg,.leg),li.stop.isnext.shut:not(.open) :is(.note,details.ph,svg.mini,svg.legsvg,.leg){display:none}
+li.stop{padding:10px 0}
+/* the day brief: the decision first, the reasons one tap away */
+.kitshort{margin:8px 0 4px;padding-left:18px;font-size:14px}
+.kitshort li{margin:0 0 3px}
+details.dmore{margin-top:6px}
+details.dmore>summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px;list-style:none}
+details.dmore>summary::-webkit-details-marker{display:none}
 #planbox{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;align-items:end}
 #planbox label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
 #planbox input{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;font-size:16px;background:var(--bg);color:var(--ink);width:100%}
@@ -283,10 +302,10 @@ details.fold>div{padding:0 14px 12px}
   <div class="ht"><div class="chips" id="chips"></div><h1 id="title"></h1><p class="var" id="variant"></p></div></div>
 <a class="covercred" id="covercred" target="_blank" rel="noopener" hidden></a>
 <div class="stats num" id="stats"></div>
-<p class="drive" id="drive" hidden></p>
-<p class="who" id="when"></p>
-<p class="sub"><span id="summary"></span> <span id="sun"></span></p>
-
+<div id="autobar" hidden></div>
+<div id="newver" hidden><span>A newer version is ready.</span><button class="ghost" id="reloadbtn" type="button">Reload</button></div>
+<div id="stick">
+<div id="barhome">
 <div id="bar" aria-live="polite">
   <div class="hrow"><div class="h" id="bh"></div><button class="barfix" id="barfix" type="button">Locate me</button></div>
   <div class="d" id="bd"></div>
@@ -296,27 +315,11 @@ details.fold>div{padding:0 14px 12px}
   <button id="manualci" class="linkbtn" type="button" hidden></button>
   <button id="undo" type="button" hidden>Undo last check-in</button>
 </div>
-
-<div class="panel" id="planbox">
-  <label class="wide" id="gaterow" hidden>Parking gate closes (posted time)<input type="time" id="pgate"></label>
-  <p>Cutoffs count back from the gate, not from dark.</p>
 </div>
-
-<details class="panel fold" id="daybox" open><summary id="daysum">Your day</summary><div id="daybody"></div></details>
-<details class="panel fold" id="revbox" hidden><summary>What hikers say</summary><div id="revbody"></div></details>
-
-<div id="offline"><span id="offtxt">Checking offline copy…</span></div>
-
-<div id="gps">
-  <button class="ghost" id="fixbtn" type="button">Fix position</button>
-  <span id="fixage"></span>
-  <label id="autolab"><input type="checkbox" id="autochk" checked> Check in automatically</label>
-  <label id="autolab2"><input type="checkbox" id="watchchk"> Keep GPS on</label>
-  <span id="gpsline">One tap takes a single fix and switches the GPS off again, so it costs almost no battery. Leave it off between milestones.</span>
+<nav class="tabs" id="tabs" role="tablist"><button type="button" role="tab" data-tab="plan">Plan</button><button type="button" role="tab" data-tab="stops">Stops</button><button type="button" role="tab" data-tab="map">Map</button><button type="button" role="tab" data-tab="info">Info</button></nav>
 </div>
-<div id="autobar" hidden></div>
-<div id="newver" hidden><span>A newer version is ready.</span><button class="ghost" id="reloadbtn" type="button">Reload</button></div>
-
+<!-- Plan: when you leave, when you are back, what to bring -->
+<div class="tab" id="tab-plan" role="tabpanel">
 <div class="panel">
   <div class="finish"><b class="num" id="fin"></b><span id="finlbl"></span></div>
   <div id="margin"></div>
@@ -324,15 +327,38 @@ details.fold>div{padding:0 14px 12px}
   <p class="totals" id="resetrow"><button type="button" id="wipe" class="ghost">Start a fresh day</button></p>
   <p class="totals" id="totals" hidden></p>
 </div>
-
-<svg id="defs" aria-hidden="true"><defs><image id="mapimg"/></defs></svg>
+<p class="who" id="when"></p>
+<p class="sub"><span id="sun"></span></p>
+<div class="panel" id="planbox">
+  <label class="wide" id="gaterow" hidden>Parking gate closes (posted time)<input type="time" id="pgate"></label>
+  <p>Cutoffs count back from the gate, not from dark.</p>
+</div>
+<details class="panel fold" id="daybox" open><summary id="daysum">Your day</summary><div id="daybody"></div></details>
+<details class="panel fold" id="revbox" hidden><summary>What hikers say</summary><div id="revbody"></div></details>
+</div>
+<!-- Stops: the timeline; on the trail this is the default -->
+<div class="tab" id="tab-stops" role="tabpanel" hidden>
+<div id="gps">
+  <button class="ghost" id="fixbtn" type="button">Fix position</button>
+  <span id="fixage"></span>
+  <label id="autolab"><input type="checkbox" id="autochk" checked> Check in automatically</label>
+  <label id="autolab2"><input type="checkbox" id="watchchk"> Keep GPS on</label>
+  <span id="gpsline">One tap takes a single fix and switches the GPS off again, so it costs almost no battery. Leave it off between milestones.</span>
+</div>
+<ol id="list"></ol>
+</div>
+<!-- Map: the route map and the elevation profile -->
+<div class="tab" id="tab-map" role="tabpanel" hidden>
 <div class="mapwrap" id="mapwrap"><svg id="map" role="img" aria-label="Route map with numbered stops"><use href="#mapimg"/><g id="mapov"></g></svg></div>
 <div class="maptools"><span><span id="maphint">Tap a number to jump to that stop.</span> <span class="legend" id="legend" hidden><span><i></i> way up</span><span><i class="down"></i> way down</span></span></span><button class="ghost" id="zoom" type="button">Enlarge map</button></div>
-
 <svg id="prof" viewBox="0 0 340 136" role="img" aria-label="Elevation profile from the GPX track"></svg>
-
-<ol id="list"></ol>
-
+</div>
+<!-- Info: links, the hike in words, offline status, how it works, credits -->
+<div class="tab" id="tab-info" role="tabpanel" hidden>
+<p class="drive" id="drive" hidden></p>
+<p class="about" id="about"></p>
+<p class="sub" id="summary"></p>
+<div id="offline"><span id="offtxt">Checking offline copy…</span></div>
 <section class="help">
   <p><b>Fix position</b> takes one GPS reading, then switches it off. Cheap on battery. Tap it at each milestone.</p>
   <p><b>Check-ins happen by themselves</b> when GPS puts you at a milestone, or past it. Opening the phone takes a fresh fix, so a glance at each stop is enough. Everything after re-times from your real pace. If GPS is off or not allowed, the check-in buttons come back; you can always mark a stop by hand with two taps.</p>
@@ -344,6 +370,8 @@ details.fold>div{padding:0 14px 12px}
   <p id="build"><span id="buildver"></span> · <span id="netver"></span></p>
   <footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
 </section>
+</div>
+<svg id="defs" aria-hidden="true"><defs><image id="mapimg"/></defs></svg>
 </main>
 
 <script>
@@ -378,7 +406,8 @@ STOPS.forEach((s,i)=>{const k=SI[i];s.km=TRK.cd[k]/1000;s.m=TRK.el[k];
 /* ---------- route-wide numbers, for the header, profile and summaries ---------- */
 const ROUTE_META=(self.HIKES||[]).find(h=>h.id===R.id);
 const PLAN_MV=STOPS.reduce((a,s)=>a+s.mv,0), PLAN_BR=STOPS.slice(0,-1).reduce((a,s)=>a+s.b,0);
-const UP_TOT=(()=>{let up=0,ref=TRK.el[0];for(const e of TRK.el){if(e-ref>3){up+=e-ref;ref=e}else if(ref-e>3)ref=e}return Math.round(up)})(), HI_STOP=STOPS.reduce((a,s,i)=>s.m>STOPS[a].m?i:a,0);
+// climb as the route list and the builder state it (the track's own sum differs by a few metres)
+const UP_TOT=ROUTE_META?.up??(()=>{let up=0,ref=TRK.el[0];for(const e of TRK.el){if(e-ref>3){up+=e-ref;ref=e}else if(ref-e>3)ref=e}return Math.round(up)})(), HI_STOP=STOPS.reduce((a,s,i)=>s.m>STOPS[a].m?i:a,0);
 // whole-route profile: the route's own, or 160 samples straight from the track
 const PROF=R.prof||Array.from({length:160},(_,j)=>{const m=TRK.cd[TRK.n-1]*j/159;
   let k=0;while(k<TRK.n-2&&TRK.cd[k+1]<m)k++;const f=(m-TRK.cd[k])/Math.max(1,TRK.cd[k+1]-TRK.cd[k]);
@@ -578,7 +607,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-15 07:00';
+const BUILD='2026-10-15 20:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1074,6 +1103,7 @@ function whyNoPos(P,now){
   return 'No position yet';
 }
 function update(){
+  try{liveLayout()}catch(e){}
   if(state.ci[0]!=null&&state.date!==isoToday()){state.date=isoToday();sunFor();$('pdate').value=state.date}
   const P=project(),now=nowRel(),L=lastIdx();
   $('planbox').hidden=P.started||R.deadline?.kind!=='gate';
@@ -1289,6 +1319,26 @@ function profile(P,now){
     g.insertBefore(r,g.firstChild)}catch(e){}});
 }
 
+/* ---------- tabs ---------- */
+// Plan before the hike, Stops on the trail; Map and Info on demand. The choice lasts while the page is open.
+let TAB=null,wasLive=null;
+function showTab(t){
+  TAB=t;
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  document.querySelectorAll('.tab').forEach(p=>p.hidden=p.id!=='tab-'+t);
+  if(t==='map')update();          // the map's labels are measured to draw their cards: redraw now that it shows
+}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b){showTab(b.dataset.tab);$('tabs').scrollIntoView({block:'nearest'})}});
+// the dark bar pins above the tabs while you are on the trail; starting the hike opens Stops
+function liveLayout(){
+  const live=state.ci[0]!=null&&state.ci[N-1]==null;
+  $('stick').classList.toggle('live',live);
+  if(live!==wasLive){if(wasLive!==null||TAB===null)showTab(live?'stops':(TAB||'plan'));wasLive=live}
+}
+$('list').addEventListener('click',e=>{const n=e.target.closest('li.stop .name');if(!n)return;const li=n.closest('li.stop');
+  const shown=li.classList.contains('open')||(li.classList.contains('isnext')&&!li.classList.contains('shut'));
+  li.classList.toggle('open',!shown);li.classList.toggle('shut',shown)});
+
 /* ---------- wiring ---------- */
 $('dep').addEventListener('input',e=>{if(e.target.value){state.dep=e.target.value;update()}});
 $('pdate').addEventListener('change',e=>{if(/^\d{4}-\d\d-\d\d$/.test(e.target.value)){state.date=e.target.value;state.datePicked=true;sunFor();
@@ -1328,7 +1378,8 @@ $('autochk').addEventListener('change',e=>{state.auto=e.target.checked;if(state.
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){gpsAuto();autoLogic();update()}});
 window.addEventListener('pageshow',()=>{autoLogic();update()});
 $('mapov').addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;
-  const el=$('s'+g.dataset.go);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})});
+  const el=$('s'+g.dataset.go);if(!el)return;showTab('stops');el.classList.add('open');el.classList.remove('shut');
+  requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))});
 $('zoom').addEventListener('click',()=>{const w=$('mapwrap'),z=w.classList.toggle('zoom');
   $('zoom').textContent=z?'Fit map':'Enlarge map';
   if(z)requestAnimationFrame(()=>{const sc=w.scrollWidth/MW;w.scrollLeft=mapFocus[0]*sc-w.clientWidth/2;w.scrollTop=mapFocus[1]*sc-w.clientHeight/2})});
@@ -1394,10 +1445,13 @@ function setupPage(){
   if(ROUTE_META?.go){const d=$('drive');d.hidden=false;
     d.innerHTML=`<a href="${gm(ROUTE_META.go)}" target="_blank" rel="noopener">➜ Directions: ${ROUTE_META.go[2]}</a>`
       +(ROUTE_META.goEnd?`<a href="${gm(ROUTE_META.goEnd)}" target="_blank" rel="noopener">➜ ${ROUTE_META.goEnd[2]}</a>`:'')}
+  if(ROUTE_META?.at){const d=$('drive'),a=document.createElement('a');a.href='https://www.alltrails.com/'+ROUTE_META.at;a.target='_blank';a.rel='noopener';
+    a.textContent='Open in AllTrails';d.appendChild(a);d.hidden=false}
   if(ROUTE_META?.coverCredit){const c=$('covercred');c.textContent=ROUTE_META.coverCredit[0];c.href=ROUTE_META.coverCredit[1];c.hidden=false}
   const st=[[U.dist(TOT),'distance'],['+'+U.elev(UP_TOT),'climb'],
     [U.elev(STOPS[HI_STOP].m),'high point'],[dur(PLAN_MV),'moving']];
-  $('stats').innerHTML=st.map(([b,s])=>`<div><b>${b}</b><span>${s}</span></div>`).join('');
+  $('stats').innerHTML=st.map(([b,s])=>`<span><b>${b}</b>${s}</span>`).join('');
+  if(ROUTE_META?.blurb)$('about').textContent=ROUTE_META.blurb;
   $('summary').textContent=R.summary||'';
   const img=$('mapimg');img.setAttribute('width',MW);img.setAttribute('height',MH);img.setAttribute('href',R.map.src);
   $('map').setAttribute('viewBox',`0 0 ${MW} ${MH}`);
@@ -1410,6 +1464,7 @@ function setupPage(){
   if(R.map.credit)$('mapcred').textContent=R.map.credit;
   if(TURN!=null&&R.map.route)$('legend').hidden=false;
   $('simhref').href='planner.html?r='+encodeURIComponent(R.id)+'&sim=1';if(window.__SIM)$('simlink').hidden=true;
+  if(!window.__SIM){const d=$('drive'),a=document.createElement('a');a.href=$('simhref').href;a.textContent='Rehearse the hike';d.appendChild(a)}
 }
 
 /* ---------- the day itself: forecast for the plan date, and what to bring ----------
@@ -1565,9 +1620,11 @@ function renderDay(P){
   const nsrc=b.nw?` Official forecast and alerts: <a href="https://forecast.weather.gov/MapClick.php?lat=${pt}" target="_blank" rel="noopener">National Weather Service</a> (NOAA), updated ${new Date(b.nw.at).toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'})}.`
     :ahead>=0&&ahead<=6&&navigator.onLine?' Fetching the official NWS forecast…':ahead>6&&ahead<=15?' The official NWS forecast starts 7 days ahead.':'';
   $('daybody').innerHTML=alerts+`<div class="wxrow num">${chips.map(c=>`<span class="${/Rain [5-9]\d|Rain 100|Gusts [4-9]\d/.test(c)?'warn':''}">${c}</span>`).join('')}</div>`
+    +`<ul class="kitshort">${b.bring.slice(0,3).map(x=>`<li>${x[0]}</li>`).join('')}</ul>`
+    +`<details class="dmore"><summary>Full packing list, reasons and forecast notes ›</summary>`
     +(b.note.length?`<p class="dline">${b.note.join(' ')}</p>`:'')
     +`<div class="kit"><div><h3>Bring</h3><ul>${li(b.bring)}</ul></div>${b.leave.length?`<div class="no"><h3>Leave at home</h3><ul>${li(b.leave)}</ul></div>`:''}</div>`
-    +nwsTxt+`<p class="dsrc">${src}${nsrc}</p>`;
+    +nwsTxt+`<p class="dsrc">${src}${nsrc}</p></details>`;
 }
 function renderReviews(){
   const r=R.reviews;if(!r)return;

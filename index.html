@@ -34,63 +34,13 @@ h1{font:600 30px/1.05 var(--cond);margin:4px 0 2px}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:56px;height:56px;object-fit:contain;}
 .sub{color:var(--muted);margin:0 0 16px;font-size:14px}
-h2{font:600 21px/1.15 var(--cond);margin:22px 0 4px}
-.peak{color:var(--muted);font-size:14px;margin:0 0 10px}
 .units{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
 .units button{background:none;border:0;padding:5px 9px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
 .units button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
 .units button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .hctl{display:flex;align-items:center;gap:8px}
 .ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
-a.card{display:block;color:inherit;text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:4px}
-.try{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;margin:0 0 14px;font-size:12.5px;color:var(--muted)}
-/* a subtle rule closes each hike (its card and links), except the last one */
-#list .try{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid color-mix(in srgb,var(--rule) 60%,transparent)}
-#list .try:last-child{border-bottom:0;padding-bottom:0}
-#list .try+h2{margin-top:0}.try a{color:var(--ink);font-weight:600}
-.try .r{margin-left:auto;text-align:right}
-a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.cv{position:relative;aspect-ratio:16/8;background:#1C2A2E}
-.cv img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
-.cv .t{position:absolute;inset:auto 0 0 0;padding:26px 12px 9px;color:#fff;background:linear-gradient(transparent,rgba(10,16,18,.85))}
-.cv .t b{display:block;font:600 24px/1.05 var(--cond)}
-.cv .t span{font:600 15px/1.2 var(--cond);opacity:.92}
-/* pills on the cover: difficulty in its colour, then distance, time and highlights as quieter glass pills */
-.chips{position:absolute;top:10px;left:10px;right:10px;display:flex;flex-wrap:wrap;gap:5px;pointer-events:none}
-.chip{border-radius:14px;padding:3px 9px;font:600 12px/1.25 var(--body);color:#fff;background:rgba(12,18,20,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);white-space:nowrap}
-/* difficulty: same pill as the others, its colour only in a small dot (the map's dot colours) */
-.chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
-.chip i.easy{background:#4E9A63}.chip i.medium{background:#D49A22}.chip i.hard{background:#D2563A}
-.chip.done{margin-left:auto}
-.st{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 12px 2px}
-.st b{display:block;font:600 18px/1.1 var(--cond);font-variant-numeric:tabular-nums;white-space:nowrap}
-.st span{font-size:11.5px;color:var(--muted)}
-.bl{margin:6px 12px 4px;font-size:14px}
-.pl{margin:6px 12px 0;font-size:13px;color:var(--muted)}
-#list>a.card:first-child{margin-top:16px}
-.cc{margin:0 12px 10px;font-size:11px;color:var(--muted)}
 .fine{color:var(--muted);font-size:13px;margin-top:22px;border-top:1px solid var(--rule);padding-top:12px}
-#off{border:1px solid var(--rule);border-radius:10px;padding:9px 12px;margin:0 0 6px;font-size:14px;background:var(--panel)}
-#off.ready{border-color:var(--ok)} #off.no{border-color:var(--warn)}
-.ov{background:var(--panel);border:1px solid var(--rule);border-radius:12px;margin:10px 0 4px;overflow:hidden}
-.ov summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 12px;cursor:pointer;list-style:none;font:600 19px/1.1 var(--cond)}
-.ov summary::-webkit-details-marker{display:none}
-.ov summary::after{content:'Hide';font:14px var(--body);color:var(--muted)}
-.ov:not([open]) summary::after{content:'Show'}
-.ov summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-/* filters: one row of pills per characteristic; pills in a row are OR, rows are AND */
-.flt{display:flex;flex-direction:column;gap:6px;padding:0 12px 10px}
-.frow{display:grid;grid-template-columns:74px 1fr;align-items:start;gap:6px;padding:1px}
-.frow>div{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
-.frow>span{padding-top:7px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.pill{flex:0 0 auto;font:600 13px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap}
-.pill small{font-weight:400;color:var(--muted);margin-left:4px}
-.pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.pill[aria-pressed="true"] small{color:inherit;opacity:.75}
-.pill:disabled{opacity:.4;cursor:default}
-.pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.fsum{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
-.fsum button{background:none;border:0;padding:2px 0;font:600 13px var(--body);color:var(--accent);cursor:pointer}
 /* the map: drag to pan, pinch / wheel / double-tap to zoom; drawn with one transform */
 .ovmap{position:relative;overflow:hidden;aspect-ratio:16/9;max-width:100%;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:#A8C8DE;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .ovmap.drag{cursor:grabbing}
@@ -99,11 +49,6 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 :root[data-theme="dark"] .ovin img{filter:brightness(.72) saturate(.85)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ovin img{filter:brightness(.72) saturate(.85)}}
 .ovin svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.ovctl{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
-.ovctl button{width:36px;height:36px;border-radius:8px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font:600 20px/1 var(--body);cursor:pointer;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.18)}
-.ovctl button:disabled{opacity:.45;cursor:default}
-.ovctl button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.ovctl #ovreset{font-size:11px;font-weight:700;letter-spacing:.02em}
 .ovpl{font:600 13px var(--body);fill:var(--ink);stroke:var(--panel);paint-order:stroke;pointer-events:none}
 .ovdot{cursor:pointer}
 .ovdot circle{stroke:#fff}
@@ -118,19 +63,60 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ovhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 12px 8px;font-size:13px;color:var(--muted)}
 .ovhead b{color:var(--ink);font-weight:600}
 .ovhead button{background:none;border:0;padding:2px 0;font:600 13px var(--body);color:var(--accent);cursor:pointer;white-space:nowrap}
-.ovpick{display:flex;gap:10px;overflow-x:auto;padding:0 12px 12px;scroll-snap-type:x proximity}
-.ovpick .ovc{scroll-snap-align:start}
-.ovnone{margin:0;color:var(--muted);font-size:13px}
-.ovc{flex:0 0 236px;display:block;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
-.ovc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.ovcv{position:relative}
-.ovc img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:50% 30%;background:#1C2A2E}
-.ovc .chips{top:7px;left:7px;right:7px;gap:4px}
-.ovc .chip{font-size:11px;padding:2px 7px}
-.ovc .chip.done{display:none}
-.ovc>b{display:block;font:600 17px/1.1 var(--cond);padding:7px 9px 0}
-.ovc>span{display:block;font-size:12.5px;color:var(--muted);padding:2px 9px 8px;font-variant-numeric:tabular-nums}
-.none{background:var(--panel);border:1px dashed var(--rule);border-radius:12px;padding:18px 14px;margin-top:16px;color:var(--muted);text-align:center}
+/* header: as before, with more air around it */
+header{margin-bottom:14px;padding-top:4px}
+.hctl{gap:10px}
+/* offline status: a small chip; it grows into a message only when something needs attention */
+.off{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:3px 11px;margin:0 0 16px;background:var(--panel)}
+.off.ready{color:var(--ok);border-color:var(--ok)}
+.off.no{display:block;border-radius:10px;padding:9px 12px;color:var(--ink);border-color:var(--warn);font-size:14px}
+.find h2{font:600 22px/1.15 var(--cond);margin:0 0 10px}
+/* filter chips: each opens a sheet; an active one shows its choice and an ✕ */
+.facets{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:1px 1px 2px;margin:0 -1px}
+.facets::-webkit-scrollbar{display:none}
+.fc{flex:0 0 auto;font:600 13.5px var(--body);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.fc span{color:var(--muted)}
+.fc.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.fc.on span{color:inherit;opacity:.8}
+.fc:focus-visible,.opt:focus-visible,.showb:focus-visible,.linkb:focus-visible,.seg button:focus-visible,.hk:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fbar{display:flex;align-items:center;gap:12px;margin:12px 0 10px;font-size:13.5px;color:var(--muted)}
+.fbar #fcount{font-weight:600;color:var(--ink)}
+.linkb{background:none;border:0;padding:2px 0;font:600 13.5px var(--body);color:var(--accent);cursor:pointer}
+.seg{margin-left:auto;display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{background:none;border:0;padding:5px 12px;font:600 13px var(--body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+#mapview{background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin:0 0 10px}
+#mapview .ovmap{border-top:0}
+.ovhead{padding-top:0}
+/* one row per hike */
+.rows{display:flex;flex-direction:column;gap:8px}
+.hk{display:grid;grid-template-columns:96px 1fr auto;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;color:inherit;text-decoration:none;min-height:84px}
+.hk .th{position:relative;align-self:stretch;background:#1C2A2E}
+.hk .th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 35%}
+.hk .th i{position:absolute;left:7px;top:7px;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 2px #fff}
+.hk .th i.easy{background:#4E9A63}.hk .th i.medium{background:#D49A22}.hk .th i.hard{background:#D2563A}
+.hk .tx{min-width:0;padding:9px 0}
+.hk b{display:block;font:600 18px/1.12 var(--cond)}
+.hk .s .nw{white-space:nowrap}
+.hk .s{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.hk .tg{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.hk .tg span{font-size:11px;line-height:1.5;border:1px solid var(--rule);border-radius:999px;padding:0 7px;color:var(--muted)}
+.hk .tg .dn{color:var(--ok);border-color:var(--ok)}
+.hk .chev{padding-right:12px;color:var(--muted);font-size:22px}
+.none{background:var(--panel);border:1px dashed var(--rule);border-radius:12px;padding:18px 14px;margin:0;color:var(--muted);text-align:center}
+/* the filter sheet */
+.sheetbg{position:fixed;inset:0;background:rgba(10,16,18,.42);z-index:20}
+.fsheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:560px;margin:0 auto;background:var(--panel);border-radius:16px 16px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.25);
+  padding:8px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:2px;max-height:80vh;overflow:auto}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--rule);align-self:center;margin:2px 0 8px}
+.shh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.shh b{font:600 20px var(--cond)}
+.shg{margin:10px 0 2px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:10px;background:none;border:0;border-top:1px solid var(--rule);padding:12px 2px;font:15px var(--body);color:var(--ink);cursor:pointer;text-align:left}
+.opt small{color:var(--muted);font-size:12.5px;margin-left:4px}
+.opt b{font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.opt[aria-pressed="true"]{font-weight:600}.opt[aria-pressed="true"] b{color:var(--accent)}
+.opt:disabled{opacity:.4;cursor:default}
+.showb{margin-top:12px;background:var(--ink);color:var(--bg);border:0;border-radius:10px;padding:13px;font:700 15px var(--body);cursor:pointer}
 .credit{margin-top:24px;padding-top:12px;border-top:1px solid var(--rule);color:var(--muted);font-size:12.5px;text-align:center}
 .credit a{color:inherit}
 /* the logo in light ink on dark backgrounds */
@@ -146,17 +132,22 @@ a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="brand"><img class="logo lg-light" src="logo.png" alt="" width="56" height="56"><img class="logo lg-dark" src="logo-dark.png" alt="" width="56" height="56"><div><h1>Cairns</h1><p class="sub" style="margin:0">Hike planner</p></div></div>
   <div class="hctl" id="hctl"><button class="ghost" id="theme" type="button">Dark</button></div>
 </header>
-<p class="sub">Pick a route. Set the date, start time and forecast, and it times every stop, the turnaround and the finish. Works offline once opened.</p>
-<div id="off">Checking offline copy…</div>
-<details class="ov" id="ov" open><summary>Find your next hike</summary>
-  <div class="flt" id="flt" role="group" aria-label="Filter the hikes"></div>
-  <div class="ovmap" id="ovmap"><div class="ovin" id="ovin"><img id="ovimg" alt="Relief map of the region from Puget Sound to Leavenworth, with a dot at each trailhead" draggable="false"><svg id="ovsvg" role="group" aria-label="Trailheads"></svg></div>
-    <div class="ovctl"><button id="ovplus" type="button" aria-label="Zoom in">+</button><button id="ovminus" type="button" aria-label="Zoom out">−</button><button id="ovreset" type="button" aria-label="Reset the view">ALL</button></div></div>
-  <div class="ovbar"><span id="ovhint">Tap a dot for the hikes that start there. Pinch or double-tap to zoom.</span><span class="lgd"><span><i class="easy"></i>Easy</span><span><i class="medium"></i>Medium</span><span><i class="hard"></i>Hard</span></span></div>
-  <div class="ovhead" id="ovhead" aria-live="polite"></div>
-  <div class="ovpick" id="ovpick"></div>
-</details>
-<div id="list"></div>
+<div id="off" class="off">Checking offline copy…</div>
+<section class="find" aria-labelledby="findh">
+  <h2 id="findh">Find your next hike</h2>
+  <div class="facets" id="facets" role="group" aria-label="Filters"></div>
+  <div class="fbar"><span id="fcount" aria-live="polite"></span><button type="button" class="linkb" id="fclear" hidden>Clear filters</button>
+    <span class="seg" id="viewsw" role="group" aria-label="View"><button type="button" data-v="list">List</button><button type="button" data-v="map">Map</button></span></div>
+  <div id="mapview" hidden>
+    <div class="ovmap" id="ovmap"><div class="ovin" id="ovin"><img id="ovimg" alt="Relief map of the region from Puget Sound to Leavenworth, with a dot at each trailhead" draggable="false"><svg id="ovsvg" role="group" aria-label="Trailheads"></svg></div>
+      <div class="ovctl"><button id="ovplus" type="button" aria-label="Zoom in">+</button><button id="ovminus" type="button" aria-label="Zoom out">−</button><button id="ovreset" type="button" aria-label="Reset the view">ALL</button></div></div>
+    <div class="ovbar"><span id="ovhint">Tap a dot for the hikes that start there.</span><span class="lgd"><span><i class="easy"></i>Easy</span><span><i class="medium"></i>Medium</span><span><i class="hard"></i>Hard</span></span></div>
+    <div class="ovhead" id="ovhead" hidden></div>
+  </div>
+  <div class="rows" id="rows"></div>
+</section>
+<div class="sheetbg" id="sheetbg" hidden></div>
+<div class="fsheet" id="fsheet" role="dialog" aria-modal="true" aria-labelledby="fsh" hidden></div>
 <footer class="credit">© 2026 · by El Loko Javi · <a href="https://github.com/ellokojavi/cairns" target="_blank" rel="noopener">GitHub</a></footer>
 </main>
 <script>
@@ -168,46 +159,84 @@ const n=v=>v.toLocaleString('en-US');
 const gmaps=g=>'https://www.google.com/maps/dir/?api=1&destination='+g[0]+','+g[1]+'&travelmode=driving';
 // a hike's name: "Peak — Route" where a peak has several routes, so every card and list says the same
 const hikeName=h=>HIKES.filter(x=>x.peak===h.peak).length>1?h.title+' — '+h.variant:h.title;
-function card(h,multi){
-  return `<a class="card" href="planner.html?r=${h.id}">
-    <div class="cv"><img src="${h.cover}" alt="" loading="lazy"><div class="chips">${coverPills(h)}</div>
-      <div class="t"><b>${hikeName(h)}</b><span>${multi?h.type:h.variant+' · '+h.type}</span></div></div>
-    <div class="st"><div><b>${U.dist(h.km*1000)}</b><span>distance</span></div><div><b>+${U.elev(h.up)}</b><span>climb</span></div>
-      <div><b>${U.elev(h.hi)}</b><span>high point</span></div><div><b>${dur(h.moving)}</b><span>moving</span></div></div>
-    <p class="pl">${h.place}</p><p class="bl">${h.blurb}</p>${h.coverCredit?`<p class="cc">Cover: ${h.coverCredit[0]}</p>`:''}</a>
-    <p class="try">${h.at?`<a href="https://www.alltrails.com/${h.at}" target="_blank" rel="noopener">Open in AllTrails</a>`:''}<span class="r">${h.go?`<a href="${gmaps(h.go)}" target="_blank" rel="noopener">Directions to the trailhead</a> · `:''}<a href="planner.html?r=${h.id}&amp;sim=1">Rehearse the hike</a></span></p>`;
+// the town a hike starts from, from its place line: "Mount Si NRCA, North Bend, WA" -> "North Bend"
+const town=h=>{const p=h.place.split(',').map(x=>x.trim());return(p[p.length-2]||p[0]).replace(/^near /,'')};
+const hrs=m=>Math.floor(m/60)+'\u00a0h'+(m%60?'\u00a0'+String(m%60).padStart(2,'0'):'');   // never split "6 h 35" across lines
+// one row per hike: thumbnail with the difficulty dot, name, the numbers, two tags at most. The row opens the planner.
+function row(h){
+  const pick=id=>FILTERS.find(f=>f.id===id).opts.find(o=>o[2](h)),dist=pick('dist'),d=DIFF(h);
+  const tags=[dist&&(dist[0]==='medium'?'Mid-length':dist[1]),...FILTERS.find(f=>f.id==='hl').opts.filter(o=>o[2](h)).map(o=>o[1])].filter(Boolean).slice(0,2);
+  return `<a class="hk" href="planner.html?r=${h.id}"><span class="th"><img src="${h.cover}" alt="" loading="lazy"><i class="${d}" title="${DIFF_NAME[d]}"></i></span>
+    <span class="tx"><b>${hikeName(h)}</b><span class="s">${[town(h),U.dist(h.km*1000),'+'+U.elev(h.up),hrs(h.moving+h.breaks)].map(x=>`<span class="nw">${x}</span>`).join(' · ')}</span>
+    <span class="tg"><span>${DIFF_NAME[d]}</span>${tags.map(t=>`<span>${t}</span>`).join('')}${h.done?'<span class="dn">✓ Walked</span>':''}</span></span><span class="chev" aria-hidden="true">›</span></a>`;
 }
-// routes on the same peak sit together; the filters above hide what does not match
-function renderList(){
-  const groups=[];HIKES.filter(h=>passes(h)).forEach(h=>{let g=groups.find(g=>g.peak===h.peak);if(!g)groups.push(g={peak:h.peak,list:[]});g.list.push(h)});
-  $('list').innerHTML=groups.length?groups.map(g=>{
-    const multi=HIKES.filter(h=>h.peak===g.peak).length>1;
-    // no headings: each card names its hike ("Mailbox Peak — New Trail" where a peak has several routes) and its place
-    return g.list.map(h=>card(h,multi)).join('');
-  }).join(''):'<p class="none">No hike matches all the filters. Clear one to see more.</p>';
+// the rows: every match, or in Map view after a tap on a dot, that trailhead's hikes only
+let rowSig='';
+function renderRows(){
+  const all=HIKES.filter(h=>passes(h)),any=FILTERS.some(f=>(FSEL[f.id]||[]).length);
+  const sel=VMODE==='map'&&ovSel?ovSel.split(',').map(id=>HIKES.find(h=>h.id===id)):null,hs=sel||all;
+  $('fcount').textContent=any?`${all.length} of ${HIKES.length} hikes`:`${HIKES.length} hikes`;
+  $('fclear').hidden=!any;
+  const oh=$('ovhead');oh.hidden=!sel;
+  if(sel)oh.innerHTML=`<span><b>${sel.length} ${sel.length===1?'hike':'hikes'} at this trailhead</b></span><button type="button" class="linkb" id="ovall">Show all ${all.length}</button>`;
+  $('ovhint').textContent=sel?'Tap a row to plan it.':'Tap a dot for the hikes that start there.';
+  const sig=hs.map(h=>h.id).join()+U.us+any;if(sig===rowSig)return;rowSig=sig;   // the map redraws on every zoom step: rebuild only on change
+  $('rows').innerHTML=hs.length?hs.map(row).join(''):'<p class="none">No hike matches all the filters. <button type="button" class="linkb" data-clear>Clear filters</button></p>';
 }
+$('rows').addEventListener('click',e=>{if(e.target.closest('[data-clear]')){FSEL={};applyFilters()}});
+$('ovhead').addEventListener('click',e=>{if(e.target.id==='ovall'){ovSel=null;renderRows();ovDraw()}});
 
 // ---------- filters: pills in a row are alternatives (OR), rows narrow each other (AND) ----------
 
 let FSEL={};try{FSEL=JSON.parse(localStorage.getItem('cairns-filters')||'{}')||{}}catch(e){}
 const passes=(h,skip)=>FILTERS.every(f=>f.id===skip||!(FSEL[f.id]||[]).length||f.opts.some(o=>FSEL[f.id].includes(o[0])&&o[2](h)));
-function drawFilters(){
-  const shown=HIKES.filter(h=>passes(h)),any=FILTERS.some(f=>(FSEL[f.id]||[]).length);
-  $('flt').innerHTML=FILTERS.map(f=>`<div class="frow"><span>${f.name}</span><div>${f.opts.map(o=>{
-      const on=(FSEL[f.id]||[]).includes(o[0]),cnt=HIKES.filter(h=>passes(h,f.id)&&o[2](h)).length;   // how many it would show
-      return `<button class="pill" type="button" data-f="${f.id}" data-o="${o[0]}" aria-pressed="${on}"${!on&&!cnt?' disabled':''}${o[3]?` title="${o[3]()}"`:''}>${o[1]}<small>${cnt}</small></button>`}).join('')}</div></div>`).join('')
-    +`<div class="fsum"><span>${any?`${shown.length} of ${HIKES.length} hikes match`:`${HIKES.length} hikes`}</span>${any?'<button type="button" id="fclear">Clear filters</button>':''}</div>`;
+// four chips; each opens a sheet with its options and how many hikes each would leave
+const FACETS=[['dist','Distance',['dist']],['diff','Difficulty',['diff']],['time','Time',['time']],['more','More',['pass','hl']]];
+const fopt=(g,id)=>FILTERS.find(f=>f.id===g).opts.find(o=>o[0]===id);
+function drawFacets(){
+  $('facets').innerHTML=FACETS.map(([id,name,gs])=>{const on=gs.flatMap(g=>(FSEL[g]||[]).map(o=>fopt(g,o)[1]));
+    return `<button type="button" class="fc${on.length?' on':''}" data-facet="${id}" aria-haspopup="dialog">${on.length?on[0]+(on.length>1?' +'+(on.length-1):''):name}<span aria-hidden="true">${on.length?' ✕':' ▾'}</span></button>`}).join('');
 }
+let SHEET=null;
+function drawSheet(){
+  const [id,name,gs]=FACETS.find(f=>f[0]===SHEET),n=HIKES.filter(h=>passes(h)).length;
+  $('fsheet').innerHTML=`<div class="grab" aria-hidden="true"></div><div class="shh"><b id="fsh">${name}</b><button type="button" class="linkb" data-sclear>Clear</button></div>`
+    +gs.map(g=>{const f=FILTERS.find(x=>x.id===g);return(gs.length>1?`<p class="shg">${f.name}</p>`:'')+f.opts.map(o=>{
+      const on=(FSEL[g]||[]).includes(o[0]),cnt=HIKES.filter(h=>passes(h,g)&&o[2](h)).length;
+      return `<button type="button" class="opt" data-g="${g}" data-o="${o[0]}" aria-pressed="${on}"${!on&&!cnt?' disabled':''}><span>${on?'✓ ':''}${o[1]}${o[3]?` <small>${o[3]()}</small>`:''}</span><b>${cnt}</b></button>`}).join('')}).join('')
+    +`<button type="button" class="showb" data-sclose>${n?`Show ${n} ${n===1?'hike':'hikes'}`:'No hikes match'}</button>`;
+}
+function openSheet(id){SHEET=id;drawSheet();$('fsheet').hidden=$('sheetbg').hidden=false;$('fsheet').querySelector('.opt')?.focus()}
+function closeSheet(){if(!SHEET)return;const id=SHEET;SHEET=null;$('fsheet').hidden=$('sheetbg').hidden=true;$('facets').querySelector(`[data-facet="${id}"]`)?.focus()}
+$('facets').addEventListener('click',e=>{const b=e.target.closest('[data-facet]');if(!b)return;
+  const gs=FACETS.find(f=>f[0]===b.dataset.facet)[2];
+  if(e.target.closest('span')&&gs.some(g=>(FSEL[g]||[]).length)){gs.forEach(g=>delete FSEL[g]);applyFilters();return}   // the ✕ clears that chip
+  openSheet(b.dataset.facet)});
+$('fsheet').addEventListener('click',e=>{
+  if(e.target.closest('[data-sclose]'))return closeSheet();
+  if(e.target.closest('[data-sclear]')){FACETS.find(f=>f[0]===SHEET)[2].forEach(g=>delete FSEL[g]);applyFilters();return}
+  const b=e.target.closest('.opt');if(!b||b.disabled)return;
+  const l=FSEL[b.dataset.g]=FSEL[b.dataset.g]||[],i=l.indexOf(b.dataset.o);i<0?l.push(b.dataset.o):l.splice(i,1);applyFilters()});
+$('sheetbg').addEventListener('click',closeSheet);
+addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+$('fclear').addEventListener('click',()=>{FSEL={};applyFilters()});
 function applyFilters(){
   try{localStorage.setItem('cairns-filters',JSON.stringify(FSEL))}catch(e){}
-  drawFilters();renderList();
-  ovSel=null;ovDraw();ovFit();   // a new filter shows all its matches, framed on the map
+  drawFacets();if(SHEET)drawSheet();
+  ovSel=null;renderRows();
+  if(VMODE==='map'){ovDraw();ovFit()}   // a new filter shows all its matches, framed on the map
 }
-$('flt').addEventListener('click',e=>{
-  if(e.target.id==='fclear'){FSEL={};applyFilters();return}
-  const b=e.target.closest('.pill');if(!b||b.disabled)return;
-  const l=FSEL[b.dataset.f]=FSEL[b.dataset.f]||[],i=l.indexOf(b.dataset.o);i<0?l.push(b.dataset.o):l.splice(i,1);applyFilters();
-});
+// List or Map: one at a time, remembered
+let VMODE='list',ovReady=false;try{if(localStorage.getItem('cairns-view')==='map')VMODE='map'}catch(e){}
+function setView(v){
+  VMODE=v;try{localStorage.setItem('cairns-view',v)}catch(e){}
+  $('viewsw').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));
+  $('mapview').hidden=v!=='map';
+  if(v==='map'&&$('ovimg').complete&&OVM.clientWidth){if(!ovReady){[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovReady=true}ovApply();ovDraw()}
+  if(v!=='map')ovSel=null;
+  rowSig='';renderRows();
+}
+$('viewsw').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b&&b.dataset.v!==VMODE)setView(b.dataset.v)});
 
 // ---------- overview map: a dot per trailhead; dots too close to tell apart on screen merge ----------
 const OV=OVERVIEW,OVM=$('ovmap'),OVI=$('ovin');
@@ -219,8 +248,6 @@ const zMin=()=>Math.max(1,OVM.clientHeight/(OVM.clientWidth*OV.H/OV.W));
 function ovHome(){const z=zMin(),w=OVM.clientWidth,xs=HIKES.filter(h=>h.go).map(h=>ovXY(h.go[1],h.go[0])).concat([ovXY(OV.places[0][1],OV.places[0][2])]);   // the hikes and Seattle
   const cx=(Math.min(...xs.map(p=>p[0]))+Math.max(...xs.map(p=>p[0])))/2,cy=(Math.min(...xs.map(p=>p[1]))+Math.max(...xs.map(p=>p[1])))/2,k=w*z/OV.W;
   return[z,w/2-cx*k,OVM.clientHeight/2-cy*k]}
-function ovCard(h){return `<a class="ovc" href="planner.html?r=${h.id}"><div class="ovcv"><img src="${h.cover}" alt="" loading="lazy"><div class="chips">${coverPills(h)}</div></div><b>${hikeName(h)}</b>
-  <span>${U.dist(h.km*1000)} · +${U.elev(h.up)} · ${dur(h.moving)} moving</span></a>`}
 function ovDraw(){
   const svg=$('ovsvg'),k=OVM.clientWidth*VIEW.z/OV.W||.1;   // screen px per map px
   svg.setAttribute('viewBox',`0 0 ${OV.W} ${OV.H}`);
@@ -249,20 +276,7 @@ function ovDraw(){
   if(ovSel){const g=[...svg.querySelectorAll('.ovdot')].find(g=>g.dataset.k.split(',').some(id=>ovSel.split(',').includes(id)));
     if(g){ovSel=g.dataset.k;ovPick(ovSel)}else ovPick(null)}else ovPick(null);
 }
-// the row under the map: every hike that matches the filters, or only the tapped trailhead's
-let ovPickSig='';
-function ovPick(key){
-  ovSel=key;
-  const all=HIKES.filter(h=>passes(h)),hs=key?key.split(',').map(id=>HIKES.find(h=>h.id===id)):all;
-  const any=FILTERS.some(f=>(FSEL[f.id]||[]).length),pl=k=>k===1?'hike':'hikes';
-  const head=key?`<span><b>${hs.length} ${pl(hs.length)} at this trailhead</b></span><button type="button" id="ovall">Show all ${all.length}</button>`
-    :`<span><b>${any?`${all.length} ${all.length===1?'hike matches':'hikes match'}`:`All ${all.length} hikes`}</b>${all.length>1?' · swipe for more':''}</span>`;
-  $('ovhint').textContent=key?'Tap a card to plan it.':'Tap a dot to see only the hikes that start there. Pinch or double-tap to zoom.';
-  const sig=head+hs.map(h=>h.id).join()+U.us;if(sig===ovPickSig)return;ovPickSig=sig;   // redrawn on every zoom step: rebuild only when it changes
-  $('ovhead').innerHTML=head;
-  const box=$('ovpick');box.innerHTML=hs.length?hs.map(ovCard).join(''):'<p class="ovnone">No hike matches all the filters. Clear one to see more.</p>';box.scrollLeft=0;
-}
-$('ovhead').addEventListener('click',e=>{if(e.target.id==='ovall'){ovPick(null);ovDraw()}});
+function ovPick(key){ovSel=key;renderRows()}
 // after a filter change: frame the hikes that match, so the change shows on the map
 function ovFit(){
   const hs=HIKES.filter(h=>h.go&&passes(h));
@@ -335,13 +349,11 @@ OVM.addEventListener('dblclick',e=>e.preventDefault());
 $('ovsvg').addEventListener('click',e=>{if(moved)return;const g=e.target.closest('.ovdot');if(!g){if(ovSel){ovPick(null);ovDraw()}return}
   const k=g.dataset.k;ovPick(k===ovSel?null:k);ovDraw()});
 $('ovsvg').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('.ovdot')){e.preventDefault();moved=false;e.target.closest('.ovdot').dispatchEvent(new MouseEvent('click',{bubbles:true}))}});
-$('ov').addEventListener('toggle',()=>{try{localStorage.setItem('cairns-map',$('ov').open?'open':'closed')}catch(e){}if($('ov').open){if(VIEW.z<zMin())[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovApply()}});
-try{if(localStorage.getItem('cairns-map')==='closed')$('ov').open=false}catch(e){}
-$('ovimg').addEventListener('load',()=>{[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovApply()});$('ovimg').src=OV.src;
-addEventListener('resize',()=>ovApply());
-drawFilters();renderList();
+$('ovimg').addEventListener('load',()=>{if(VMODE==='map'&&OVM.clientWidth){[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovReady=true;ovApply()}});$('ovimg').src=OV.src;
+addEventListener('resize',()=>{if(VMODE==='map')ovApply()});
+drawFacets();setView(VMODE);
 
-$('hctl').prepend(U.control(()=>{drawFilters();renderList();ovDraw()}));
+$('hctl').prepend(U.control(()=>{rowSig='';drawFacets();if(SHEET)drawSheet();renderRows();if(VMODE==='map')ovDraw()}));
 
 const r=document.documentElement;
 try{const th=localStorage.getItem('ench-theme');if(th)r.dataset.theme=th}catch(e){}
@@ -351,7 +363,7 @@ $('theme').addEventListener('click',()=>{const d=isDark();r.dataset.theme=d?'lig
   try{localStorage.setItem('ench-theme',r.dataset.theme)}catch(e){}});
 
 // offline: the service worker stores every route; say when that is done
-const off=(k,t)=>{$('off').className=k;$('off').innerHTML=t};
+const off=(k,t)=>{$('off').className='off '+k;$('off').innerHTML=t};
 if(!window.isSecureContext||!('serviceWorker' in navigator))off('no','<b>This copy cannot store itself offline.</b> Open the published link in Chrome or Safari.');
 else navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(()=>{
   // every file each route needs offline. The service worker stores them on install, but a download
@@ -361,7 +373,7 @@ else navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(()=>{
   const check=async()=>{
     const have=await Promise.all(NEED.map(u=>caches.match(u,{ignoreSearch:true}).then(Boolean)));
     const miss=NEED.filter((u,i)=>!have[i]);
-    if(!miss.length){off('ready','<b>Every route works in Airplane mode.</b> Add this page to your home screen to open it without the link.');return}
+    if(!miss.length){off('ready','✓ Every route works offline');return}
     off('no',`<b>Saving routes for offline… ${NEED.length-miss.length} of ${NEED.length}</b> Stay on a connection.`);
     const name=(await caches.keys()).filter(k=>k.startsWith('hike-')).sort().pop()||'hike-page';
     const c=await caches.open(name),failed=[];
