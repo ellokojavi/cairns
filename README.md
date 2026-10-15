@@ -31,7 +31,7 @@ keeps working because position comes from satellites, not the network.
 - **km | mi** switch next to Light/Dark, on every page: metric (km, m, °C, km/h) or US
   (miles, feet, °F, mph) for everything shown. Route data and the maths stay metric (`units.js`).
 - **Route list:** the header (logo, km | mi, Light/Dark), an "Every route works offline" chip,
-  then **Find your next hike**: four filter chips (Distance, Difficulty, Time, More: pass and
+  then **Find and track your next hike**: four filter chips (Distance, Difficulty, Time, More: pass and
   highlights). Each opens a sheet with how many hikes every option leaves and "Show N hikes";
   an active chip shows its choice and clears with ✕. Below, **List or Map** (remembered): one
   compact row per hike (thumbnail with a difficulty dot, town, distance, climb, total time, tags),

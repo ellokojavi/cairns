@@ -85,7 +85,7 @@ header{margin-bottom:14px;padding-top:4px}
 .seg button{background:none;border:0;padding:5px 12px;font:600 13px var(--body);color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 #mapview{background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin:0 0 10px}
-#mapview .ovmap{border-top:0}
+#mapview .ovmap{border-top:0;aspect-ratio:7/5}   /* in Map view the map leads: tall enough for a dot's card, wide enough for every trailhead */
 .ovhead{padding-top:0}
 /* one row per hike */
 .rows{display:flex;flex-direction:column;gap:8px}
@@ -102,6 +102,19 @@ header{margin-bottom:14px;padding-top:4px}
 .hk .tg span{font-size:11px;line-height:1.5;border:1px solid var(--rule);border-radius:999px;padding:0 7px;color:var(--muted)}
 .hk .tg .dn{color:var(--ok);border-color:var(--ok)}
 .hk .chev{padding-right:12px;color:var(--muted);font-size:22px}
+.ovpop{position:absolute;z-index:3;background:var(--panel);border:1px solid var(--rule);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.28);overflow:auto;cursor:auto;touch-action:pan-y}
+.poph{display:flex;justify-content:space-between;align-items:center;padding:7px 10px 5px;font-size:12.5px;color:var(--muted)}
+.poph b{font-weight:600}
+.popx{background:none;border:0;font-size:15px;color:var(--muted);cursor:pointer;padding:2px 4px}
+.poprow{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:7px 10px;border-top:1px solid var(--rule);color:inherit;text-decoration:none}
+.poprow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pth{position:relative;width:52px;height:40px;border-radius:6px;overflow:hidden;background:#1C2A2E}
+.pth img{width:100%;height:100%;object-fit:cover;display:block}
+.pth i{position:absolute;left:4px;top:4px;width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 1.5px #fff}
+.pth i.easy{background:#4E9A63}.pth i.medium{background:#D49A22}.pth i.hard{background:#D2563A}
+.ptx{min-width:0}.ptx b{display:block;font:600 15.5px/1.15 var(--cond)}
+.ptx span{display:block;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.poprow .chev{color:var(--muted);font-size:20px}
 .none{background:var(--panel);border:1px dashed var(--rule);border-radius:12px;padding:18px 14px;margin:0;color:var(--muted);text-align:center}
 /* the filter sheet */
 .sheetbg{position:fixed;inset:0;background:rgba(10,16,18,.42);z-index:20}
@@ -134,12 +147,13 @@ header{margin-bottom:14px;padding-top:4px}
 </header>
 <div id="off" class="off">Checking offline copy…</div>
 <section class="find" aria-labelledby="findh">
-  <h2 id="findh">Find your next hike</h2>
+  <h2 id="findh">Find and track your next hike</h2>
   <div class="facets" id="facets" role="group" aria-label="Filters"></div>
   <div class="fbar"><span id="fcount" aria-live="polite"></span><button type="button" class="linkb" id="fclear" hidden>Clear filters</button>
     <span class="seg" id="viewsw" role="group" aria-label="View"><button type="button" data-v="list">List</button><button type="button" data-v="map">Map</button></span></div>
   <div id="mapview" hidden>
     <div class="ovmap" id="ovmap"><div class="ovin" id="ovin"><img id="ovimg" alt="Relief map of the region from Puget Sound to Leavenworth, with a dot at each trailhead" draggable="false"><svg id="ovsvg" role="group" aria-label="Trailheads"></svg></div>
+      <div class="ovpop" id="ovpop" role="dialog" aria-label="Hikes at this trailhead" hidden></div>
       <div class="ovctl"><button id="ovplus" type="button" aria-label="Zoom in">+</button><button id="ovminus" type="button" aria-label="Zoom out">−</button><button id="ovreset" type="button" aria-label="Reset the view">ALL</button></div></div>
     <div class="ovbar"><span id="ovhint">Tap a dot for the hikes that start there.</span><span class="lgd"><span><i class="easy"></i>Easy</span><span><i class="medium"></i>Medium</span><span><i class="hard"></i>Hard</span></span></div>
     <div class="ovhead" id="ovhead" hidden></div>
@@ -174,7 +188,7 @@ function row(h){
 let rowSig='';
 function renderRows(){
   const all=HIKES.filter(h=>passes(h)),any=FILTERS.some(f=>(FSEL[f.id]||[]).length);
-  const sel=VMODE==='map'&&ovSel?ovSel.split(',').map(id=>HIKES.find(h=>h.id===id)):null,hs=sel||all;
+  const sel=null,hs=all;   // a tapped dot opens its card on the map (ovPop); the rows keep every match
   $('fcount').textContent=any?`${all.length} of ${HIKES.length} hikes`:`${HIKES.length} hikes`;
   $('fclear').hidden=!any;
   const oh=$('ovhead');oh.hidden=!sel;
@@ -276,7 +290,26 @@ function ovDraw(){
   if(ovSel){const g=[...svg.querySelectorAll('.ovdot')].find(g=>g.dataset.k.split(',').some(id=>ovSel.split(',').includes(id)));
     if(g){ovSel=g.dataset.k;ovPick(ovSel)}else ovPick(null)}else ovPick(null);
 }
-function ovPick(key){ovSel=key;renderRows()}
+function ovPick(key){ovSel=key;ovPop()}
+// the card that opens at a tapped dot: one hike, or every hike a numbered dot stands for, each a tap from its page
+let popSig='';
+function ovPop(){
+  const box=$('ovpop'),g=ovSel&&[...$('ovsvg').querySelectorAll('.ovdot')].find(x=>x.dataset.k===ovSel);
+  if(!g){box.hidden=true;popSig='';return}
+  const hs=ovSel.split(',').map(id=>HIKES.find(h=>h.id===id)),sig=ovSel+U.us;
+  if(sig!==popSig){popSig=sig;
+    box.innerHTML=`<div class="poph"><b>${hs.length>1?hs.length+' hikes start here':'Start here'}</b><button type="button" class="popx" aria-label="Close">✕</button></div>`
+      +hs.map(h=>{const d=DIFF(h);return `<a class="poprow" href="planner.html?r=${h.id}"><span class="pth"><img src="${h.cover}" alt=""><i class="${d}"></i></span>
+        <span class="ptx"><b>${hikeName(h)}</b><span>${U.dist(h.km*1000)} · +${U.elev(h.up)} · ${hrs(h.moving+h.breaks)} · ${DIFF_NAME[d]}</span></span><span class="chev" aria-hidden="true">›</span></a>`}).join('')}
+  box.hidden=false;
+  // place it next to the dot, inside the map: above the dot in the lower half, below it in the upper half
+  const mr=OVM.getBoundingClientRect(),cr=g.querySelector('circle').getBoundingClientRect(),W=OVM.clientWidth,H=OVM.clientHeight;
+  const cx=cr.left+cr.width/2-mr.left,cy=cr.top+cr.height/2-mr.top,rad=cr.width/2+6,pw=Math.min(300,W-16);
+  box.style.width=pw+'px';box.style.left=Math.max(8,Math.min(W-pw-8,cx-pw/2))+'px';
+  if(cy>H/2){box.style.top='';box.style.bottom=(H-cy+rad)+'px';box.style.maxHeight=Math.max(90,cy-rad-8)+'px'}
+  else{box.style.bottom='';box.style.top=(cy+rad)+'px';box.style.maxHeight=Math.max(90,H-cy-rad-8)+'px'}
+}
+$('ovpop').addEventListener('click',e=>{if(e.target.closest('.popx')){ovSel=null;ovPop();ovDraw()}});
 // after a filter change: frame the hikes that match, so the change shows on the map
 function ovFit(){
   const hs=HIKES.filter(h=>h.go&&passes(h));
@@ -316,7 +349,7 @@ $('ovreset').addEventListener('click',()=>ovAnimate(...ovHome()));
 const PT=new Map();let gest=null,moved=false,lastTap=null;
 const rel=e=>{const r=OVM.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
 OVM.addEventListener('pointerdown',e=>{
-  if(e.target.closest('.ovctl'))return;
+  if(e.target.closest('.ovctl')||e.target.closest('.ovpop'))return;   // the buttons and the card take their own taps
   PT.set(e.pointerId,rel(e));if(PT.size===1)moved=false;
   try{OVM.setPointerCapture(e.pointerId)}catch(err){}
   gest=null;
