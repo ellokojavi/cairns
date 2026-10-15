@@ -42,7 +42,7 @@ h1{font:600 30px/1.05 var(--cond);margin:4px 0 2px}
 .ghost{background:none;border:1px solid var(--rule);border-radius:6px;padding:5px 10px;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
 .fine{color:var(--muted);font-size:13px;margin-top:22px;border-top:1px solid var(--rule);padding-top:12px}
 /* the map: drag to pan, pinch / wheel / double-tap to zoom; drawn with one transform */
-.ovmap{position:relative;overflow:hidden;aspect-ratio:16/9;max-width:100%;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:#A8C8DE;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.ovmap{position:relative;overflow:hidden;aspect-ratio:16/9;max-width:100%;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:#A8C8DE;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;cursor:grab}
 .ovmap.drag{cursor:grabbing}
 .ovin{position:absolute;left:0;top:0;width:100%;transform-origin:0 0;will-change:transform}
 .ovin img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none}
@@ -50,7 +50,8 @@ h1{font:600 30px/1.05 var(--cond);margin:4px 0 2px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ovin img{filter:brightness(.72) saturate(.85)}}
 .ovin svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .ovpl{font:600 13px var(--body);fill:var(--ink);stroke:var(--panel);paint-order:stroke;pointer-events:none}
-.ovdot{cursor:pointer}
+.ovdot{cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+.ovdot:focus-visible circle{stroke:var(--ink);stroke-width:3}
 .ovdot circle{stroke:#fff}
 .ovdot.easy circle{fill:#3C7A4E}.ovdot.medium circle{fill:#B07A12}.ovdot.hard circle{fill:#B0432A}.ovdot.mixed circle{fill:#1C2A2E}
 .ovdot.sel circle{stroke:var(--ink)}
@@ -346,11 +347,11 @@ $('ovplus').addEventListener('click',()=>ovZoomBy(2));
 $('ovminus').addEventListener('click',()=>ovZoomBy(.5));
 $('ovreset').addEventListener('click',()=>ovAnimate(...ovHome()));
 // pointers: one finger drags, two pinch; a quick second tap zooms in; a tap without movement stays a click
-const PT=new Map();let gest=null,moved=false,lastTap=null;
+const PT=new Map();let gest=null,moved=false,lastTap=null,downDot=null;
 const rel=e=>{const r=OVM.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
 OVM.addEventListener('pointerdown',e=>{
   if(e.target.closest('.ovctl')||e.target.closest('.ovpop'))return;   // the buttons and the card take their own taps
-  PT.set(e.pointerId,rel(e));if(PT.size===1)moved=false;
+  PT.set(e.pointerId,rel(e));if(PT.size===1){moved=false;downDot=e.target.closest('.ovdot')?.dataset.k??null}else downDot=null;
   try{OVM.setPointerCapture(e.pointerId)}catch(err){}
   gest=null;
 });
@@ -372,16 +373,19 @@ OVM.addEventListener('pointermove',e=>{
 const ptEnd=e=>{
   if(!PT.has(e.pointerId))return;const p=PT.get(e.pointerId);PT.delete(e.pointerId);
   if(!PT.size){OVM.classList.remove('drag');gest=null;ovApply();
-    if(!moved&&e.type==='pointerup'&&!e.target.closest('.ovdot')){   // double tap on the map: zoom in there
-      const now=Date.now();if(lastTap&&now-lastTap.t<320&&Math.hypot(p[0]-lastTap.p[0],p[1]-lastTap.p[1])<30){ovZoomBy(2,p[0],p[1]);lastTap=null}else lastTap={t:now,p}}
+    // a tap is handled here, not by click: the redraw above replaces the dot under the finger, so its click never comes
+    if(!moved&&e.type==='pointerup'){
+      if(downDot){ovTap(downDot);lastTap=null}
+      else{if(ovSel){ovPick(null);ovDraw()}
+        const now=Date.now();if(lastTap&&now-lastTap.t<320&&Math.hypot(p[0]-lastTap.p[0],p[1]-lastTap.p[1])<30){ovZoomBy(2,p[0],p[1]);lastTap=null}else lastTap={t:now,p}}}   // double tap on the map: zoom in there
+    downDot=null;
   }else gest=null;
 };
 OVM.addEventListener('pointerup',ptEnd);OVM.addEventListener('pointercancel',ptEnd);
 OVM.addEventListener('wheel',e=>{e.preventDefault();const[cx,cy]=rel(e);ovZoomAt(Math.exp(-e.deltaY*(e.deltaMode?0.05:0.0022)),cx,cy)},{passive:false});
 OVM.addEventListener('dblclick',e=>e.preventDefault());
-$('ovsvg').addEventListener('click',e=>{if(moved)return;const g=e.target.closest('.ovdot');if(!g){if(ovSel){ovPick(null);ovDraw()}return}
-  const k=g.dataset.k;ovPick(k===ovSel?null:k);ovDraw()});
-$('ovsvg').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('.ovdot')){e.preventDefault();moved=false;e.target.closest('.ovdot').dispatchEvent(new MouseEvent('click',{bubbles:true}))}});
+function ovTap(k){ovPick(k===ovSel?null:k);ovDraw()}
+$('ovsvg').addEventListener('keydown',e=>{const g=e.target.closest('.ovdot');if((e.key==='Enter'||e.key===' ')&&g){e.preventDefault();ovTap(g.dataset.k)}});
 $('ovimg').addEventListener('load',()=>{if(VMODE==='map'&&OVM.clientWidth){[VIEW.z,VIEW.x,VIEW.y]=ovHome();ovReady=true;ovApply()}});$('ovimg').src=OV.src;
 addEventListener('resize',()=>{if(VMODE==='map')ovApply()});
 drawFacets();setView(VMODE);
