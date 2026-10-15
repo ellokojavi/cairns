@@ -271,6 +271,9 @@ details.dmore>summary::-webkit-details-marker{display:none}
 #planbox .wide{grid-column:1/-1}
 #planbox .pair{display:flex;gap:6px}
 #planbox p{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--muted)}
+#planbox .gline{font-size:14px;color:var(--muted)}
+#planbox .gline b{color:var(--ink);font-weight:600}
+#planbox .gline button{background:none;border:0;padding:0 0 0 2px;font:600 14px var(--body);color:var(--accent);cursor:pointer;text-decoration:underline}
 #gpxlink{color:inherit}
 details.fold{padding:0}
 details.fold>summary{padding:12px 14px;font:600 18px/1.2 var(--cond);cursor:pointer;list-style:none}
@@ -339,7 +342,8 @@ details.fold>div{padding:0 14px 12px}
 <p class="who" id="when"></p>
 <p class="sub"><span id="sun"></span></p>
 <div class="panel" id="planbox">
-  <label class="wide" id="gaterow" hidden>Parking gate closes (posted time)<input type="time" id="pgate"></label>
+  <p class="gline" id="gline"></p>
+  <label class="wide" id="gaterow" hidden>Closing time on the sign<input type="time" id="pgate"></label>
   <p>Cutoffs count back from the gate, not from dark.</p>
 </div>
 <details class="panel fold" id="daybox" open><summary id="daysum">Your day</summary><div id="daybody"></div></details>
@@ -616,7 +620,7 @@ function modelAt(m){
   }
   return{mv,br};
 }
-const BUILD='2026-10-15 20:30';
+const BUILD='2026-10-15 21:00';
 const LOCAL=/^(file|content):$/.test(location.protocol)||!window.isSecureContext;
 const $=id=>document.getElementById(id);
 const toMin=s=>{if(!s)return null;const p=s.split(':').map(Number);return isNaN(p[0])?null:p[0]*60+p[1]};
@@ -1113,6 +1117,7 @@ function whyNoPos(P,now){
 }
 function update(){
   try{liveLayout()}catch(e){}
+  gateLine();
   if(state.ci[0]!=null&&state.date!==isoToday()){state.date=isoToday();sunFor();$('pdate').value=state.date}
   const P=project(),now=nowRel(),L=lastIdx();
   $('planbox').hidden=P.started||R.deadline?.kind!=='gate';
@@ -1352,7 +1357,16 @@ $('list').addEventListener('click',e=>{const n=e.target.closest('li.stop .name')
 $('dep').addEventListener('input',e=>{if(e.target.value){state.dep=e.target.value;update()}});
 $('pdate').addEventListener('change',e=>{if(/^\d{4}-\d\d-\d\d$/.test(e.target.value)){state.date=e.target.value;state.datePicked=true;sunFor();
   if(!state.gate&&R.deadline?.kind==='gate')$('pgate').value=fmt(DEADLINE);update()}});
-$('pgate').addEventListener('change',e=>{state.gate=e.target.value||null;sunFor();if(!state.gate)$('pgate').value=fmt(DEADLINE);update()});
+$('pgate').addEventListener('change',e=>{state.gate=e.target.value||null;sunFor();if(!state.gate)$('pgate').value=fmt(DEADLINE);$('gaterow').hidden=true;update()});
+// the gate time reads as text: the estimate until you type the time posted on the sign
+function gateLine(){
+  if(R.deadline?.kind!=='gate')return;const lab=R.deadline.label[0].toUpperCase()+R.deadline.label.slice(1);
+  $('gline').innerHTML=state.gate?`<b>${lab} closes ${fmt(DEADLINE)}</b> · from the sign · <button type="button" data-g="edit">Change</button> · <button type="button" data-g="reset">Use the estimate</button>`
+    :`<b>${lab} closes ~${fmt(DEADLINE)}</b> · estimate, check the sign · <button type="button" data-g="edit">Change</button>`;
+}
+$('gline').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;
+  if(b.dataset.g==='reset'){state.gate=null;sunFor();$('pgate').value=fmt(DEADLINE);update();return}
+  $('gaterow').hidden=false;$('pgate').focus()});
 $('bigbtn').addEventListener('click',e=>tap(+e.currentTarget.dataset.i));
 $('manualci').addEventListener('click',()=>{const nx=lastIdx()+1;if(nx<N){tap(nx)}});
 $('resumebtn').addEventListener('click',()=>{
@@ -1650,7 +1664,7 @@ if(!state.date||state.date<isoToday()&&state.ci[0]==null)state.date=R.date&&R.da
 sunFor();
 $('dep').value=state.dep;$('autochk').checked=state.auto;
 $('pdate').value=state.date;
-if(R.deadline?.kind==='gate'){$('gaterow').hidden=false;$('pgate').value=state.gate||fmt(DEADLINE)}
+if(R.deadline?.kind==='gate')$('pgate').value=state.gate||fmt(DEADLINE);
 build();if(staleNote)note('Check-ins from another day were cleared. Today starts fresh.');update();gpsAuto();initOffline();checkLive();
 setInterval(()=>{if(armed===null){autoLogic();update()}},15000);</script>
 </body>
