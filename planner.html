@@ -1563,7 +1563,7 @@ function renderDay(P){
   const nwsTxt=b.nw&&b.nw.text.length?`<details class="nwstxt"><summary>NWS forecast for the top, in words</summary>${b.nw.text.map(p=>`<p><b>${esc(p.n)}:</b> ${esc(p.d)}</p>`).join('')}</details>`:'';
   const pt=`${TRK.la[SI[HI_STOP]].toFixed(4)}&lon=${TRK.lo[SI[HI_STOP]].toFixed(4)}`;
   const nsrc=b.nw?` Official forecast and alerts: <a href="https://forecast.weather.gov/MapClick.php?lat=${pt}" target="_blank" rel="noopener">National Weather Service</a> (NOAA), updated ${new Date(b.nw.at).toLocaleString('en-US',{weekday:'short',hour:'2-digit',minute:'2-digit'})}.`
-    :ahead>=0&&ahead<=6&&navigator.onLine?' Fetching the official NWS forecast…':ahead>6&&ahead<=15?' The official NWS forecast starts 7 days ahead.':'';
+    :ahead>=0&&ahead<=6&&navigator.onLine?(b.fc?' Fetching the official NWS forecast…':''):ahead>6&&ahead<=15?' The official NWS forecast starts 7 days ahead.':'';
   $('daybody').innerHTML=alerts+`<div class="wxrow num">${chips.map(c=>`<span class="${/Rain [5-9]\d|Rain 100|Gusts [4-9]\d/.test(c)?'warn':''}">${c}</span>`).join('')}</div>`
     +(b.note.length?`<p class="dline">${b.note.join(' ')}</p>`:'')
     +`<div class="kit"><div><h3>Bring</h3><ul>${li(b.bring)}</ul></div>${b.leave.length?`<div class="no"><h3>Leave at home</h3><ul>${li(b.leave)}</ul></div>`:''}</div>`
